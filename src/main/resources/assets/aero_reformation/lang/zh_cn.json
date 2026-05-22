@@ -1,0 +1,17 @@
+{
+  "aero_reformation.nav_table.inverted_enable": "§a导航台反相模式：§6已启用",
+  "aero_reformation.nav_table.inverted_disable": "§7导航台反相模式：§8已关闭",
+
+  "aero_reformation.swivel.stiffness_0": "§7旋转轴承刚度：§f默认 (1x)",
+  "aero_reformation.swivel.stiffness_1": "§7旋转轴承刚度：§e中等 (3x)",
+  "aero_reformation.swivel.stiffness_2": "§7旋转轴承刚度：§c重型 (8x)",
+
+  "aero_reformation.swivel.swap_enabled": "§a双驱动模式：§6已启用",
+  "aero_reformation.swivel.swap_disabled": "§7双驱动模式：§8已关闭",
+
+  "aero_reformation.gimbal.inverted_enable": "§a陀螺仪反相模式：§6已启用",
+  "aero_reformation.gimbal.inverted_disable": "§7陀螺仪反相模式：§8已关闭",
+
+  "aero_reformation.torsion.redstone_enable": "§a扭力弹簧红石模式：§6已启用",
+  "aero_reformation.torsion.redstone_disable": "§7扭力弹簧红石模式：§8已关闭"
+}

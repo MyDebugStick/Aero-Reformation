@@ -1,0 +1,17 @@
+{
+  "aero_reformation.nav_table.inverted_enable": "Inverted redstone mode enabled",
+  "aero_reformation.nav_table.inverted_disable": "Inverted redstone mode disabled",
+
+  "aero_reformation.swivel.stiffness_0": "§7Swivel Stiffness: §fDefault (1x)",
+  "aero_reformation.swivel.stiffness_1": "§7Swivel Stiffness: §eMedium (3x)",
+  "aero_reformation.swivel.stiffness_2": "§7Swivel Stiffness: §cHeavy (8x)",
+
+  "aero_reformation.swivel.swap_enabled": "§aSwivel Dual-Drive: §6ON",
+  "aero_reformation.swivel.swap_disabled": "§7Swivel Dual-Drive: §8OFF",
+
+  "aero_reformation.gimbal.inverted_enable": "Gimbal Sensor inverted mode enabled",
+  "aero_reformation.gimbal.inverted_disable": "Gimbal Sensor inverted mode disabled",
+
+  "aero_reformation.torsion.redstone_enable": "§aTorsion Spring Redstone Mode: §6ON",
+  "aero_reformation.torsion.redstone_disable": "§7Torsion Spring Redstone Mode: §8OFF"
+}
