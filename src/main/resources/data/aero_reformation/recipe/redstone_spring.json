@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "R",
+    "T",
+    "B"
+  ],
+  "key": {
+    "R": { "item": "minecraft:redstone_torch" },
+    "T": { "item": "simulated:torsion_spring" },
+    "B": { "item": "create:brass_casing" }
+  },
+  "result": {
+    "id": "aero_reformation:redstone_spring",
+    "count": 1
+  }
+}

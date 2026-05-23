@@ -10,8 +10,7 @@
     "feature.swivel_stiffness.SwivelBearingBlockMixin",
     "feature.swivel_swap.SwivelBearingSwapMixin",
     "feature.swivel_swap.SwivelBearingBlockMixin",
-    "feature.gimbal_inverted.GimbalSensorBEMixin",
-    "feature.torsion_redstone.TorsionRedstoneMixin"
+    "feature.gimbal_inverted.GimbalSensorBEMixin"
   ],
   "client": [],
   "server": []

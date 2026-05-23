@@ -11,9 +11,8 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Dual-drive: shaft controls the angular speed when spinning.
- * Shaft drives cogwheel (via ModifyArg on limitCogSpeed),
- * shaft speed also triggers assembly.
+ * 双驱动模式：传动杆直接驱动轴承目标角度。
+ * cogwheel 速度设 0，targetAngleDegrees 由传动杆速度累积。
  */
 @Mixin(value = SwivelBearingBlockEntity.class, remap = false)
 public class SwivelBearingSwapMixin implements ISwivelSwapAccessor {
@@ -41,20 +40,14 @@ public class SwivelBearingSwapMixin implements ISwivelSwapAccessor {
         this.aero_reformation$swapped = tag.getBoolean("AeroRef_SwivelSwapped");
     }
 
-    /**
-     * Intercept the speed argument to limitCogSpeed.
-     * When dual-drive ON: use shaft speed if non-zero, else keep cogwheel speed.
-     * This directly controls what speed drives the angular rotation.
-     */
+    /** 双驱动下 cogwheel 速度归零，角度由传动杆直接驱动 */
     @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "limitCogSpeed"), index = 0)
     private float aero_reformation$dualDriveSpeed(float original) {
         if (!this.aero_reformation$swapped) return original;
-        SwivelBearingBlockEntity self = (SwivelBearingBlockEntity) (Object) this;
-        float shaftSpeed = self.getSpeed();
-        return shaftSpeed != 0.0f ? shaftSpeed : original;
+        return ((SwivelBearingBlockEntity) (Object) this).getSpeed();
     }
 
-    /** When enabled, either input triggers assembly. */
+    /** When enabled, shaft triggers assembly. */
     @Inject(method = "tick", at = @At("HEAD"))
     private void aero_reformation$tickHead(CallbackInfo ci) {
         if (!this.aero_reformation$swapped) return;
@@ -64,4 +57,3 @@ public class SwivelBearingSwapMixin implements ISwivelSwapAccessor {
             self.assembleNextTick = true;
     }
 }
-

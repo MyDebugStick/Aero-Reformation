@@ -12,6 +12,15 @@
   "aero_reformation.gimbal.inverted_enable": "Gimbal Sensor inverted mode enabled",
   "aero_reformation.gimbal.inverted_disable": "Gimbal Sensor inverted mode disabled",
 
-  "aero_reformation.torsion.redstone_enable": "§aTorsion Spring Redstone Mode: §6ON",
-  "aero_reformation.torsion.redstone_disable": "§7Torsion Spring Redstone Mode: §8OFF"
+  "block.aero_reformation.redstone_spring": "Redstone Spring",
+
+  "aero_reformation.tooltip.nav_table": "Right-click with Redstone Torch to toggle inverted mode",
+  "aero_reformation.tooltip.swivel.stiffness": "Right-click with Iron Ingot to cycle stiffness",
+  "aero_reformation.tooltip.swivel.swap": "Right-click with Redstone Torch to toggle dual-drive mode",
+  "aero_reformation.tooltip.swivel.warn": "Angle may deviate in dual-drive mode, faster speed = larger deviation",
+  "aero_reformation.tooltip.gimbal": "Right-click with Redstone Torch to toggle inverted mode",
+  "aero_reformation.tooltip.redstone_spring": "Angle scales with redstone signal",
+  "aero_reformation.tooltip.levitite": "Mineable with Silk Touch Golden Pickaxe",
+
+  "itemGroup.aero_reformation": "Aero Reformation"
 }

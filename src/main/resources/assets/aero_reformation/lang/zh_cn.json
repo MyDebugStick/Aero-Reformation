@@ -12,6 +12,15 @@
   "aero_reformation.gimbal.inverted_enable": "§a陀螺仪反相模式：§6已启用",
   "aero_reformation.gimbal.inverted_disable": "§7陀螺仪反相模式：§8已关闭",
 
-  "aero_reformation.torsion.redstone_enable": "§a扭力弹簧红石模式：§6已启用",
-  "aero_reformation.torsion.redstone_disable": "§7扭力弹簧红石模式：§8已关闭"
+  "block.aero_reformation.redstone_spring": "红石扭簧",
+
+  "aero_reformation.tooltip.nav_table": "手持红石火把右键切换反相模式",
+  "aero_reformation.tooltip.swivel.stiffness": "手持铁锭右键切换刚度",
+  "aero_reformation.tooltip.swivel.swap": "手持红石火把右键切换双驱动模式",
+  "aero_reformation.tooltip.swivel.warn": "双驱动模式下角度可能存在偏差，转速越快偏差越大",
+  "aero_reformation.tooltip.gimbal": "手持红石火把右键切换反相模式",
+  "aero_reformation.tooltip.redstone_spring": "角度随红石信号强度变化",
+  "aero_reformation.tooltip.levitite": "手持精准采集金镐可挖掘掉落",
+
+  "itemGroup.aero_reformation": "航空学：变革"
 }
