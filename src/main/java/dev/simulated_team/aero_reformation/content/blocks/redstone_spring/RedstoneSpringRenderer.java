@@ -29,14 +29,14 @@ public class RedstoneSpringRenderer extends KineticBlockEntityRenderer<RedstoneS
 
         Direction facing = be.getBlockState().getValue(RedstoneSpringBlock.FACING);
 
-        // 输入传动杆 (底部) - 随动力网络旋转
+        // Input driveshaft (bottom) - rotates with kinetic network
         SuperByteBuffer shaftIn = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF,
                 be.getBlockState(), facing.getOpposite());
         kineticRotationTransform(shaftIn, be, facing.getAxis(),
                 getAngleForBe(be, be.getBlockPos(), facing.getAxis()), light);
         shaftIn.renderInto(ms, buffer.getBuffer(RenderType.solid()));
 
-        // 弹簧圈
+        // Spring coil
         SuperByteBuffer spring = CachedBuffers.partial(SimPartialModels.TORSION_SPRING, be.getBlockState());
         float angle = be.interpolatedSpring(partialTicks);
         kineticRotationTransform(spring, be, facing.getAxis(), Mth.DEG_TO_RAD * angle, light);
@@ -46,7 +46,7 @@ public class RedstoneSpringRenderer extends KineticBlockEntityRenderer<RedstoneS
         spring.rotateCentered(AngleHelper.rad(-90 - AngleHelper.verticalAngle(facing)), Direction.EAST);
         spring.renderInto(ms, buffer.getBuffer(RenderType.solid()));
 
-        // 输出传动杆 (顶部)
+        // Output driveshaft (top)
         SuperByteBuffer shaftOut = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF,
                 be.getBlockState(), facing);
         kineticRotationTransform(shaftOut, be, facing.getAxis(),

@@ -12,7 +12,24 @@
   "aero_reformation.gimbal.inverted_enable": "§a陀螺仪反相模式：§6已启用",
   "aero_reformation.gimbal.inverted_disable": "§7陀螺仪反相模式：§8已关闭",
 
+  "aero_reformation.analog.linear_enabled": "§a模拟传动箱线性模式：§6已启用",
+  "aero_reformation.analog.linear_disabled": "§7模拟传动箱线性模式：§8已关闭",
+
   "block.aero_reformation.redstone_spring": "红石扭簧",
+  "block.aero_reformation.directional_synchronizer_master": "方向同步器（母）",
+  "block.aero_reformation.directional_synchronizer_slave": "方向同步器（子）",
+
+  "aero_reformation.synchronizer.bound": "§a已绑定母方块位置",
+  "aero_reformation.synchronizer.mirror_on": "§a方向同步器镜像模式：§6已启用",
+  "aero_reformation.synchronizer.mirror_off": "§7方向同步器镜像模式：§8已关闭",
+
+  "item.aero_reformation.ender_compass": "末影指南针",
+
+  "aero_reformation.ender_compass.set": "§a已记录位置: §6(%s, %s, %s)",
+  "aero_reformation.ender_compass.no_channel": "§c未绑定频道，无法记录位置",
+
+  "message.aero_reformation.ender_arrow.sync": "§a[%s] §7指南针同步坐标: §6(%s, %s, %s)",
+  "message.aero_reformation.ender_arrow.landed": "§a[%s] §7指南针落地最终位置: §6(%s, %s, %s)",
 
   "aero_reformation.tooltip.nav_table": "手持红石火把右键切换反相模式",
   "aero_reformation.tooltip.swivel.stiffness": "手持铁锭右键切换刚度",
@@ -21,6 +38,12 @@
   "aero_reformation.tooltip.gimbal": "手持红石火把右键切换反相模式",
   "aero_reformation.tooltip.redstone_spring": "角度随红石信号强度变化",
   "aero_reformation.tooltip.levitite": "手持精准采集金镐可挖掘掉落",
+  "aero_reformation.tooltip.analog_transmission": "手持红石火把右键切换线性模式",
+
+  "aero_reformation.tooltip.synchronizer_slave": "右键绑定到母同步器，根据母同步器朝向和模式发出红石信号",
+  "aero_reformation.tooltip.synchronizer_master": "输出朝向信息，用红石火把切换模式为同步收到的红石信号",
+
+  "aero_reformation.tooltip.ender_compass": "将两个指南针放在合成栏绑定频率，shift右键记录当前位置到频率中，长按右键丢出并记录所在位置。生存模式下需要背包里有箭才能丢出",
 
   "itemGroup.aero_reformation": "航空学：变革"
 }

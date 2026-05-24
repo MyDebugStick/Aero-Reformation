@@ -10,8 +10,11 @@
     "feature.swivel_stiffness.SwivelBearingBlockMixin",
     "feature.swivel_swap.SwivelBearingSwapMixin",
     "feature.swivel_swap.SwivelBearingBlockMixin",
-    "feature.gimbal_inverted.GimbalSensorBEMixin"
+    "feature.gimbal_inverted.GimbalSensorBEMixin",
+    "feature.analog_mode.AnalogTransmissionModeMixin",
+    "feature.analog_mode.AnalogTransmissionBlockMixin"
   ],
-  "client": [],
+  "client": [
+  ],
   "server": []
 }

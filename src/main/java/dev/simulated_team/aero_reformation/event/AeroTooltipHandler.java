@@ -21,13 +21,13 @@ public class AeroTooltipHandler {
         ItemStack stack = event.getItemStack();
         ResourceLocation id = stack.getItemHolder().getKey().location();
 
-        // 导航台：红石火把
+        // Nav Table: Redstone Torch
         if (id.equals(ResourceLocation.parse("simulated:navigation_table"))) {
             event.getToolTip().add(AQUA_PREFIX.copy()
                     .append(Component.translatable("aero_reformation.tooltip.nav_table").withStyle(ChatFormatting.AQUA)));
         }
 
-        // 旋转轴承：铁锭（刚度）+ 红石火把（双驱动）+ 精度警告
+        // Swivel Bearing: Iron Ingot (stiffness) + Redstone Torch (dual-drive) + precision warning
         if (id.equals(ResourceLocation.parse("simulated:swivel_bearing"))) {
             event.getToolTip().add(AQUA_PREFIX.copy()
                     .append(Component.translatable("aero_reformation.tooltip.swivel.stiffness").withStyle(ChatFormatting.AQUA)));
@@ -37,23 +37,47 @@ public class AeroTooltipHandler {
                     .append(Component.translatable("aero_reformation.tooltip.swivel.warn").withStyle(ChatFormatting.AQUA)));
         }
 
-        // 陀螺仪：红石火把
+        // Gimbal Sensor: Redstone Torch
         if (id.equals(ResourceLocation.parse("simulated:gimbal_sensor"))) {
             event.getToolTip().add(AQUA_PREFIX.copy()
                     .append(Component.translatable("aero_reformation.tooltip.gimbal").withStyle(ChatFormatting.AQUA)));
         }
 
-        // 红石扭簧：红石信号描述
+        // Redstone Spring: signal description
         if (id.equals(ResourceLocation.parse("aero_reformation:redstone_spring"))) {
             event.getToolTip().add(AQUA_PREFIX.copy()
                     .append(Component.translatable("aero_reformation.tooltip.redstone_spring").withStyle(ChatFormatting.AQUA)));
         }
 
-        // 浮空水晶：精准采集金镐可挖掘掉落
+        // Levitite: Silk Touch Golden Pickaxe
         if (id.equals(ResourceLocation.parse("aeronautics:levitite"))
                 || id.equals(ResourceLocation.parse("aeronautics:pearlescent_levitite"))) {
             event.getToolTip().add(AQUA_PREFIX.copy()
                     .append(Component.translatable("aero_reformation.tooltip.levitite").withStyle(ChatFormatting.AQUA)));
+        }
+
+        // Analog Transmission: Redstone Torch toggles linear mode
+        if (id.equals(ResourceLocation.parse("simulated:analog_transmission"))) {
+            event.getToolTip().add(AQUA_PREFIX.copy()
+                    .append(Component.translatable("aero_reformation.tooltip.analog_transmission").withStyle(ChatFormatting.AQUA)));
+        }
+
+        // Directional Synchronizer Slave
+        if (id.equals(ResourceLocation.parse("aero_reformation:directional_synchronizer_slave"))) {
+            event.getToolTip().add(AQUA_PREFIX.copy()
+                    .append(Component.translatable("aero_reformation.tooltip.synchronizer_slave").withStyle(ChatFormatting.AQUA)));
+        }
+
+        // Directional Synchronizer Master
+        if (id.equals(ResourceLocation.parse("aero_reformation:directional_synchronizer_master"))) {
+            event.getToolTip().add(AQUA_PREFIX.copy()
+                    .append(Component.translatable("aero_reformation.tooltip.synchronizer_master").withStyle(ChatFormatting.AQUA)));
+        }
+
+        // Ender Compass
+        if (id.equals(ResourceLocation.parse("aero_reformation:ender_compass"))) {
+            event.getToolTip().add(AQUA_PREFIX.copy()
+                    .append(Component.translatable("aero_reformation.tooltip.ender_compass").withStyle(ChatFormatting.AQUA)));
         }
     }
 }

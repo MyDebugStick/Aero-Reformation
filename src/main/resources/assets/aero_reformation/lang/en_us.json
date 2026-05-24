@@ -12,7 +12,24 @@
   "aero_reformation.gimbal.inverted_enable": "Gimbal Sensor inverted mode enabled",
   "aero_reformation.gimbal.inverted_disable": "Gimbal Sensor inverted mode disabled",
 
+  "aero_reformation.analog.linear_enabled": "§aAnalog Transmission Linear Mode: §6ON",
+  "aero_reformation.analog.linear_disabled": "§7Analog Transmission Linear Mode: §8OFF",
+
   "block.aero_reformation.redstone_spring": "Redstone Spring",
+  "block.aero_reformation.directional_synchronizer_master": "Directional Synchronizer (Master)",
+  "block.aero_reformation.directional_synchronizer_slave": "Directional Synchronizer (Slave)",
+
+  "aero_reformation.synchronizer.bound": "§aBound to master position",
+  "aero_reformation.synchronizer.mirror_on": "§aSynchronizer Mirror Mode: §6ON",
+  "aero_reformation.synchronizer.mirror_off": "§7Synchronizer Mirror Mode: §8OFF",
+
+  "item.aero_reformation.ender_compass": "Ender Compass",
+
+  "aero_reformation.ender_compass.set": "§aPosition recorded: §6(%s, %s, %s)",
+  "aero_reformation.ender_compass.no_channel": "§cNo channel bound, cannot record position",
+
+  "message.aero_reformation.ender_arrow.sync": "§a[%s] §7Compass synced position: §6(%s, %s, %s)",
+  "message.aero_reformation.ender_arrow.landed": "§a[%s] §7Compass final position: §6(%s, %s, %s)",
 
   "aero_reformation.tooltip.nav_table": "Right-click with Redstone Torch to toggle inverted mode",
   "aero_reformation.tooltip.swivel.stiffness": "Right-click with Iron Ingot to cycle stiffness",
@@ -21,6 +38,12 @@
   "aero_reformation.tooltip.gimbal": "Right-click with Redstone Torch to toggle inverted mode",
   "aero_reformation.tooltip.redstone_spring": "Angle scales with redstone signal",
   "aero_reformation.tooltip.levitite": "Mineable with Silk Touch Golden Pickaxe",
+  "aero_reformation.tooltip.analog_transmission": "Right-click with Redstone Torch to toggle Linear mode",
+
+  "aero_reformation.tooltip.synchronizer_slave": "Right-click to bind to Master. Outputs redstone based on Master's facing and mode",
+  "aero_reformation.tooltip.synchronizer_master": "Outputs facing direction. Right-click with Redstone Torch to toggle mirror mode",
+
+  "aero_reformation.tooltip.ender_compass": "Combine two compasses in crafting grid to bind a channel. Shift+Right-click to record position. Hold Right-click to throw and track location. Requires arrows in inventory (Survival)",
 
   "itemGroup.aero_reformation": "Aero Reformation"
 }

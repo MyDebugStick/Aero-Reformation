@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "powered=false": { "model": "aero_reformation:block/directional_synchronizer_slave" },
+    "powered=true":  { "model": "aero_reformation:block/directional_synchronizer_slave" }
+  }
+}

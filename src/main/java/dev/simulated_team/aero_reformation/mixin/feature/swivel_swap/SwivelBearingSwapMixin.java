@@ -11,8 +11,8 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * 双驱动模式：传动杆直接驱动轴承目标角度。
- * cogwheel 速度设 0，targetAngleDegrees 由传动杆速度累积。
+ * Dual-drive mode: the shaft directly drives the bearing target angle.
+ * Cogwheel speed is set to 0; targetAngleDegrees is accumulated from shaft speed.
  */
 @Mixin(value = SwivelBearingBlockEntity.class, remap = false)
 public class SwivelBearingSwapMixin implements ISwivelSwapAccessor {
@@ -40,7 +40,7 @@ public class SwivelBearingSwapMixin implements ISwivelSwapAccessor {
         this.aero_reformation$swapped = tag.getBoolean("AeroRef_SwivelSwapped");
     }
 
-    /** 双驱动下 cogwheel 速度归零，角度由传动杆直接驱动 */
+    /** In dual-drive mode, cogwheel speed is zeroed; angle is driven directly by the shaft. */
     @ModifyArg(method = "tick", at = @At(value = "INVOKE", target = "limitCogSpeed"), index = 0)
     private float aero_reformation$dualDriveSpeed(float original) {
         if (!this.aero_reformation$swapped) return original;

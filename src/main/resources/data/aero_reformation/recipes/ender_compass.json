@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " E ",
+    "ECE",
+    " E "
+  ],
+  "key": {
+    "E": { "item": "minecraft:ender_pearl" },
+    "C": { "item": "minecraft:compass" }
+  },
+  "result": {
+    "id": "aero_reformation:ender_compass",
+    "count": 1
+  }
+}

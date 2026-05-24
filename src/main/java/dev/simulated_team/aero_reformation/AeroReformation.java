@@ -2,11 +2,19 @@ package dev.simulated_team.aero_reformation;
 
 import com.mojang.logging.LogUtils;
 import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
+import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget;
+import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassRecipe;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
+import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
+import dev.simulated_team.simulated.index.SimRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
 @Mod(AeroReformation.MODID)
@@ -28,6 +36,21 @@ public class AeroReformation {
         AeroBlocks.ITEMS.register(modEventBus);
         AeroBlocks.BLOCK_ENTITY_TYPES.register(modEventBus);
         AeroBlocks.CREATIVE_TAB.register(modEventBus);
+        AeroDataComponents.REGISTER.register(modEventBus);
+
+        // Register recipe serializer
+        var recipeSerializers = DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
+        recipeSerializers.register("ender_compass_channel", () -> EnderCompassRecipe.Serializer.INSTANCE);
+        recipeSerializers.register(modEventBus);
+
+        // Register NavigationTarget into Simulated's existing registry
+        modEventBus.addListener((RegisterEvent event) -> {
+            if (event.getRegistryKey().equals(SimRegistries.Keys.NAVIGATION_TARGET)) {
+                event.register(SimRegistries.Keys.NAVIGATION_TARGET,
+                        ResourceLocation.fromNamespaceAndPath(MODID, "ender_compass"),
+                        () -> EnderCompassNavigationTarget.INSTANCE);
+            }
+        });
 
         // Register renderers (client only via deferred)
         modEventBus.addListener((net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers e) -> {

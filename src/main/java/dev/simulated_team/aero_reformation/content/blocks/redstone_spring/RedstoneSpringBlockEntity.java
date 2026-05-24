@@ -54,12 +54,12 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
         this.sequencedAngleLimit = -1;
     }
 
-    // 1.21.1 BlockEntitySupplier 用 (BlockPos, BlockState) 构造器
+    // 1.21.1 BlockEntitySupplier uses the (BlockPos, BlockState) constructor
     public RedstoneSpringBlockEntity(BlockPos pos, BlockState state) {
         this(dev.simulated_team.aero_reformation.registrate.AeroBlocks.REDSTONE_SPRING_BE.get(), pos, state);
     }
 
-    // ==================== 主 BE 方法 ====================
+    // ==================== Main BE methods ====================
 
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
@@ -134,7 +134,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
         this.sequencedAngleLimit = compound.contains("SequencedAngleLimit") ? compound.getDouble("SequencedAngleLimit") : -1;
     }
 
-    // ==================== 读取红石信号 ====================
+    // ==================== Read redstone signal ====================
 
     private int getMaxNeighborSignal() {
         if (this.level == null) return 0;
@@ -145,7 +145,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
         return max;
     }
 
-    // ==================== Output（照搬原版扭力弹簧结构） ====================
+    // ==================== Output (based on vanilla torque spring) ====================
 
     public static class Output extends GeneratingKineticBlockEntity implements ExtraKineticsBlockEntity {
 
@@ -196,7 +196,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
 
         @Override
         public void tick() {
-            // 原版验证逻辑
+            // Vanilla validation logic
             ((KineticBlockEntityExtension) this).simulated$setValidationCountdown(Integer.MAX_VALUE);
             if (this.customValidationCountdown-- <= 0) {
                 this.customValidationCountdown = AllConfigs.server().kinetics.kineticValidationFrequency.get();
@@ -208,7 +208,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
 
             this.oldAngle = this.angle;
 
-            // 角度推进
+            // Advance angle
             if (this.rotationDurationTicks >= 0 && this.rotationProgressTicks <= this.rotationDurationTicks) {
                 this.rotationProgressTicks++;
                 float angularSpeed = KineticBlockEntity.convertToAngular(this.speed);
@@ -234,7 +234,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
             final boolean powered = this.getBlockState().getValue(RedstoneSpringBlock.POWERED);
             final boolean parentStopped = this.parent.getSpeed() == 0;
 
-            // ---- 状态机（照搬原版，仅角度计算处替换为红石缩放） ----
+            // ---- State machine (vanilla logic; only angle calc uses redstone scaling) ----
 
             if (this.currentState == State.TURNING && parentStopped) {
                 if (this.targetAngle != 0 || powered)
@@ -244,7 +244,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
                     this.beginTurnTo(0.0);
                 }
             } else if (this.currentState == State.TURNING) {
-                // 信号变化或速度变化时立即响应
+                // React immediately on signal or speed changes
                 final int sig = this.parent.getMaxNeighborSignal();
                 final double calcAngle = sig == 0 ? 0
                         : this.parent.angleInput.getValue() * sig / 15.0
@@ -253,7 +253,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
                     this.stopTurning();
                 }
             } else if (!parentStopped && this.currentState == State.STOPPED) {
-                // 使用输入轴方向（与 beginTurnTo 缩放一致，防一左一右）
+                // Use input-axis direction (matches beginTurnTo scaling, avoids flip-flopping)
                 final float inputDir = Math.signum(this.parent.getSpeed());
                 if (inputDir == 0) return;
                 final double targetAngle = this.parent.angleInput.getValue() * inputDir;
@@ -261,7 +261,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
             }
         }
 
-        // ---- 网络验证（原版照搬） ----
+        // ---- Network validation (vanilla logic) ----
 
         private void customValidateKinetics() {
             if (this.hasSource()) {
@@ -292,7 +292,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
             }
         }
 
-        // ---- 旋转控制（原版照搬） ----
+        // ---- Rotation control (vanilla logic) ----
 
         private void stopTurning() {
             this.sequenceContext = null;
@@ -307,7 +307,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
         }
 
         private void beginTurnTo(double target) {
-            // ★ 红石缩放，方向统一用输入轴方向，结果四舍五入到整数 ★
+            // ★ Redstone scaling: direction normalized by input axis, rounded to integer ★
             final float inputDir = Math.signum(this.parent.getSpeed());
             final int signal = this.parent.getMaxNeighborSignal();
             if (signal == 0 || inputDir == 0) {
@@ -321,7 +321,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
             if (relativeAngle == 0) return;
             if (this.currentState == State.TURNING && this.targetAngle == target) return;
 
-            // 最短路径方向（信号角度 < 当前角度时自动反转）
+            // Shortest-path direction (reverses when signal angle < current angle)
             this.lastSpringSpeed = (float) (Math.abs(this.lastSpringSpeed) * Math.signum(relativeAngle));
 
             if (this.parent.sequencedAngleLimit >= 0)
@@ -343,7 +343,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
             this.updateSpeed = true;
         }
 
-        // ---- 应力（原版照搬） ----
+        // ---- Stress (vanilla logic) ----
 
         @Override
         public float getGeneratedSpeed() {
@@ -362,7 +362,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
             return (float) dev.simulated_team.aero_reformation.config.AeroReformationConfig.redstoneSpringStressCapacity;
         }
 
-        // ---- NBT（原版照搬） ----
+        // ---- NBT (vanilla logic) ----
 
         @Override
         protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
@@ -399,7 +399,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
         private enum State { STOPPED, TURNING }
     }
 
-    // ==================== 滑条（照搬原版） ====================
+    // ==================== Slider (based on vanilla) ====================
 
     public static class AngleScrollBehaviour extends ScrollValueBehaviour {
         public AngleScrollBehaviour(SmartBlockEntity be) {
@@ -436,7 +436,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
         public void rotate(LevelAccessor level, BlockPos pos, BlockState state, PoseStack ms) {
             if (!this.getSide().getAxis().isHorizontal()) {
                 dev.engine_room.flywheel.lib.transform.TransformStack.of(ms)
-                        .rotateY((AngleHelper.horizontalAngle(state.getValue(RedstoneSpringBlock.FACING)) + 180));
+                        .rotateY((AngleHelper.horizontalAngle(state.getValue(RedstoneSpringBlock.FACING)) + 180) * (float) Math.PI / 180);
             }
             super.rotate(level, pos, state, ms);
         }

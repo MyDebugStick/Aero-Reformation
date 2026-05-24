@@ -11,6 +11,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -52,6 +53,58 @@ public class AeroBlocks {
                     REDSTONE_SPRING.get(), new Item.Properties()
             ));
 
+    // ==================== Ender Compass ====================
+
+    public static final Supplier<Item> ENDER_COMPASS =
+            ITEMS.register("ender_compass", () -> new dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassItem(
+                    new Item.Properties().stacksTo(1)
+                            .component(dev.simulated_team.simulated.index.SimDataComponents.TARGET,
+                                    dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget.INSTANCE)
+            ));
+
+    // ==================== Directional Synchronizer ====================
+
+    public static final Supplier<Block> DIRECTIONAL_SYNCHRONIZER_MASTER =
+            BLOCKS.register("directional_synchronizer_master", () ->
+                    new dev.simulated_team.aero_reformation.content.blocks.directional_synchronizer.DirectionalSynchronizerMasterBlock(
+                    BlockBehaviour.Properties.of().strength(1.5f).noOcclusion()
+                            .isRedstoneConductor((s, l, p) -> false)
+                            .isViewBlocking((s, l, p) -> false)
+            ));
+
+    public static final Supplier<BlockItem> DIRECTIONAL_SYNCHRONIZER_MASTER_ITEM =
+            ITEMS.register("directional_synchronizer_master", () -> new BlockItem(
+                    DIRECTIONAL_SYNCHRONIZER_MASTER.get(), new Item.Properties()
+            ));
+
+    public static final Supplier<Block> DIRECTIONAL_SYNCHRONIZER_SLAVE =
+            BLOCKS.register("directional_synchronizer_slave", () ->
+                    new dev.simulated_team.aero_reformation.content.blocks.directional_synchronizer.DirectionalSynchronizerSlaveBlock(
+                    BlockBehaviour.Properties.of().strength(1.5f).noOcclusion()
+                            .isRedstoneConductor((s, l, p) -> false)
+                            .isViewBlocking((s, l, p) -> false)
+            ));
+
+    public static final Supplier<BlockItem> DIRECTIONAL_SYNCHRONIZER_SLAVE_ITEM =
+            ITEMS.register("directional_synchronizer_slave", () ->
+                    new dev.simulated_team.aero_reformation.content.items.directional_synchronizer.DirectionalSynchronizerSlaveBlockItem(
+                    new Item.Properties()
+            ));
+
+    public static final Supplier<BlockEntityType<dev.simulated_team.aero_reformation.content.blocks.directional_synchronizer.DirectionalSynchronizerSlaveBlockEntity>> DIRECTIONAL_SYNCHRONIZER_SLAVE_BE =
+            BLOCK_ENTITY_TYPES.register("directional_synchronizer_slave",
+                    () -> BlockEntityType.Builder.of(
+                            dev.simulated_team.aero_reformation.content.blocks.directional_synchronizer.DirectionalSynchronizerSlaveBlockEntity::new,
+                            DIRECTIONAL_SYNCHRONIZER_SLAVE.get()
+                    ).build(null));
+
+    public static final Supplier<BlockEntityType<dev.simulated_team.aero_reformation.content.blocks.directional_synchronizer.DirectionalSynchronizerMasterBlockEntity>> DIRECTIONAL_SYNCHRONIZER_MASTER_BE =
+            BLOCK_ENTITY_TYPES.register("directional_synchronizer_master",
+                    () -> BlockEntityType.Builder.of(
+                            dev.simulated_team.aero_reformation.content.blocks.directional_synchronizer.DirectionalSynchronizerMasterBlockEntity::new,
+                            DIRECTIONAL_SYNCHRONIZER_MASTER.get()
+                    ).build(null));
+
     // ==================== Creative Tab ====================
 
     public static final Supplier<CreativeModeTab> AERO_REFORMATION_TAB = CREATIVE_TAB.register(
@@ -61,6 +114,9 @@ public class AeroBlocks {
                     .icon(() -> new ItemStack(REDSTONE_SPRING_ITEM.get()))
                     .displayItems((params, output) -> {
                         output.accept(REDSTONE_SPRING_ITEM.get());
+                        output.accept(ENDER_COMPASS.get());
+                        output.accept(DIRECTIONAL_SYNCHRONIZER_MASTER_ITEM.get());
+                        output.accept(DIRECTIONAL_SYNCHRONIZER_SLAVE_ITEM.get());
                     })
                     .build()
     );
