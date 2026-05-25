@@ -3,9 +3,15 @@ package dev.simulated_team.aero_reformation.registrate;
 import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.content.blocks.redstone_spring.RedstoneSpringBlock;
 import dev.simulated_team.aero_reformation.content.blocks.redstone_spring.RedstoneSpringBlockEntity;
+import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyBlock;
+import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyBlockEntity;
+import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyBlockItem;
+import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -29,6 +35,9 @@ public class AeroBlocks {
 
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, AeroReformation.MODID);
+
+    public static final DeferredRegister<MenuType<?>> MENU_TYPES =
+            DeferredRegister.create(Registries.MENU, AeroReformation.MODID);
 
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, AeroReformation.MODID);
@@ -105,6 +114,33 @@ public class AeroBlocks {
                             DIRECTIONAL_SYNCHRONIZER_MASTER.get()
                     ).build(null));
 
+    // ==================== Sensor Agency ====================
+
+    public static final Supplier<SensorAgencyBlock> SENSOR_AGENCY =
+            BLOCKS.register("sensor_agency", () -> new SensorAgencyBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(1.5f)
+                            .noOcclusion()
+                            .isRedstoneConductor((s, l, p) -> false)
+                            .isViewBlocking((s, l, p) -> false)
+            ));
+
+    public static final Supplier<BlockEntityType<SensorAgencyBlockEntity>> SENSOR_AGENCY_BE =
+            BLOCK_ENTITY_TYPES.register("sensor_agency",
+                    () -> BlockEntityType.Builder.of(SensorAgencyBlockEntity::new, SENSOR_AGENCY.get())
+                            .build(null));
+
+    public static final Supplier<BlockItem> SENSOR_AGENCY_ITEM =
+            ITEMS.register("sensor_agency", () -> new SensorAgencyBlockItem(
+                    SENSOR_AGENCY.get(), new Item.Properties()
+            ));
+
+    public static final Supplier<MenuType<SensorAgencyMenu>> SENSOR_AGENCY_MENU =
+            MENU_TYPES.register("sensor_agency", () ->
+                    new MenuType<>((id, inv) -> new SensorAgencyMenu(id, inv, null,
+                            new dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyConfig()),
+                            FeatureFlags.DEFAULT_FLAGS));
+
     // ==================== Creative Tab ====================
 
     public static final Supplier<CreativeModeTab> AERO_REFORMATION_TAB = CREATIVE_TAB.register(
@@ -117,6 +153,7 @@ public class AeroBlocks {
                         output.accept(ENDER_COMPASS.get());
                         output.accept(DIRECTIONAL_SYNCHRONIZER_MASTER_ITEM.get());
                         output.accept(DIRECTIONAL_SYNCHRONIZER_SLAVE_ITEM.get());
+                        output.accept(SENSOR_AGENCY_ITEM.get());
                     })
                     .build()
     );

@@ -1,6 +1,7 @@
 package dev.simulated_team.aero_reformation.registrate;
 
 import dev.simulated_team.aero_reformation.AeroReformation;
+import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorBinding;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
@@ -26,5 +27,12 @@ public class AeroDataComponents {
                     DataComponentType.<BlockPos>builder()
                             .persistent(BlockPos.CODEC)
                             .networkSynchronized(BlockPos.STREAM_CODEC)
+                            .build());
+
+    public static final Supplier<DataComponentType<SensorBinding>> SENSOR_BINDING =
+            REGISTER.register("sensor_binding", () ->
+                    DataComponentType.<SensorBinding>builder()
+                            .persistent(SensorBinding.CODEC)
+                            .networkSynchronized(SensorBinding.STREAM_CODEC)
                             .build());
 }

@@ -1,5 +1,6 @@
 package dev.simulated_team.aero_reformation.mixin.feature.nav_inverted;
 
+import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorProxyData;
 import dev.simulated_team.aero_reformation.feature.nav_inverted.INavTableAccessor;
 import dev.simulated_team.simulated.content.blocks.nav_table.NavTableBlock;
 import dev.simulated_team.simulated.content.blocks.nav_table.NavTableBlockEntity;
@@ -32,6 +33,11 @@ public class NavTableBlockMixin {
     private void aero_reformation$onUseItemOn(ItemStack itemStack, BlockState blockState, Level level,
                                                BlockPos blockPos, Player player, InteractionHand interactionHand,
                                                BlockHitResult blockHitResult, CallbackInfoReturnable<ItemInteractionResult> cir) {
+        // Block toggle on sensors bound to an agency
+        if (SensorProxyData.isSensorBound(blockPos)) {
+            cir.setReturnValue(ItemInteractionResult.FAIL);
+            return;
+        }
         // Check if player is holding a redstone torch
         if (itemStack.is(Items.REDSTONE_TORCH)) {
             if (!level.isClientSide()) {

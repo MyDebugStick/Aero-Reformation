@@ -12,7 +12,12 @@
     "feature.swivel_swap.SwivelBearingBlockMixin",
     "feature.gimbal_inverted.GimbalSensorBEMixin",
     "feature.analog_mode.AnalogTransmissionModeMixin",
-    "feature.analog_mode.AnalogTransmissionBlockMixin"
+    "feature.analog_mode.AnalogTransmissionBlockMixin",
+    "feature.sensor_agency.AltitudeSensorProxyMixin",
+    "feature.sensor_agency.VelocitySensorProxyMixin",
+    "feature.sensor_agency.VelocitySensorBEMixin",
+    "feature.sensor_agency.GimbalSensorProxyMixin",
+    "feature.sensor_agency.NavTableProxyMixin"
   ],
   "client": [
   ],

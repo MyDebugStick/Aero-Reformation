@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassRecipe;
+import dev.simulated_team.aero_reformation.network.SensorAgencyConfigPacket;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
 import dev.simulated_team.simulated.index.SimRegistries;
@@ -35,6 +36,7 @@ public class AeroReformation {
         AeroBlocks.BLOCKS.register(modEventBus);
         AeroBlocks.ITEMS.register(modEventBus);
         AeroBlocks.BLOCK_ENTITY_TYPES.register(modEventBus);
+        AeroBlocks.MENU_TYPES.register(modEventBus);
         AeroBlocks.CREATIVE_TAB.register(modEventBus);
         AeroDataComponents.REGISTER.register(modEventBus);
 
@@ -42,6 +44,13 @@ public class AeroReformation {
         var recipeSerializers = DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
         recipeSerializers.register("ender_compass_channel", () -> EnderCompassRecipe.Serializer.INSTANCE);
         recipeSerializers.register(modEventBus);
+
+        // Register network packets
+        modEventBus.addListener((net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent event) -> {
+            var registrar = event.registrar(MODID);
+            registrar.playBidirectional(SensorAgencyConfigPacket.TYPE, SensorAgencyConfigPacket.STREAM_CODEC,
+                    SensorAgencyConfigPacket::handleBidirectional);
+        });
 
         // Register NavigationTarget into Simulated's existing registry
         modEventBus.addListener((RegisterEvent event) -> {
@@ -56,6 +65,12 @@ public class AeroReformation {
         modEventBus.addListener((net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers e) -> {
             e.registerBlockEntityRenderer(AeroBlocks.REDSTONE_SPRING_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.redstone_spring.RedstoneSpringRenderer::new);
+        });
+
+        // Register screen
+        modEventBus.addListener((net.neoforged.neoforge.client.event.RegisterMenuScreensEvent e) -> {
+            e.register(AeroBlocks.SENSOR_AGENCY_MENU.get(),
+                    dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyScreen::new);
         });
 
         LOGGER.info("Aero Reformation loaded! Features: nav_inverted, swivel_stiffness, swivel_swap, gimbal_inverted, levitite_mining, redstone_spring");

@@ -1,5 +1,6 @@
 package dev.simulated_team.aero_reformation.feature.gimbal_inverted;
 
+import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorProxyData;
 import dev.simulated_team.aero_reformation.feature.gimbal_inverted.IGimbalInvertedAccessor;
 import dev.simulated_team.simulated.content.blocks.gimbal_sensor.GimbalSensorBlock;
 import dev.simulated_team.simulated.content.blocks.gimbal_sensor.GimbalSensorBlockEntity;
@@ -24,6 +25,11 @@ public class GimbalSensorEventHandler {
 
         if (event.getLevel().getBlockEntity(event.getPos()) instanceof GimbalSensorBlockEntity be
                 && be instanceof IGimbalInvertedAccessor a) {
+            // Block toggle on sensors bound to an agency
+            if (SensorProxyData.isSensorBound(event.getPos())) {
+                event.setCanceled(true);
+                return;
+            }
             event.setCanceled(true);
             a.aero_reformation$toggleInverted();
             boolean on = a.aero_reformation$isInverted();
