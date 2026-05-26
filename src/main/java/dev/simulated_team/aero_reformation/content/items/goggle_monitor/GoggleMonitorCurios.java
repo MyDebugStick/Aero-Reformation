@@ -10,7 +10,7 @@ import top.theillusivec4.curios.api.CuriosApi;
  */
 public class GoggleMonitorCurios {
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "removal"})
     public static ItemStack findGogglesInCurios(Player player) {
         var result = CuriosApi.getCuriosHelper().findFirstCurio(player, GoggleMonitorData::isGoggles);
         return result.map(r -> r.stack()).orElse(ItemStack.EMPTY);
