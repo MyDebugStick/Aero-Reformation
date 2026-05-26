@@ -29,7 +29,6 @@ public class EnderCompassRecipe extends ShapelessRecipe {
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
             if (stack.getItem() instanceof EnderCompassItem) {
-                compassCount++;
                 EnderCompassData data = stack.getOrDefault(AeroDataComponents.ENDER_COMPASS, EnderCompassData.EMPTY);
                 if (data.hasChannel()) {
                     if (channel == null) {
