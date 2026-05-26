@@ -26,6 +26,9 @@
 
   "item.aero_reformation.ender_compass": "Ender Compass",
 
+  "key.categories.aero_reformation": "Aero Reformation",
+  "key.aero_reformation.ender_compass": "Open Ender Compass GUI",
+
   "aero_reformation.ender_compass.set": "§aPosition recorded: §6(%s, %s, %s)",
   "aero_reformation.ender_compass.no_channel": "§cNo channel bound, cannot record position",
 
@@ -66,6 +69,7 @@
   "aero_reformation.tooltip.synchronizer_master": "Outputs facing direction. Right-click with Redstone Torch to toggle mirror mode",
 
   "aero_reformation.tooltip.ender_compass": "Combine two compasses in crafting grid to bind a channel. Shift+Right-click to record position. Hold Right-click to throw and track location. Requires arrows in inventory (Survival)",
+  "aero_reformation.tooltip.ender_compass_key": "Press [C] to manually input coordinates",
 
   "itemGroup.aero_reformation": "Aero Reformation"
 }

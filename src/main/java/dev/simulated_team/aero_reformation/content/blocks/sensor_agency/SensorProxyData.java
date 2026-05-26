@@ -24,6 +24,12 @@ public class SensorProxyData {
     public static final Map<BlockPos, Map<Direction, Integer>> GIMBAL = new ConcurrentHashMap<>();
     public static final Map<BlockPos, Map<Direction, Integer>> NAV = new ConcurrentHashMap<>();
 
+    // ── Raw data for goggle HUD (float values, not 0-15 signals) ──
+    public static final Map<BlockPos, Float> ALTITUDE_RAW = new ConcurrentHashMap<>();
+    public static final Map<BlockPos, Float> VELOCITY_RAW = new ConcurrentHashMap<>();
+    public static final Map<BlockPos, Float> GIMBAL_X_RAW = new ConcurrentHashMap<>();
+    public static final Map<BlockPos, Float> GIMBAL_Z_RAW = new ConcurrentHashMap<>();
+
     // ── Binding ownership: sensor pos → agency pos (prevents cross-binding) ──
     private static final Map<BlockPos, BlockPos> BOUND_SENSORS = new ConcurrentHashMap<>();
 

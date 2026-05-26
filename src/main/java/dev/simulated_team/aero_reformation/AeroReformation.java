@@ -4,6 +4,9 @@ import com.mojang.logging.LogUtils;
 import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassRecipe;
+import dev.simulated_team.aero_reformation.network.EnderCompassSyncPacket;
+import dev.simulated_team.aero_reformation.network.GoggleBindPacket;
+import dev.simulated_team.aero_reformation.network.GoggleMonitorSyncPacket;
 import dev.simulated_team.aero_reformation.network.SensorAgencyConfigPacket;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
@@ -50,6 +53,12 @@ public class AeroReformation {
             var registrar = event.registrar(MODID);
             registrar.playBidirectional(SensorAgencyConfigPacket.TYPE, SensorAgencyConfigPacket.STREAM_CODEC,
                     SensorAgencyConfigPacket::handleBidirectional);
+            registrar.playToServer(EnderCompassSyncPacket.TYPE, EnderCompassSyncPacket.STREAM_CODEC,
+                    EnderCompassSyncPacket::handle);
+            registrar.playToServer(GoggleBindPacket.TYPE, GoggleBindPacket.STREAM_CODEC,
+                    GoggleBindPacket::handle);
+            registrar.playToClient(GoggleMonitorSyncPacket.TYPE, GoggleMonitorSyncPacket.STREAM_CODEC,
+                    GoggleMonitorSyncPacket::handle);
         });
 
         // Register NavigationTarget into Simulated's existing registry

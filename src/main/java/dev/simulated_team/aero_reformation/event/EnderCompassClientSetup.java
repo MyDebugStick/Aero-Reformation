@@ -1,8 +1,12 @@
 package dev.simulated_team.aero_reformation.event;
 
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassData;
+import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassScreen;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.util.Mth;
@@ -13,7 +17,11 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Optional;
 
@@ -21,6 +29,31 @@ import static dev.simulated_team.aero_reformation.AeroReformation.MODID;
 
 @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
 public class EnderCompassClientSetup {
+
+    public static final KeyMapping ENDER_COMPASS_KEY = new KeyMapping(
+            "key.aero_reformation.ender_compass",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_C,
+            "key.categories.aero_reformation");
+
+    @SubscribeEvent
+    public static void onRegisterKeys(RegisterKeyMappingsEvent event) {
+        event.register(ENDER_COMPASS_KEY);
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.screen != null) return;
+        while (ENDER_COMPASS_KEY.consumeClick()) {
+            ItemStack held = mc.player.getMainHandItem();
+            EnderCompassData data = held.getOrDefault(AeroDataComponents.ENDER_COMPASS, EnderCompassData.EMPTY);
+            if (data.hasChannel()) {
+                mc.setScreen(new EnderCompassScreen(held));
+            }
+        }
+    }
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {

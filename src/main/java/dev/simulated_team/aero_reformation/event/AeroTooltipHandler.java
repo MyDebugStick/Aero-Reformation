@@ -1,5 +1,7 @@
 package dev.simulated_team.aero_reformation.event;
 
+import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassData;
+import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -76,8 +78,20 @@ public class AeroTooltipHandler {
 
         // Ender Compass
         if (id.equals(ResourceLocation.parse("aero_reformation:ender_compass"))) {
-            event.getToolTip().add(AQUA_PREFIX.copy()
-                    .append(Component.translatable("aero_reformation.tooltip.ender_compass").withStyle(ChatFormatting.AQUA)));
+            EnderCompassData data = stack.getOrDefault(AeroDataComponents.ENDER_COMPASS, EnderCompassData.EMPTY);
+            if (data.hasChannel()) {
+                event.getToolTip().add(Component.literal("频道: " + data.channel()).withStyle(ChatFormatting.GOLD));
+                data.target().ifPresent(pos -> {
+                    event.getToolTip().add(Component.literal(
+                            "坐标: " + pos.pos().getX() + ", " + pos.pos().getY() + ", " + pos.pos().getZ())
+                            .withStyle(ChatFormatting.GOLD));
+                });
+                event.getToolTip().add(AQUA_PREFIX.copy()
+                        .append(Component.translatable("aero_reformation.tooltip.ender_compass_key").withStyle(ChatFormatting.AQUA)));
+            } else {
+                event.getToolTip().add(AQUA_PREFIX.copy()
+                        .append(Component.translatable("aero_reformation.tooltip.ender_compass").withStyle(ChatFormatting.AQUA)));
+            }
         }
     }
 }

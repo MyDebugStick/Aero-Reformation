@@ -47,6 +47,10 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
     private final Output springOutput;
     public ScrollValueBehaviour angleInput;
     protected double sequencedAngleLimit;
+    private boolean bidirectional = false;
+
+    public boolean isBidirectional() { return bidirectional; }
+    public void toggleBidirectional() { this.bidirectional = !this.bidirectional; setChanged(); }
 
     public RedstoneSpringBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -124,6 +128,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
     @Override
     protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(compound, registries, clientPacket);
+        compound.putBoolean("Bidirectional", this.bidirectional);
         if (this.sequencedAngleLimit >= 0)
             compound.putDouble("SequencedAngleLimit", this.sequencedAngleLimit);
     }
@@ -131,6 +136,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
     @Override
     protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(compound, registries, clientPacket);
+        this.bidirectional = compound.getBoolean("Bidirectional");
         this.sequencedAngleLimit = compound.contains("SequencedAngleLimit") ? compound.getDouble("SequencedAngleLimit") : -1;
     }
 
@@ -139,10 +145,49 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
     private int getMaxNeighborSignal() {
         if (this.level == null) return 0;
         int max = 0;
+        Direction facing = getBlockState().getValue(RedstoneSpringBlock.FACING);
         for (Direction dir : Direction.values()) {
+            if (dir.getAxis() == facing.getAxis()) continue; // skip shaft input/output faces
             max = Math.max(max, this.level.getSignal(this.worldPosition.relative(dir), dir));
         }
         return max;
+    }
+
+    int getEffectiveSignal() {
+        if (this.level == null) return 0;
+        if (!bidirectional) return getMaxNeighborSignal();
+        // Bidirectional: any of the 4 lateral faces can power; >1 face powered → center
+        int count = 0;
+        int maxSig = 0;
+        Direction facing = getBlockState().getValue(RedstoneSpringBlock.FACING);
+        for (Direction dir : Direction.values()) {
+            if (dir.getAxis() == facing.getAxis()) continue;
+            int s = this.level.getSignal(this.worldPosition.relative(dir), dir);
+            if (s > 0) { count++; if (s > maxSig) maxSig = s; }
+        }
+        return count == 1 ? maxSig : 0;
+    }
+
+    /**
+     * Returns rotation direction: 1 = clockwise, -1 = counter-clockwise, 0 = center.
+     * For UP/DOWN facing, clockwise is EAST; for horizontal facing uses getClockWise().
+     */
+    int getRotationSign() {
+        if (!bidirectional) return (int) Math.signum(getSpeed());
+        if (getEffectiveSignal() == 0) return 0;
+        Direction facing = getBlockState().getValue(RedstoneSpringBlock.FACING);
+        Direction cw = facing.getAxis() == Direction.Axis.Y
+                ? (facing == Direction.UP ? Direction.EAST : Direction.WEST)
+                : facing.getClockWise();
+        // Find another non-axis direction on a different axis than cw
+        Direction cw2 = null;
+        for (Direction dir : Direction.values()) {
+            if (dir.getAxis() == facing.getAxis() || dir.getAxis() == cw.getAxis()) continue;
+            cw2 = dir; break;
+        }
+        int cwSignal = this.level.getSignal(this.worldPosition.relative(cw), cw);
+        int cw2Signal = cw2 != null ? this.level.getSignal(this.worldPosition.relative(cw2), cw2) : 0;
+        return (cwSignal > 0 || cw2Signal > 0) ? 1 : -1;
     }
 
     // ==================== Output (based on vanilla torque spring) ====================
@@ -244,19 +289,17 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
                     this.beginTurnTo(0.0);
                 }
             } else if (this.currentState == State.TURNING) {
-                // React immediately on signal or speed changes
-                final int sig = this.parent.getMaxNeighborSignal();
+
+                final int sig = this.parent.getEffectiveSignal();
+                final int rotSign = this.parent.getRotationSign();
                 final double calcAngle = sig == 0 ? 0
-                        : this.parent.angleInput.getValue() * sig / 15.0
-                            * Math.signum(this.parent.getSpeed());
+                        : this.parent.angleInput.getValue() * sig / 15.0 * rotSign;
                 if (this.targetAngle != calcAngle || this.lastSpringSpeed != this.generatedSpeed) {
                     this.stopTurning();
                 }
             } else if (!parentStopped && this.currentState == State.STOPPED) {
-                // Use input-axis direction (matches beginTurnTo scaling, avoids flip-flopping)
-                final float inputDir = Math.signum(this.parent.getSpeed());
-                if (inputDir == 0) return;
-                final double targetAngle = this.parent.angleInput.getValue() * inputDir;
+                final int rotSign = this.parent.getRotationSign();
+                final double targetAngle = this.parent.angleInput.getValue() * rotSign;
                 this.beginTurnTo(targetAngle);
             }
         }
@@ -307,13 +350,12 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
         }
 
         private void beginTurnTo(double target) {
-            // ★ Redstone scaling: direction normalized by input axis, rounded to integer ★
-            final float inputDir = Math.signum(this.parent.getSpeed());
-            final int signal = this.parent.getMaxNeighborSignal();
-            if (signal == 0 || inputDir == 0) {
+            final int signal = this.parent.getEffectiveSignal();
+            final int rotSign = this.parent.getRotationSign();
+            if (signal == 0 || rotSign == 0) {
                 target = 0;
             } else {
-                target = Math.round(Math.abs(target) * signal / 15.0) * inputDir;
+                target = Math.round(Math.abs(target) * signal / 15.0) * rotSign;
             }
 
             double relativeAngle = target - this.angle;

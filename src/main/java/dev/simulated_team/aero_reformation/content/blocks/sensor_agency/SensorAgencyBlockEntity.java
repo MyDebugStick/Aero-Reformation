@@ -69,6 +69,7 @@ public class SensorAgencyBlockEntity extends BlockEntity {
 
         for (BlockPos sensorPos : be.binding.altitude()) {
             SensorProxyData.setAltitude(sensorPos, Mth.clamp(aSignal, 0, 15));
+            SensorProxyData.ALTITUDE_RAW.put(sensorPos, worldY);
             triggerUpdate(level, sensorPos);
         }
 
@@ -102,23 +103,26 @@ public class SensorAgencyBlockEntity extends BlockEntity {
             for (Direction dir : Direction.values()) {
                 SensorProxyData.setVelocity(sensorPos, dir, dir == outputFace ? signal : 0);
             }
+            SensorProxyData.VELOCITY_RAW.put(sensorPos, (float) velOnAxis);
             triggerUpdate(level, sensorPos);
         }
 
         // ═══ GimbalSensor: exact logic from GimbalSensorBlockEntity ═══
         for (BlockPos sensorPos : be.binding.gimbal()) {
             if (sub != null) {
-                // ld = DOWN normal → transformInverse by orientation
                 Vector3d ld = new Vector3d(0, -1, 0);
                 sub.logicalPose().orientation().transformInverse(ld);
-                // XAngle / ZAngle from atan2
                 double xAngle = (ld.y < 0 || ld.z * ld.z > 0.001) ? Math.atan2(ld.z, -ld.y) : 0;
                 double zAngle = (ld.y < 0 || ld.x * ld.x > 0.001) ? Math.atan2(ld.x, -ld.y) : 0;
 
                 double limit = Math.toRadians(be.config.gimbalPrimaryLimit > 0 ? be.config.gimbalPrimaryLimit : 45);
                 SensorProxyData.setGimbalAngles(sensorPos, xAngle, zAngle, limit, be.config.gimbalInverted);
+                SensorProxyData.GIMBAL_X_RAW.put(sensorPos, (float) Math.toDegrees(xAngle));
+                SensorProxyData.GIMBAL_Z_RAW.put(sensorPos, (float) Math.toDegrees(zAngle));
             } else {
                 SensorProxyData.setGimbalAngles(sensorPos, 0, 0, Math.toRadians(45), false);
+                SensorProxyData.GIMBAL_X_RAW.put(sensorPos, 0f);
+                SensorProxyData.GIMBAL_Z_RAW.put(sensorPos, 0f);
             }
             triggerUpdate(level, sensorPos);
         }

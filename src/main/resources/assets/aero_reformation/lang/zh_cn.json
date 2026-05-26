@@ -9,8 +9,8 @@
   "aero_reformation.swivel.swap_enabled": "§a双驱动模式：§6已启用",
   "aero_reformation.swivel.swap_disabled": "§7双驱动模式：§8已关闭",
 
-  "aero_reformation.gimbal.inverted_enable": "§a陀螺仪反相模式：§6已启用",
-  "aero_reformation.gimbal.inverted_disable": "§7陀螺仪反相模式：§8已关闭",
+  "aero_reformation.gimbal.inverted_enable": "§a姿态分析仪反相模式：§6已启用",
+  "aero_reformation.gimbal.inverted_disable": "§7姿态分析仪反相模式：§8已关闭",
 
   "aero_reformation.analog.linear_enabled": "§a模拟传动箱线性模式：§6已启用",
   "aero_reformation.analog.linear_disabled": "§7模拟传动箱线性模式：§8已关闭",
@@ -26,6 +26,9 @@
 
   "item.aero_reformation.ender_compass": "末影指南针",
 
+  "key.categories.aero_reformation": "航空学：变革",
+  "key.aero_reformation.ender_compass": "打开末影指南针GUI",
+
   "aero_reformation.ender_compass.set": "§a已记录位置: §6(%s, %s, %s)",
   "aero_reformation.ender_compass.no_channel": "§c未绑定频道，无法记录位置",
 
@@ -37,18 +40,20 @@
   "aero_reformation.tooltip.swivel.swap": "手持红石火把右键切换双驱动模式",
   "aero_reformation.tooltip.swivel.warn": "双驱动模式下角度可能存在偏差，转速越快偏差越大",
   "aero_reformation.tooltip.gimbal": "手持红石火把右键切换反相模式",
-  "aero_reformation.tooltip.redstone_spring": "角度随红石信号强度变化",
+  "aero_reformation.tooltip.redstone_spring": "角度随红石信号强度变化，手持红石火把右键切换双向模式",
+  "aero_reformation.redstone_spring.bidirectional_on": "§a红石扭簧双向模式：§6已启用",
+  "aero_reformation.redstone_spring.bidirectional_off": "§7红石扭簧双向模式：§8已关闭",
   "aero_reformation.sensor_agency.bind": "§a已绑定传感器: §6%s",
   "aero_reformation.sensor_agency.clear": "§7已清除所有传感器绑定",
   "aero_reformation.sensor_agency.already_bound": "§c该传感器已被另一个代理绑定",
   "aero_reformation.sensor_agency.no_bindings": "§7未绑定任何传感器",
-  "aero_reformation.tooltip.sensor_agency": "§b右键绑定高度、速度传感器，姿态分析仪（陀螺仪）和导航台，传感器代理将与它们共享数据！",
+  "aero_reformation.tooltip.sensor_agency": "§b右键绑定高度、速度传感器，姿态分析仪和导航台，传感器代理将与它们共享数据！",
   "aero_reformation.sensor_agency.bound_altitude": "§b高度传感器 §7(%s, %s, %s)",
   "aero_reformation.sensor_agency.bound_velocity": "§b速度传感器 §7(%s, %s, %s)",
-  "aero_reformation.sensor_agency.bound_gimbal": "§b陀螺仪 §7(%s, %s, %s)",
+  "aero_reformation.sensor_agency.bound_gimbal": "§b姿态分析仪 §7(%s, %s, %s)",
   "aero_reformation.sensor_agency.bound_nav": "§b导航台 §7(%s, %s, %s)",
   "gui.aero_reformation.compass_slot": "指南针槽位",
-  "gui.aero_reformation.gimbal_section": "陀螺仪",
+  "gui.aero_reformation.gimbal_section": "姿态分析仪",
   "gui.aero_reformation.gimbal_primary": "主轴限制: %s°",
   "gui.aero_reformation.gimbal_secondary": "副轴限制: %s°",
   "gui.aero_reformation.altitude_section": "高度传感器",
@@ -66,6 +71,7 @@
   "aero_reformation.tooltip.synchronizer_master": "输出朝向信息，用红石火把切换模式为同步收到的红石信号",
 
   "aero_reformation.tooltip.ender_compass": "将两个指南针放在合成栏绑定频率，shift右键记录当前位置到频率中，长按右键丢出并记录所在位置。生存模式下需要背包里有箭才能丢出",
+  "aero_reformation.tooltip.ender_compass_key": "按[C]手动输入坐标",
 
   "itemGroup.aero_reformation": "航空学：变革"
 }
