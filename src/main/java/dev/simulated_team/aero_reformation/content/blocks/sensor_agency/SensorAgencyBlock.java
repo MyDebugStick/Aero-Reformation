@@ -2,12 +2,9 @@ package dev.simulated_team.aero_reformation.content.blocks.sensor_agency;
 
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.foundation.block.IBE;
-import dev.simulated_team.aero_reformation.AeroReformation;
-import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;

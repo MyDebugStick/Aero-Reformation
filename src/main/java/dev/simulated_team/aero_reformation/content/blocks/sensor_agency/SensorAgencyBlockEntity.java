@@ -6,9 +6,7 @@
 package dev.simulated_team.aero_reformation.content.blocks.sensor_agency;
 
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
-import dev.simulated_team.simulated.content.blocks.gimbal_sensor.GimbalSensorBlockEntity;
 import dev.simulated_team.simulated.content.blocks.nav_table.NavTableBlockEntity;
-import dev.simulated_team.simulated.content.blocks.velocity_sensor.VelocitySensorBlockEntity;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.core.BlockPos;

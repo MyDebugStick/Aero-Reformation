@@ -7,7 +7,6 @@ import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAg
 import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyBlockEntity;
 import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyBlockItem;
 import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyMenu;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.flag.FeatureFlags;
@@ -17,10 +16,8 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;

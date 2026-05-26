@@ -1,6 +1,5 @@
 package dev.simulated_team.aero_reformation.content.items.goggle_monitor;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;

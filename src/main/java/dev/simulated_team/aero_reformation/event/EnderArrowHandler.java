@@ -41,7 +41,7 @@ public class EnderArrowHandler {
     @SubscribeEvent
     public static void onProjectileImpact(ProjectileImpactEvent event) {
         if (!(event.getProjectile() instanceof AbstractArrow arrow)) return;
-        if (!(arrow.level() instanceof ServerLevel level)) return;
+        if (!(arrow.level() instanceof ServerLevel)) return;
 
         Optional<String> channel = EnderArrowTracker.getChannel(arrow);
         if (channel.isEmpty()) return;

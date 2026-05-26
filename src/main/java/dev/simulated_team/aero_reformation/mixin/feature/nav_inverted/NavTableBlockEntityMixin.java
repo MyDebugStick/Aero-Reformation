@@ -5,7 +5,6 @@ import dev.simulated_team.simulated.content.blocks.nav_table.NavTableBlockEntity
 import dev.simulated_team.simulated.content.blocks.nav_table.navigation_target.NavigationTarget;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;

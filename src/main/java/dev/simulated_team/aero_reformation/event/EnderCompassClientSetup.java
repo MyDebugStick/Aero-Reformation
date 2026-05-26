@@ -66,8 +66,8 @@ public class EnderCompassClientSetup {
                         Entity viewer = entity != null ? entity : stack.getEntityRepresentation();
                         if (viewer == null) return 0.0f;
 
-                        if (level == null && viewer.level() instanceof ClientLevel cl)
-                            level = cl;
+                        if (level == null && viewer.level() instanceof ClientLevel cl1)
+                            level = cl1;
                         if (level == null) return 0.0f;
 
                         EnderCompassData data = stack.getOrDefault(AeroDataComponents.ENDER_COMPASS, EnderCompassData.EMPTY);

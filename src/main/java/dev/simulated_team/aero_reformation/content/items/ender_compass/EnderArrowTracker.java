@@ -3,8 +3,6 @@ package dev.simulated_team.aero_reformation.content.items.ender_compass;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.core.GlobalPos;
 
-import java.util.AbstractMap;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;

@@ -27,7 +27,7 @@ public class EnderCompassScreen extends Screen {
     protected void init() {
         int cx = width / 2;
         int startY = height / 2 - 40;
-        int boxW = 90, boxH = 18, rowH = 28, labelW = 20;
+        int boxW = 90, boxH = 18, rowH = 28;
 
         EnderCompassData data = compass.getOrDefault(AeroDataComponents.ENDER_COMPASS, EnderCompassData.EMPTY);
         int x = data.target().map(t -> t.pos().getX()).orElse(0);

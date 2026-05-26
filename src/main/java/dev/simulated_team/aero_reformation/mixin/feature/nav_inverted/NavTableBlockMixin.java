@@ -44,7 +44,6 @@ public class NavTableBlockMixin {
                 // Toggle inverted mode on the block entity
                 if (level.getBlockEntity(blockPos) instanceof NavTableBlockEntity navBE
                         && navBE instanceof INavTableAccessor accessor) {
-                    boolean currentState = accessor.aero_reformation$isInverted();
                     accessor.aero_reformation$toggleInverted();
                     boolean newState = accessor.aero_reformation$isInverted();
 

@@ -1,7 +1,6 @@
 package dev.simulated_team.aero_reformation.feature.gimbal_inverted;
 
 import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorProxyData;
-import dev.simulated_team.aero_reformation.feature.gimbal_inverted.IGimbalInvertedAccessor;
 import dev.simulated_team.simulated.content.blocks.gimbal_sensor.GimbalSensorBlock;
 import dev.simulated_team.simulated.content.blocks.gimbal_sensor.GimbalSensorBlockEntity;
 import net.minecraft.network.chat.Component;

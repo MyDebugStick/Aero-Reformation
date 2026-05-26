@@ -25,7 +25,6 @@ public class EnderCompassRecipe extends ShapelessRecipe {
     public boolean matches(CraftingInput input, Level level) {
         if (!super.matches(input, level)) return false;
 
-        int compassCount = 0;
         String channel = null;
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
