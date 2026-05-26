@@ -83,6 +83,11 @@ public class GoggleMonitorData {
     public static ItemStack findGoggles(Player player) {
         ItemStack head = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.HEAD);
         if (isGoggles(head)) return head;
+        // Also check Curios slots - guard prevents class loading when Curios isn't present
+        if (net.neoforged.fml.ModList.get().isLoaded("curios")) {
+            ItemStack curios = GoggleMonitorCurios.findGogglesInCurios(player);
+            if (!curios.isEmpty()) return curios;
+        }
         return ItemStack.EMPTY;
     }
 
