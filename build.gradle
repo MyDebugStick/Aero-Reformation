@@ -136,7 +136,7 @@ dependencies {
         "${projectDir}/create-1.21.1-6.0.10.jar"
     )
     // Curios (optional, for goggle HUD support in curio slots)
-    compileOnly files("${projectDir}/curios-neoforge-9.5.1+1.21.1.jar")
+    implementation files("${projectDir}/curios-neoforge-9.5.1+1.21.1.jar")
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
