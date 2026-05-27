@@ -58,6 +58,8 @@
   "gui.aero_reformation.gimbal_primary": "Primary Limit: %s°",
   "gui.aero_reformation.gimbal_secondary": "Secondary Limit: %s°",
   "gui.aero_reformation.altitude_section": "Altitude Sensor",
+  "gui.aero_reformation.altitude_low": "Min",
+  "gui.aero_reformation.altitude_high": "Max",
   "gui.aero_reformation.alt_low": "Low Signal: %s",
   "gui.aero_reformation.alt_high": "High Signal: %s",
   "gui.aero_reformation.velocity_section": "Velocity Sensor",

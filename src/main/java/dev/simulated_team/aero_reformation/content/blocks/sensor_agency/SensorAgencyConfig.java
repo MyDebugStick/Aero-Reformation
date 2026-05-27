@@ -14,6 +14,7 @@ public class SensorAgencyConfig {
     /** Altitude signal range in world-height (default: -64 to 320) */
     public int altitudeLowWorld = -64;
     public int altitudeHighWorld = 320;
+    public boolean altitudeInverted = false;
 
     public int velocityMaxSpeed = 10;
 
@@ -41,6 +42,7 @@ public class SensorAgencyConfig {
         tag.putBoolean("gimbalInverted", gimbalInverted);
         tag.putInt("altLow", altitudeLowWorld);
         tag.putInt("altHigh", altitudeHighWorld);
+        tag.putBoolean("altInverted", altitudeInverted);
         tag.putInt("velMaxSpeed", velocityMaxSpeed);
         tag.putBoolean("navInverted", navInverted);
         if (!compassSlot.getItem(0).isEmpty()) {
@@ -55,6 +57,7 @@ public class SensorAgencyConfig {
         gimbalInverted = tag.getBoolean("gimbalInverted");
         altitudeLowWorld = tag.getInt("altLow");
         altitudeHighWorld = tag.getInt("altHigh");
+        altitudeInverted = tag.getBoolean("altInverted");
         velocityMaxSpeed = tag.getInt("velMaxSpeed");
         navInverted = tag.getBoolean("navInverted");
         if (tag.contains("compass")) {

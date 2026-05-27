@@ -63,6 +63,7 @@ public class SensorAgencyBlockEntity extends BlockEntity {
         float maxY = be.config.altitudeHighWorld;
         float altRange = maxY - minY;
         float altValue = altRange > 0 ? Mth.clamp((worldY - minY) / altRange, 0f, 1f) : 0f;
+        if (be.config.altitudeInverted) altValue = 1f - altValue;
         int aSignal = Math.round(altValue * 15f);
 
         for (BlockPos sensorPos : be.binding.altitude()) {

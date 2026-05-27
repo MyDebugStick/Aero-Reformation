@@ -14,7 +14,7 @@ public class SensorAgencyScreen extends AbstractContainerScreen<SensorAgencyMenu
     private static final int SEC1_Y = 72, SEC2_Y = 122, SEC3_Y = 172;
     private static final int BOX_X = 40, BOX_W = 34, BTN_X = 6, TOGGLE_X = 110;
     private EditBox gimbal1, gimbal2, altLow, altHigh, velMax;
-    private Button gimbalToggle, navToggle;
+    private Button gimbalToggle, navToggle, altToggle;
 
     public SensorAgencyScreen(SensorAgencyMenu menu, Inventory inv, Component title) {
         super(menu, inv, title);
@@ -37,6 +37,7 @@ public class SensorAgencyScreen extends AbstractContainerScreen<SensorAgencyMenu
             c.altitudeLowWorld = synced.altLow();
             c.altitudeHighWorld = synced.altHigh();
             c.velocityMaxSpeed = synced.velMax();
+            c.altitudeInverted = synced.altInverted();
             c.navInverted = synced.navInverted();
         }
         int rx = leftPos, ry = topPos;
@@ -59,6 +60,8 @@ public class SensorAgencyScreen extends AbstractContainerScreen<SensorAgencyMenu
         altHigh = addBox(rx + BOX_X, ry + SEC2_Y + ROW_H, cfg.altitudeHighWorld);
         addBtn(rx + BTN_X, ry + SEC2_Y + ROW_H, "-", 6);
         addBtn(rx + BTN_X + 16, ry + SEC2_Y + ROW_H, "+", 7);
+        addToggleBtn(rx + TOGGLE_X, ry + SEC2_Y - 1, cfg.altitudeInverted, 12);
+        altToggle = (Button) children().get(children().size() - 1);
 
         velMax = addBox(rx + BOX_X, ry + SEC3_Y, cfg.velocityMaxSpeed);
         addBtn(rx + BTN_X, ry + SEC3_Y, "-", 8);
@@ -118,6 +121,7 @@ public class SensorAgencyScreen extends AbstractContainerScreen<SensorAgencyMenu
             case 9: c.velocityMaxSpeed = Math.clamp(c.velocityMaxSpeed + 1, 1, 50); break;
             case 10: c.gimbalInverted = !c.gimbalInverted; break;
             case 11: c.navInverted = !c.navInverted; break;
+            case 12: c.altitudeInverted = !c.altitudeInverted; break;
         }
         if (gimbal1 != null) gimbal1.setValue(String.valueOf(c.gimbalPrimaryLimit));
         if (gimbal2 != null) gimbal2.setValue(String.valueOf(c.gimbalSecondaryLimit));
@@ -128,6 +132,8 @@ public class SensorAgencyScreen extends AbstractContainerScreen<SensorAgencyMenu
                 c.gimbalInverted ? "gui.aero_reformation.inverted_on" : "gui.aero_reformation.inverted_off"));
         if (navToggle != null) navToggle.setMessage(Component.translatable(
                 c.navInverted ? "gui.aero_reformation.inverted_on" : "gui.aero_reformation.inverted_off"));
+        if (altToggle != null) altToggle.setMessage(Component.translatable(
+                c.altitudeInverted ? "gui.aero_reformation.inverted_on" : "gui.aero_reformation.inverted_off"));
     }
 
     private void syncAll() {
@@ -182,6 +188,8 @@ public class SensorAgencyScreen extends AbstractContainerScreen<SensorAgencyMenu
         g.drawString(font, "°", lx, SEC1_Y + 5, 0x404040);
         g.drawString(font, "°", lx, SEC1_Y + ROW_H + 5, 0x404040);
         g.drawString(font, Component.translatable("gui.aero_reformation.altitude_section"), 6, SEC2_Y - 13, 0xFF_222222);
+        g.drawString(font, Component.translatable("gui.aero_reformation.altitude_low"), BOX_X + BOX_W + 4, SEC2_Y + 4, 0x404040);
+        g.drawString(font, Component.translatable("gui.aero_reformation.altitude_high"), BOX_X + BOX_W + 4, SEC2_Y + ROW_H + 4, 0x404040);
         g.drawString(font, Component.translatable("gui.aero_reformation.velocity_section"), 6, SEC3_Y - 13, 0xFF_222222);
         g.drawString(font, "m/s", lx, SEC3_Y + 5, 0x404040);
         g.drawString(font, Component.translatable("gui.aero_reformation.nav_section"), 6, SEC3_Y + ROW_H + 6, 0xFF_222222);

@@ -60,6 +60,8 @@
   "gui.aero_reformation.gimbal_primary": "主轴限制: %s°",
   "gui.aero_reformation.gimbal_secondary": "副轴限制: %s°",
   "gui.aero_reformation.altitude_section": "高度传感器",
+  "gui.aero_reformation.altitude_low": "最低",
+  "gui.aero_reformation.altitude_high": "最高",
   "gui.aero_reformation.alt_low": "低信号: %s",
   "gui.aero_reformation.alt_high": "高信号: %s",
   "gui.aero_reformation.velocity_section": "速度传感器",

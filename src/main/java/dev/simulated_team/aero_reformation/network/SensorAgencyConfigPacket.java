@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record SensorAgencyConfigPacket(BlockPos pos, int gimbalPrimary, int gimbalSecondary, boolean gimbalInverted,
-                                        int altLow, int altHigh, int velMax, boolean navInverted)
+                                        int altLow, int altHigh, boolean altInverted, int velMax, boolean navInverted)
         implements CustomPacketPayload {
 
     public static final Type<SensorAgencyConfigPacket> TYPE = new Type<>(
@@ -30,7 +30,7 @@ public record SensorAgencyConfigPacket(BlockPos pos, int gimbalPrimary, int gimb
     public static SensorAgencyConfigPacket fromConfig(BlockPos pos, SensorAgencyConfig config) {
         return new SensorAgencyConfigPacket(pos, config.gimbalPrimaryLimit, config.gimbalSecondaryLimit,
                 config.gimbalInverted, config.altitudeLowWorld, config.altitudeHighWorld,
-                config.velocityMaxSpeed, config.navInverted);
+                config.altitudeInverted, config.velocityMaxSpeed, config.navInverted);
     }
 
     @Override
@@ -45,6 +45,7 @@ public record SensorAgencyConfigPacket(BlockPos pos, int gimbalPrimary, int gimb
         buf.writeBoolean(gimbalInverted);
         buf.writeVarInt(altLow);
         buf.writeVarInt(altHigh);
+        buf.writeBoolean(altInverted);
         buf.writeVarInt(velMax);
         buf.writeBoolean(navInverted);
     }
@@ -53,7 +54,7 @@ public record SensorAgencyConfigPacket(BlockPos pos, int gimbalPrimary, int gimb
         return new SensorAgencyConfigPacket(
                 buf.readBlockPos(),
                 buf.readVarInt(), buf.readVarInt(), buf.readBoolean(),
-                buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readBoolean());
+                buf.readVarInt(), buf.readVarInt(), buf.readBoolean(), buf.readVarInt(), buf.readBoolean());
     }
 
     public void apply(SensorAgencyBlockEntity be) {
@@ -62,6 +63,7 @@ public record SensorAgencyConfigPacket(BlockPos pos, int gimbalPrimary, int gimb
         be.config.gimbalInverted = gimbalInverted;
         be.config.altitudeLowWorld = altLow;
         be.config.altitudeHighWorld = altHigh;
+        be.config.altitudeInverted = altInverted;
         be.config.velocityMaxSpeed = velMax;
         be.config.navInverted = navInverted;
         be.saveConfig();
