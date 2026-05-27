@@ -95,6 +95,12 @@ public class ElectricLoadstoneBlockEntity extends BlockEntity {
         EnderCompassData newData = new EnderCompassData(channel,
                 java.util.Optional.of(GlobalPos.of(level.dimension(), pos)));
         for (var player : level.getServer().getPlayerList().getPlayers()) {
+            // Skip players without any compass
+            boolean hasCompass = false;
+            for (ItemStack s : player.getInventory().items) {
+                if (s.is(AeroBlocks.ENDER_COMPASS.get())) { hasCompass = true; break; }
+            }
+            if (!hasCompass && !player.getOffhandItem().is(AeroBlocks.ENDER_COMPASS.get())) continue;
             boolean changed = false;
             for (ItemStack s : player.getInventory().items) {
                 if (!s.is(AeroBlocks.ENDER_COMPASS.get())) continue;
