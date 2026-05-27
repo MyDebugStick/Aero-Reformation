@@ -17,7 +17,8 @@
     "feature.sensor_agency.VelocitySensorProxyMixin",
     "feature.sensor_agency.VelocitySensorBEMixin",
     "feature.sensor_agency.GimbalSensorProxyMixin",
-    "feature.sensor_agency.NavTableProxyMixin"
+    "feature.sensor_agency.NavTableProxyMixin",
+    "feature.nav_table_cache.NavTableChannelCacheMixin"
   ],
   "client": [
   ],

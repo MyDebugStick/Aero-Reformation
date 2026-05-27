@@ -19,6 +19,7 @@
   "block.aero_reformation.directional_synchronizer_master": "Directional Synchronizer (Master)",
   "block.aero_reformation.directional_synchronizer_slave": "Directional Synchronizer (Slave)",
   "block.aero_reformation.sensor_agency": "Sensor Agency",
+  "block.aero_reformation.electric_loadstone": "Electric Loadstone",
 
   "aero_reformation.synchronizer.bound": "§aBound to master position",
   "aero_reformation.synchronizer.mirror_on": "§aSynchronizer Mirror Mode: §6ON",
@@ -30,6 +31,7 @@
   "key.aero_reformation.ender_compass": "Open Ender Compass GUI",
 
   "aero_reformation.ender_compass.set": "§aPosition recorded: §6(%s, %s, %s)",
+  "aero_reformation.loadstone.sync": "§aSynced Loadstone position (%s, %s, %s) to channel [%s]",
   "aero_reformation.ender_compass.no_channel": "§cNo channel bound, cannot record position",
 
   "message.aero_reformation.ender_arrow.sync": "§a[%s] §7Compass synced position: §6(%s, %s, %s)",

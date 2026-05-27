@@ -19,6 +19,7 @@
   "block.aero_reformation.directional_synchronizer_master": "方向同步器（母）",
   "block.aero_reformation.directional_synchronizer_slave": "方向同步器（子）",
   "block.aero_reformation.sensor_agency": "传感器代理",
+  "block.aero_reformation.electric_loadstone": "电控磁石",
 
   "aero_reformation.synchronizer.bound": "§a已绑定母方块位置",
   "aero_reformation.synchronizer.mirror_on": "§a方向同步器镜像模式：§6已启用",
@@ -30,6 +31,7 @@
   "key.aero_reformation.ender_compass": "打开末影指南针GUI",
 
   "aero_reformation.ender_compass.set": "§a已记录位置: §6(%s, %s, %s)",
+  "aero_reformation.loadstone.sync": "§a已将磁石(%s, %s, %s)的定位同步至频道[%s]",
   "aero_reformation.ender_compass.no_channel": "§c未绑定频道，无法记录位置",
 
   "message.aero_reformation.ender_arrow.sync": "§a[%s] §7指南针同步坐标: §6(%s, %s, %s)",

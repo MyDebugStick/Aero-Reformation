@@ -7,6 +7,8 @@ import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAg
 import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyBlockEntity;
 import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyBlockItem;
 import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyMenu;
+import dev.simulated_team.aero_reformation.content.blocks.electric_loadstone.ElectricLoadstoneBlock;
+import dev.simulated_team.aero_reformation.content.blocks.electric_loadstone.ElectricLoadstoneBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.flag.FeatureFlags;
@@ -66,6 +68,26 @@ public class AeroBlocks {
                     new Item.Properties().stacksTo(1)
                             .component(dev.simulated_team.simulated.index.SimDataComponents.TARGET,
                                     dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget.INSTANCE)
+            ));
+
+    // ==================== Electric Loadstone ====================
+
+    public static final Supplier<ElectricLoadstoneBlock> ELECTRIC_LOADSTONE =
+            BLOCKS.register("electric_loadstone", () -> new ElectricLoadstoneBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(2.0f)
+                            .requiresCorrectToolForDrops()
+                            .noOcclusion()
+            ));
+
+    public static final Supplier<BlockEntityType<ElectricLoadstoneBlockEntity>> ELECTRIC_LOADSTONE_BE =
+            BLOCK_ENTITY_TYPES.register("electric_loadstone",
+                    () -> BlockEntityType.Builder.of(ElectricLoadstoneBlockEntity::new, ELECTRIC_LOADSTONE.get())
+                            .build(null));
+
+    public static final Supplier<BlockItem> ELECTRIC_LOADSTONE_ITEM =
+            ITEMS.register("electric_loadstone", () -> new BlockItem(
+                    ELECTRIC_LOADSTONE.get(), new Item.Properties()
             ));
 
     // ==================== Directional Synchronizer ====================
@@ -151,6 +173,7 @@ public class AeroBlocks {
                         output.accept(DIRECTIONAL_SYNCHRONIZER_MASTER_ITEM.get());
                         output.accept(DIRECTIONAL_SYNCHRONIZER_SLAVE_ITEM.get());
                         output.accept(SENSOR_AGENCY_ITEM.get());
+                        output.accept(ELECTRIC_LOADSTONE_ITEM.get());
                     })
                     .build()
     );

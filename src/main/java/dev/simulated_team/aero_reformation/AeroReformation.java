@@ -7,6 +7,7 @@ import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderComp
 import dev.simulated_team.aero_reformation.network.EnderCompassSyncPacket;
 import dev.simulated_team.aero_reformation.network.GoggleBindPacket;
 import dev.simulated_team.aero_reformation.network.GoggleMonitorSyncPacket;
+import dev.simulated_team.aero_reformation.network.LoadstoneSyncPacket;
 import dev.simulated_team.aero_reformation.network.SensorAgencyConfigPacket;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
@@ -59,6 +60,8 @@ public class AeroReformation {
                     GoggleBindPacket::handle);
             registrar.playToClient(GoggleMonitorSyncPacket.TYPE, GoggleMonitorSyncPacket.STREAM_CODEC,
                     GoggleMonitorSyncPacket::handle);
+            registrar.playToClient(LoadstoneSyncPacket.TYPE, LoadstoneSyncPacket.STREAM_CODEC,
+                    LoadstoneSyncPacket::handle);
         });
 
         // Register NavigationTarget into Simulated's existing registry
@@ -74,6 +77,8 @@ public class AeroReformation {
         modEventBus.addListener((net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers e) -> {
             e.registerBlockEntityRenderer(AeroBlocks.REDSTONE_SPRING_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.redstone_spring.RedstoneSpringRenderer::new);
+            e.registerBlockEntityRenderer(AeroBlocks.ELECTRIC_LOADSTONE_BE.get(),
+                    dev.simulated_team.aero_reformation.content.blocks.electric_loadstone.ElectricLoadstoneRenderer::new);
         });
 
         // Register screen
