@@ -38,6 +38,11 @@ public class EnderArrowHandler {
     private static final Set<String> DIRTY_CHANNELS = Collections.synchronizedSet(new HashSet<>());
     private static final Map<String, GlobalPos> LAST_SYNC_POS = Collections.synchronizedMap(new HashMap<>());
 
+    /** Called by external systems (e.g. ElectricLoadstone) to trigger the 5-second refresh. */
+    public static void markChannelDirty(String channel) {
+        DIRTY_CHANNELS.add(channel);
+    }
+
     @SubscribeEvent
     public static void onProjectileImpact(ProjectileImpactEvent event) {
         if (!(event.getProjectile() instanceof AbstractArrow arrow)) return;

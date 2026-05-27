@@ -1,7 +1,9 @@
 package dev.simulated_team.aero_reformation.content.blocks.electric_loadstone;
 
+import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderArrowTracker;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderChannelCache;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassData;
+import dev.simulated_team.aero_reformation.event.EnderArrowHandler;
 import dev.simulated_team.aero_reformation.network.LoadstoneSyncPacket;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
@@ -72,6 +74,9 @@ public class ElectricLoadstoneBlockEntity extends BlockEntity {
                     // Sync globally to all compasses on this channel
                     EnderChannelCache.put(data.channel(),
                             GlobalPos.of(((ServerLevel) level).dimension(), targetPos));
+                    EnderArrowTracker.updatePos(data.channel(),
+                            GlobalPos.of(((ServerLevel) level).dimension(), targetPos));
+                    EnderArrowHandler.markChannelDirty(data.channel());
                     syncAllCompasses((ServerLevel) level, data.channel(), targetPos);
 
                     // Also update the compass physically on the loadstone
