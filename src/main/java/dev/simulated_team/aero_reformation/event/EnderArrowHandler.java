@@ -117,6 +117,11 @@ public class EnderArrowHandler {
         return GlobalPos.of(arrow.level().dimension(), pos);
     }
 
+    /** Refresh a compass stack with the latest cached position. */
+    public static void refreshCompassPublic(ItemStack stack) {
+        refreshCompass(stack);
+    }
+
     private static void refreshCompass(ItemStack stack) {
         EnderCompassData data = stack.getOrDefault(AeroDataComponents.ENDER_COMPASS, EnderCompassData.EMPTY);
         if (!data.hasChannel()) return;

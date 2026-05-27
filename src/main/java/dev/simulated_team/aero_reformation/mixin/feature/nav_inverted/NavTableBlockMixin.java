@@ -1,6 +1,7 @@
 package dev.simulated_team.aero_reformation.mixin.feature.nav_inverted;
 
 import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorProxyData;
+import dev.simulated_team.aero_reformation.event.EnderArrowHandler;
 import dev.simulated_team.aero_reformation.feature.nav_inverted.INavTableAccessor;
 import dev.simulated_team.simulated.content.blocks.nav_table.NavTableBlock;
 import dev.simulated_team.simulated.content.blocks.nav_table.NavTableBlockEntity;
@@ -62,5 +63,17 @@ public class NavTableBlockMixin {
             }
             cir.setReturnValue(ItemInteractionResult.SUCCESS);
         }
+    }
+
+    /** Refresh compass when player takes it from the NavTable (empty hand right-click). */
+    @Inject(method = "useItemOn", at = @At("TAIL"))
+    private void aero_reformation$refreshCompassOnTake(ItemStack itemStack, BlockState blockState, Level level,
+                                                        BlockPos blockPos, Player player, InteractionHand interactionHand,
+                                                        BlockHitResult blockHitResult, CallbackInfoReturnable<ItemInteractionResult> cir) {
+        if (level.isClientSide()) return;
+        if (cir.getReturnValue() != ItemInteractionResult.SUCCESS) return;
+        if (!itemStack.isEmpty()) return; // Only refresh when taking (empty hand)
+        ItemStack held = player.getItemInHand(interactionHand);
+        EnderArrowHandler.refreshCompassPublic(held);
     }
 }

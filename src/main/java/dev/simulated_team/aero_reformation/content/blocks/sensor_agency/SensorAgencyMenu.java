@@ -44,6 +44,7 @@ public class SensorAgencyMenu extends AbstractContainerMenu {
             Slot slot = slots.get(index);
             if (slot.hasItem()) {
                 ItemStack stack = slot.getItem().copy();
+                dev.simulated_team.aero_reformation.event.EnderArrowHandler.refreshCompassPublic(stack);
                 slot.set(ItemStack.EMPTY);
                 if (!player.getInventory().add(stack)) {
                     player.drop(stack, false);

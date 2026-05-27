@@ -2,7 +2,9 @@ package dev.simulated_team.aero_reformation.content.blocks.electric_loadstone;
 
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.foundation.block.IBE;
+import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassData;
+import dev.simulated_team.aero_reformation.event.EnderArrowHandler;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
 import net.minecraft.core.BlockPos;
@@ -80,7 +82,9 @@ public class ElectricLoadstoneBlock extends Block implements IBE<ElectricLoadsto
             if (held.isEmpty()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
             if (level.isClientSide()) return ItemInteractionResult.SUCCESS;
 
-            player.setItemInHand(hand, held.copy());
+            ItemStack toGive = held.copy();
+            EnderArrowHandler.refreshCompassPublic(toGive);
+            player.setItemInHand(hand, toGive);
             loadstone.setHeldItem(ItemStack.EMPTY);
             return ItemInteractionResult.SUCCESS;
         }
