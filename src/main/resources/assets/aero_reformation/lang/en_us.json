@@ -48,6 +48,7 @@
   "aero_reformation.sensor_agency.already_bound": "§cThis sensor is already bound to another agency",
   "aero_reformation.sensor_agency.no_bindings": "§7No sensors bound",
   "aero_reformation.tooltip.sensor_agency": "§bRight-click to bind Altitude, Velocity, Gimbal sensors and Nav Table. The Sensor Agency shares data with them!",
+  "aero_reformation.tooltip.electric_loadstone": "§bPlace an Ender Compass, then power with redstone to make it point to this block",
   "aero_reformation.sensor_agency.bound_altitude": "§bAltitude Sensor §7(%s, %s, %s)",
   "aero_reformation.sensor_agency.bound_velocity": "§bVelocity Sensor §7(%s, %s, %s)",
   "aero_reformation.sensor_agency.bound_gimbal": "§bGimbal Sensor §7(%s, %s, %s)",

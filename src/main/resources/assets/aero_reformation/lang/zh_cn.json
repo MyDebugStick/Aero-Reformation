@@ -50,6 +50,7 @@
   "aero_reformation.sensor_agency.already_bound": "§c该传感器已被另一个代理绑定",
   "aero_reformation.sensor_agency.no_bindings": "§7未绑定任何传感器",
   "aero_reformation.tooltip.sensor_agency": "§b右键绑定高度、速度传感器，姿态分析仪和导航台，传感器代理将与它们共享数据！",
+  "aero_reformation.tooltip.electric_loadstone": "§b放上末影指南针后，用红石充能可使末影指南针指向自己",
   "aero_reformation.sensor_agency.bound_altitude": "§b高度传感器 §7(%s, %s, %s)",
   "aero_reformation.sensor_agency.bound_velocity": "§b速度传感器 §7(%s, %s, %s)",
   "aero_reformation.sensor_agency.bound_gimbal": "§b姿态分析仪 §7(%s, %s, %s)",

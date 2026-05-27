@@ -51,6 +51,12 @@ public class AeroTooltipHandler {
                     .append(Component.translatable("aero_reformation.tooltip.redstone_spring").withStyle(ChatFormatting.AQUA)));
         }
 
+        // Electric Loadstone: place compass + redstone sync
+        if (id.equals(ResourceLocation.parse("aero_reformation:electric_loadstone"))) {
+            event.getToolTip().add(AQUA_PREFIX.copy()
+                    .append(Component.translatable("aero_reformation.tooltip.electric_loadstone").withStyle(ChatFormatting.AQUA)));
+        }
+
         // Levitite: Silk Touch Golden Pickaxe
         if (id.equals(ResourceLocation.parse("aeronautics:levitite"))
                 || id.equals(ResourceLocation.parse("aeronautics:pearlescent_levitite"))) {
