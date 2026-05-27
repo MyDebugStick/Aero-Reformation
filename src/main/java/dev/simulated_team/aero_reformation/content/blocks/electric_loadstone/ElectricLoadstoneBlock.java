@@ -2,7 +2,6 @@ package dev.simulated_team.aero_reformation.content.blocks.electric_loadstone;
 
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.foundation.block.IBE;
-import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassData;
 import dev.simulated_team.aero_reformation.event.EnderArrowHandler;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
