@@ -46,6 +46,10 @@ public class RcsThrusterBlockItem extends BlockItem {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
+        tooltip.add(Component.translatable("aero_reformation.rcs_thruster.desc1")
+                .withStyle(net.minecraft.ChatFormatting.GRAY));
+        tooltip.add(Component.translatable("aero_reformation.rcs_thruster.desc2")
+                .withStyle(net.minecraft.ChatFormatting.GRAY));
         BlockPos boundSync = stack.get(AeroDataComponents.BOUND_MASTER.get());
         if (boundSync != null) {
             tooltip.add(Component.translatable("aero_reformation.rcs_thruster.bound_pos",

@@ -22,6 +22,8 @@
   "block.aero_reformation.electric_loadstone": "电控磁石",
   "block.aero_reformation.rcs_thruster": "RCS推进器",
   "item.aero_reformation.incomplete_rcs_thruster": "RCS推进器（半成品）",
+  "aero_reformation.rcs_thruster.desc1": "需要相邻容器内有柴油动力的汽油才能使用，或使用创造烈焰蛋糕",
+  "aero_reformation.rcs_thruster.desc2": "绑定至母同步器以控制输出",
 
   "aero_reformation.synchronizer.bound": "§a已绑定母方块位置",
   "aero_reformation.rcs_thruster.bound": "§a已进入RCS同步模式",
