@@ -9,6 +9,9 @@ import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAg
 import dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyMenu;
 import dev.simulated_team.aero_reformation.content.blocks.electric_loadstone.ElectricLoadstoneBlock;
 import dev.simulated_team.aero_reformation.content.blocks.electric_loadstone.ElectricLoadstoneBlockEntity;
+import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterBlock;
+import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterBlockEntity;
+import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterBlockItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.flag.FeatureFlags;
@@ -133,6 +136,31 @@ public class AeroBlocks {
                             DIRECTIONAL_SYNCHRONIZER_MASTER.get()
                     ).build(null));
 
+    // ==================== RCS Thruster ====================
+
+    public static final Supplier<RcsThrusterBlock> RCS_THRUSTER =
+            BLOCKS.register("rcs_thruster", () -> new RcsThrusterBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(2.0f)
+                            .noOcclusion()
+                            .requiresCorrectToolForDrops()
+            ));
+
+    public static final Supplier<BlockEntityType<RcsThrusterBlockEntity>> RCS_THRUSTER_BE =
+            BLOCK_ENTITY_TYPES.register("rcs_thruster",
+                    () -> BlockEntityType.Builder.of(RcsThrusterBlockEntity::new, RCS_THRUSTER.get())
+                            .build(null));
+
+    public static final Supplier<BlockItem> RCS_THRUSTER_ITEM =
+            ITEMS.register("rcs_thruster", () -> new RcsThrusterBlockItem(
+                    RCS_THRUSTER.get(), new Item.Properties()
+            ));
+
+    public static final Supplier<Item> INCOMPLETE_RCS_THRUSTER =
+            ITEMS.register("incomplete_rcs_thruster", () -> new Item(
+                    new Item.Properties().stacksTo(1)
+            ));
+
     // ==================== Sensor Agency ====================
 
     public static final Supplier<SensorAgencyBlock> SENSOR_AGENCY =
@@ -174,6 +202,7 @@ public class AeroBlocks {
                         output.accept(DIRECTIONAL_SYNCHRONIZER_SLAVE_ITEM.get());
                         output.accept(SENSOR_AGENCY_ITEM.get());
                         output.accept(ELECTRIC_LOADSTONE_ITEM.get());
+                        output.accept(RCS_THRUSTER_ITEM.get());
                     })
                     .build()
     );

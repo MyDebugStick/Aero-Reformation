@@ -1,0 +1,108 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "create:blaze_burner"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "chance": 40.0,
+      "id": "aero_reformation:rcs_thruster"
+    },
+    {
+      "chance": 60.0,
+      "id": "create:empty_blaze_burner"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"},
+        {"item": "create:fluid_pipe"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"},
+        {"item": "create:fluid_pipe"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"},
+        {"item": "create:fluid_pipe"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"},
+        {"item": "create:fluid_pipe"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"},
+        {"item": "create:fluid_pipe"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"},
+        {"item": "create:brass_casing"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"},
+        {"item": "create:precision_mechanism"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"},
+        {"item": "create:industrial_iron_block"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"},
+        {"item": "minecraft:netherite_ingot"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    }
+  ],
+  "transitional_item": {
+    "id": "aero_reformation:incomplete_rcs_thruster"
+  }
+}

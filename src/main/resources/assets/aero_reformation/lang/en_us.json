@@ -20,8 +20,15 @@
   "block.aero_reformation.directional_synchronizer_slave": "Directional Synchronizer (Slave)",
   "block.aero_reformation.sensor_agency": "Sensor Agency",
   "block.aero_reformation.electric_loadstone": "Electric Loadstone",
+  "block.aero_reformation.rcs_thruster": "RCS Thruster",
 
   "aero_reformation.synchronizer.bound": "§aBound to master position",
+  "aero_reformation.rcs_thruster.bound": "§aEntered RCS Sync Mode",
+  "aero_reformation.rcs_thruster.bound_pos": "Bound to: §e[%s, %s, %s]",
+  "aero_reformation.rcs_thruster.thrust": "Thrust Value",
+  "aero_reformation.rcs_thruster.angled_mode": "§eAngled Thrust: %s",
+  "aero_reformation.rcs_thruster.creative_mode": "§dSwitched to infinite fuel mode",
+  "aero_reformation.rcs_thruster.thrust_value": "Thrust: %spN",
   "aero_reformation.synchronizer.mirror_on": "§aSynchronizer Mirror Mode: §6ON",
   "aero_reformation.synchronizer.mirror_off": "§7Synchronizer Mirror Mode: §8OFF",
 

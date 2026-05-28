@@ -20,8 +20,17 @@
   "block.aero_reformation.directional_synchronizer_slave": "方向同步器（子）",
   "block.aero_reformation.sensor_agency": "传感器代理",
   "block.aero_reformation.electric_loadstone": "电控磁石",
+  "block.aero_reformation.rcs_thruster": "RCS推进器",
+  "item.aero_reformation.incomplete_rcs_thruster": "RCS推进器（半成品）",
 
   "aero_reformation.synchronizer.bound": "§a已绑定母方块位置",
+  "aero_reformation.rcs_thruster.bound": "§a已进入RCS同步模式",
+  "aero_reformation.rcs_thruster.cleared": "§7已清除RCS绑定",
+  "aero_reformation.rcs_thruster.bound_pos": "已绑定至: §e[%s, %s, %s]",
+  "aero_reformation.rcs_thruster.thrust": "推力值",
+  "aero_reformation.rcs_thruster.angled_mode": "§e斜向推力: %s",
+  "aero_reformation.rcs_thruster.creative_mode": "§d已切换至无限燃料模式",
+  "aero_reformation.rcs_thruster.thrust_value": "推力: %spN",
   "aero_reformation.synchronizer.mirror_on": "§a方向同步器镜像模式：§6已启用",
   "aero_reformation.synchronizer.mirror_off": "§7方向同步器镜像模式：§8已关闭",
 

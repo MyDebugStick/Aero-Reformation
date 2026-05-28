@@ -19,6 +19,7 @@ public class DirectionalSynchronizerMasterBlockEntity extends BlockEntity {
     private int ticks = 0;
 
     private boolean mirrorMode = false;
+    private boolean rcsMode = false;
     private final int[] inputSignals = new int[6];
     private final int[] delayedSignals = new int[6];
     private final int[] lastSignals = new int[6];  // last sent to slaves
@@ -48,6 +49,9 @@ public class DirectionalSynchronizerMasterBlockEntity extends BlockEntity {
         this.mirrorMode = !this.mirrorMode;
         this.setChanged();
     }
+
+    public boolean isRcsMode() { return rcsMode; }
+    public void setRcsMode(boolean v) { this.rcsMode = v; setChanged(); }
 
     public static void tick(Level level, BlockPos pos, BlockState state, DirectionalSynchronizerMasterBlockEntity be) {
         if (level.isClientSide()) return;
@@ -87,6 +91,7 @@ public class DirectionalSynchronizerMasterBlockEntity extends BlockEntity {
         super.saveAdditional(tag, registries);
         tag.putInt("WorldFacing", worldFacing.ordinal());
         tag.putBoolean("MirrorMode", mirrorMode);
+        tag.putBoolean("RcsMode", rcsMode);
     }
 
     @Override
@@ -94,5 +99,6 @@ public class DirectionalSynchronizerMasterBlockEntity extends BlockEntity {
         super.loadAdditional(tag, registries);
         if (tag.contains("WorldFacing")) worldFacing = Direction.values()[tag.getInt("WorldFacing")];
         mirrorMode = tag.getBoolean("MirrorMode");
+        rcsMode = tag.getBoolean("RcsMode");
     }
 }

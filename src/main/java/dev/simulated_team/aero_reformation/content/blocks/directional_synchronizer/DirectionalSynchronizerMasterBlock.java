@@ -56,28 +56,40 @@ public class DirectionalSynchronizerMasterBlock extends DirectionalBlock
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                                Player player, InteractionHand hand, BlockHitResult hit) {
+        DirectionalSynchronizerMasterBlockEntity be =
+                level.getBlockEntity(pos) instanceof DirectionalSynchronizerMasterBlockEntity b ? b : null;
+
         if (stack.is(Items.REDSTONE_TORCH)) {
-            if (!level.isClientSide()) {
-                if (level.getBlockEntity(pos) instanceof DirectionalSynchronizerMasterBlockEntity be) {
-                    be.toggleMirrorMode();
-                    String key = be.isMirrorMode()
-                            ? "aero_reformation.synchronizer.mirror_on"
-                            : "aero_reformation.synchronizer.mirror_off";
-                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_HAT.value(), SoundSource.BLOCKS, 0.8f,
-                            be.isMirrorMode() ? 0.7f : 0.5f);
-                    player.displayClientMessage(Component.translatable(key), true);
-                    be.setChanged();
-                }
+            if (be != null && be.isRcsMode()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            if (!level.isClientSide() && be != null) {
+                be.toggleMirrorMode();
+                String key = be.isMirrorMode()
+                        ? "aero_reformation.synchronizer.mirror_on"
+                        : "aero_reformation.synchronizer.mirror_off";
+                level.playSound(null, pos, SoundEvents.NOTE_BLOCK_HAT.value(), SoundSource.BLOCKS, 0.8f,
+                        be.isMirrorMode() ? 0.7f : 0.5f);
+                player.displayClientMessage(Component.translatable(key), true);
+                be.setChanged();
             }
             return ItemInteractionResult.SUCCESS;
         }
         if (stack.is(AeroBlocks.DIRECTIONAL_SYNCHRONIZER_SLAVE_ITEM.get())) {
+            if (be != null && be.isRcsMode()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
             if (!level.isClientSide()) {
-                // Bind the slave item to this master position
                 stack.set(AeroDataComponents.BOUND_MASTER.get(), pos);
                 level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.5f, 1.5f);
                 player.displayClientMessage(
                         Component.translatable("aero_reformation.synchronizer.bound"), true);
+            }
+            return ItemInteractionResult.SUCCESS;
+        }
+        if (stack.is(AeroBlocks.RCS_THRUSTER_ITEM.get())) {
+            if (!level.isClientSide()) {
+                stack.set(AeroDataComponents.BOUND_MASTER.get(), pos);
+                if (be != null) be.setRcsMode(true);
+                level.playSound(null, pos, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 0.5f, 1.5f);
+                player.displayClientMessage(
+                        Component.translatable("aero_reformation.rcs_thruster.bound"), true);
             }
             return ItemInteractionResult.SUCCESS;
         }
