@@ -6,11 +6,11 @@
   "loops": 1,
   "results": [
     {
-      "chance": 40.0,
+      "chance": 30.0,
       "id": "aero_reformation:rcs_thruster"
     },
     {
-      "chance": 60.0,
+      "chance": 70.0,
       "id": "create:empty_blaze_burner"
     }
   ],
@@ -19,7 +19,7 @@
       "type": "create:deploying",
       "ingredients": [
         {"item": "aero_reformation:incomplete_rcs_thruster"},
-        {"item": "create:fluid_pipe"}
+        {"item": "create:fluid_valve"}
       ],
       "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
     },
@@ -27,7 +27,7 @@
       "type": "create:deploying",
       "ingredients": [
         {"item": "aero_reformation:incomplete_rcs_thruster"},
-        {"item": "create:fluid_pipe"}
+        {"item": "create:fluid_valve"}
       ],
       "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
     },
@@ -35,7 +35,7 @@
       "type": "create:deploying",
       "ingredients": [
         {"item": "aero_reformation:incomplete_rcs_thruster"},
-        {"item": "create:fluid_pipe"}
+        {"item": "create:fluid_valve"}
       ],
       "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
     },
@@ -43,7 +43,7 @@
       "type": "create:deploying",
       "ingredients": [
         {"item": "aero_reformation:incomplete_rcs_thruster"},
-        {"item": "create:fluid_pipe"}
+        {"item": "create:fluid_valve"}
       ],
       "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
     },
@@ -51,7 +51,7 @@
       "type": "create:deploying",
       "ingredients": [
         {"item": "aero_reformation:incomplete_rcs_thruster"},
-        {"item": "create:fluid_pipe"}
+        {"item": "create:fluid_valve"}
       ],
       "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
     },
@@ -97,7 +97,22 @@
       "type": "create:deploying",
       "ingredients": [
         {"item": "aero_reformation:incomplete_rcs_thruster"},
-        {"item": "minecraft:netherite_ingot"}
+        {"item": "create:mechanical_pump"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"},
+        {"item": "create:sturdy_sheet"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_rcs_thruster"}
       ],
       "results": [{"id": "aero_reformation:incomplete_rcs_thruster"}]
     }

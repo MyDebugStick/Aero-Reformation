@@ -76,8 +76,10 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     private static final double[] ANGLED_REDUCTION = {1.0, 0.5, 0.25, 0.1, 0.05, 0.02};
     private int angledMode = 0;
 
-    // Fuel: 2000pN per 1mB, creative mode skips consumption
-    private static final double PTHRUST_PER_MB = 2000.0;
+    // Fuel: configurable via AeroReformationConfig, default 5000pN/mB/tick
+    private double getFuelConsumption() {
+        return dev.simulated_team.aero_reformation.config.AeroReformationConfig.rcsFuelConsumption;
+    }
     private boolean creativeMode = false;
     private boolean fuelAvailable = false; // synced for client VFX
 
@@ -294,7 +296,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         }
 
         // Fuel consumption
-        int fuelNeeded = creativeMode ? 0 : (int) Math.ceil(totalThrustPN / PTHRUST_PER_MB);
+        int fuelNeeded = creativeMode ? 0 : (int) Math.ceil(totalThrustPN / getFuelConsumption());
         boolean prevFuel = fuelAvailable;
         if (!creativeMode && fuelNeeded > 0) {
             int drained = drainFuel(fuelNeeded);

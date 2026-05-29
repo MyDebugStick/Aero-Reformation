@@ -47,9 +47,12 @@ public class RcsThrusterBlockItem extends BlockItem {
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
         tooltip.add(Component.translatable("aero_reformation.rcs_thruster.desc1")
-                .withStyle(net.minecraft.ChatFormatting.GRAY));
+                .withStyle(net.minecraft.ChatFormatting.AQUA));
         tooltip.add(Component.translatable("aero_reformation.rcs_thruster.desc2")
-                .withStyle(net.minecraft.ChatFormatting.GRAY));
+                .withStyle(net.minecraft.ChatFormatting.AQUA));
+        tooltip.add(Component.translatable("aero_reformation.rcs_thruster.desc3",
+                String.format("%.0f", dev.simulated_team.aero_reformation.config.AeroReformationConfig.rcsFuelConsumption))
+                .withStyle(net.minecraft.ChatFormatting.GREEN));
         BlockPos boundSync = stack.get(AeroDataComponents.BOUND_MASTER.get());
         if (boundSync != null) {
             tooltip.add(Component.translatable("aero_reformation.rcs_thruster.bound_pos",

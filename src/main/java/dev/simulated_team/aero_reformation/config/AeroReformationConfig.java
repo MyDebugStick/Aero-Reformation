@@ -8,6 +8,8 @@ public class AeroReformationConfig {
     public static final ModConfigSpec.BooleanValue LEVITITE_GOLD_PICKAXE;
     public static final ModConfigSpec.DoubleValue REDSTONE_SPRING_STRESS_CAPACITY;
 
+    public static final ModConfigSpec.DoubleValue RCS_FUEL_CONSUMPTION;
+
     static {
         BUILDER.push("Levitite Mining");
         LEVITITE_GOLD_PICKAXE = BUILDER
@@ -22,6 +24,12 @@ public class AeroReformationConfig {
                 .defineInRange("redstoneSpringStressCapacity", 8.0, 0.0, 1024.0);
         BUILDER.pop();
 
+        BUILDER.push("RCS Thruster");
+        RCS_FUEL_CONSUMPTION = BUILDER
+                .comment("Fuel consumption of RCS Thruster in pN per mB per tick. Higher = more efficient. Default 5000.")
+                .defineInRange("rcsFuelConsumption", 5000.0, 1.0, 1000000.0);
+        BUILDER.pop();
+
         CONFIG_SPEC = BUILDER.build();
     }
 
@@ -30,9 +38,11 @@ public class AeroReformationConfig {
     // Cached values
     public static boolean levititeGoldPickaxeOnly = true;
     public static double redstoneSpringStressCapacity = 8.0;
+    public static double rcsFuelConsumption = 5000.0;
 
     public static void refresh() {
         levititeGoldPickaxeOnly = LEVITITE_GOLD_PICKAXE.get();
         redstoneSpringStressCapacity = REDSTONE_SPRING_STRESS_CAPACITY.get();
+        rcsFuelConsumption = RCS_FUEL_CONSUMPTION.get();
     }
 }
