@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassRecipe;
+import dev.simulated_team.aero_reformation.content.blocks.power.ToggleRedstonePayload;
 import dev.simulated_team.aero_reformation.network.EnderCompassSyncPacket;
 import dev.simulated_team.aero_reformation.network.GoggleBindPacket;
 import dev.simulated_team.aero_reformation.network.GoggleMonitorSyncPacket;
@@ -42,6 +43,7 @@ public class AeroReformation {
         AeroBlocks.BLOCK_ENTITY_TYPES.register(modEventBus);
         AeroBlocks.MENU_TYPES.register(modEventBus);
         AeroBlocks.CREATIVE_TAB.register(modEventBus);
+        AeroBlocks.ENTITY_TYPES.register(modEventBus);
         AeroDataComponents.REGISTER.register(modEventBus);
 
         // Register recipe serializer
@@ -62,6 +64,8 @@ public class AeroReformation {
                     GoggleMonitorSyncPacket::handle);
             registrar.playToClient(LoadstoneSyncPacket.TYPE, LoadstoneSyncPacket.STREAM_CODEC,
                     LoadstoneSyncPacket::handle);
+            registrar.playToServer(ToggleRedstonePayload.TYPE, ToggleRedstonePayload.STREAM_CODEC,
+                    ToggleRedstonePayload::handle);
         });
 
         // Register NavigationTarget into Simulated's existing registry
@@ -79,6 +83,8 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.redstone_spring.RedstoneSpringRenderer::new);
             e.registerBlockEntityRenderer(AeroBlocks.ELECTRIC_LOADSTONE_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.electric_loadstone.ElectricLoadstoneRenderer::new);
+            e.registerEntityRenderer(AeroBlocks.SEAT_ENTITY_TYPE.get(),
+                    dev.simulated_team.aero_reformation.content.blocks.power.SeatRenderer::new);
         });
 
         // Register screen
