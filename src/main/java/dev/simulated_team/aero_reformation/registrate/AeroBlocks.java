@@ -67,7 +67,6 @@ public class AeroBlocks {
                     BlockBehaviour.Properties.of()
                             .strength(1.5f)
                             .noOcclusion()
-                            .requiresCorrectToolForDrops()
             ));
 
     public static final Supplier<BlockEntityType<RedstoneSpringBlockEntity>> REDSTONE_SPRING_BE =
@@ -95,7 +94,6 @@ public class AeroBlocks {
             BLOCKS.register("electric_loadstone", () -> new ElectricLoadstoneBlock(
                     BlockBehaviour.Properties.of()
                             .strength(2.0f)
-                            .requiresCorrectToolForDrops()
                             .noOcclusion()
             ));
 
@@ -159,7 +157,6 @@ public class AeroBlocks {
                     BlockBehaviour.Properties.of()
                             .strength(2.0f)
                             .noOcclusion()
-                            .requiresCorrectToolForDrops()
             ));
 
     public static final Supplier<BlockEntityType<RcsThrusterBlockEntity>> RCS_THRUSTER_BE =

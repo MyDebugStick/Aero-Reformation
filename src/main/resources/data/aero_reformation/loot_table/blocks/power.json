@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "aero_reformation:redstone_spring"
+          "name": "aero_reformation:power"
         }
       ],
       "conditions": [

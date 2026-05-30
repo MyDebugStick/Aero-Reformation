@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "aero_reformation:rcs_thruster",
+    "aero_reformation:electric_loadstone",
+    "aero_reformation:power",
+    "aero_reformation:redstone_spring"
+  ]
+}

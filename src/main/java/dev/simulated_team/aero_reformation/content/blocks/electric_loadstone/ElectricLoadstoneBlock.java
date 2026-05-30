@@ -55,6 +55,18 @@ public class ElectricLoadstoneBlock extends Block implements IBE<ElectricLoadsto
     }
 
     @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof ElectricLoadstoneBlockEntity be) {
+            ItemStack held = be.getHeldItem();
+            if (!held.isEmpty()) {
+                popResource(level, pos, held);
+                be.setHeldItem(ItemStack.EMPTY);
+            }
+        }
+        super.onRemove(state, level, pos, newState, moved);
+    }
+
+    @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level,
                                                BlockPos pos, Player player, InteractionHand hand,
                                                BlockHitResult hitResult) {
