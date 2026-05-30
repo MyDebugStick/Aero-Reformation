@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassRecipe;
+import dev.simulated_team.aero_reformation.content.blocks.power.ToggleCameraLockPayload;
 import dev.simulated_team.aero_reformation.content.blocks.power.ToggleRedstonePayload;
 import dev.simulated_team.aero_reformation.network.EnderCompassSyncPacket;
 import dev.simulated_team.aero_reformation.network.GoggleBindPacket;
@@ -66,6 +67,8 @@ public class AeroReformation {
                     LoadstoneSyncPacket::handle);
             registrar.playToServer(ToggleRedstonePayload.TYPE, ToggleRedstonePayload.STREAM_CODEC,
                     ToggleRedstonePayload::handle);
+            registrar.playToServer(ToggleCameraLockPayload.TYPE, ToggleCameraLockPayload.STREAM_CODEC,
+                    ToggleCameraLockPayload::handle);
         });
 
         // Register NavigationTarget into Simulated's existing registry

@@ -18,6 +18,8 @@ public class PowerItemTooltip {
                     .withStyle(ChatFormatting.AQUA));
             event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.alt")
                     .withStyle(ChatFormatting.YELLOW));
+            event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.ctrl")
+                    .withStyle(ChatFormatting.YELLOW));
             event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.warning")
                     .withStyle(ChatFormatting.YELLOW));
         }

@@ -18,7 +18,8 @@
     "feature.sensor_agency.VelocitySensorBEMixin",
     "feature.sensor_agency.GimbalSensorProxyMixin",
     "feature.sensor_agency.NavTableProxyMixin",
-    "feature.nav_table_cache.NavTableChannelCacheMixin"
+    "feature.nav_table_cache.NavTableChannelCacheMixin",
+    "feature.power.CameraLockMixin"
   ],
   "client": [
   ],

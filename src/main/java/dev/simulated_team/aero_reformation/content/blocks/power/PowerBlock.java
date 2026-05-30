@@ -112,7 +112,23 @@ public class PowerBlock extends Block {
                 if (seat.isRedstoneDisabled()) return 0;
 
                 float baseYaw = seat.getBaseYaw();
-                float yawDiff = Mth.wrapDegrees(player.getYRot() - baseYaw);
+                float yawDiff;
+                if (seat.isCameraLocked()) {
+                    // Compute world-space forward from sub-level rotation
+                    var subLevel = dev.ryanhcode.sable.Sable.HELPER.getContaining(lvl, pos);
+                    if (subLevel != null) {
+                        var rot = subLevel.logicalPose().orientation();
+                        var forward = new org.joml.Vector3d(0, 0, 1)
+                                .rotateY(Math.toRadians(-baseYaw))
+                                .rotate(rot);
+                        float worldRef = (float) Math.toDegrees(Math.atan2(-forward.x, forward.z));
+                        yawDiff = Mth.wrapDegrees(player.getYRot() - worldRef);
+                    } else {
+                        yawDiff = Mth.wrapDegrees(player.getYRot() - baseYaw);
+                    }
+                } else {
+                    yawDiff = Mth.wrapDegrees(player.getYRot() - baseYaw);
+                }
                 float pitch = player.getXRot();
 
                 float yawSignal = Mth.clamp(Math.abs(yawDiff) / 90f * 15f, 0, 15);

@@ -10,6 +10,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import org.joml.Quaterniond;
+import org.joml.Vector3d;
 
 @EventBusSubscriber(Dist.CLIENT)
 public class PowerHudOverlay {
@@ -29,9 +31,28 @@ public class PowerHudOverlay {
         if (player == null || !(player.getVehicle() instanceof SeatEntity seat)) return;
         if (seat.isRedstoneDisabled()) return;
 
-        float baseYaw = seat.getBaseYaw();
-        float yawDiff = Mth.wrapDegrees(player.getYRot() - baseYaw);
+        float yawDiff;
         float pitch = Mth.clamp(player.getXRot(), -45, 45);
+
+        if (seat.isCameraLocked()) {
+            // World-space reference: Q * baseYaw
+            float qx = seat.getSubRotX(), qy = seat.getSubRotY(), qz = seat.getSubRotZ(), qw = seat.getSubRotW();
+            boolean hasRot = Math.abs(qw - 1.0) > 0.0001 || Math.abs(qx) > 0.0001
+                    || Math.abs(qy) > 0.0001 || Math.abs(qz) > 0.0001;
+            float worldRef;
+            if (hasRot) {
+                Quaterniond Q = new Quaterniond(qx, qy, qz, qw);
+                Vector3d fwd = new Vector3d(0, 0, 1)
+                        .rotateY(Math.toRadians(-seat.getBaseYaw()))
+                        .rotate(Q, new Vector3d());
+                worldRef = (float) Math.toDegrees(Math.atan2(-fwd.x, fwd.z));
+            } else {
+                worldRef = seat.getBaseYaw();
+            }
+            yawDiff = Mth.wrapDegrees(player.getYRot() - worldRef);
+        } else {
+            yawDiff = Mth.wrapDegrees(player.getYRot() - seat.getBaseYaw());
+        }
 
         GuiGraphics gfx = event.getGuiGraphics();
         PoseStack pose = gfx.pose();

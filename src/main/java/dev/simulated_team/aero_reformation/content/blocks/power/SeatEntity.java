@@ -20,6 +20,16 @@ public class SeatEntity extends Entity {
             SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> DATA_REDSTONE_DISABLED =
             SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_CAMERA_LOCKED =
+            SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> DATA_SUB_ROT_X =
+            SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DATA_SUB_ROT_Y =
+            SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DATA_SUB_ROT_Z =
+            SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DATA_SUB_ROT_W =
+            SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.FLOAT);
 
     private BlockPos blockPos = BlockPos.ZERO;
 
@@ -44,8 +54,21 @@ public class SeatEntity extends Entity {
         return this.entityData.get(DATA_REDSTONE_DISABLED);
     }
 
+    public boolean isCameraLocked() {
+        return this.entityData.get(DATA_CAMERA_LOCKED);
+    }
+
+    public float getSubRotX() { return this.entityData.get(DATA_SUB_ROT_X); }
+    public float getSubRotY() { return this.entityData.get(DATA_SUB_ROT_Y); }
+    public float getSubRotZ() { return this.entityData.get(DATA_SUB_ROT_Z); }
+    public float getSubRotW() { return this.entityData.get(DATA_SUB_ROT_W); }
+
     public void toggleRedstoneDisabled() {
         this.entityData.set(DATA_REDSTONE_DISABLED, !this.entityData.get(DATA_REDSTONE_DISABLED));
+    }
+
+    public void toggleCameraLocked() {
+        this.entityData.set(DATA_CAMERA_LOCKED, !this.entityData.get(DATA_CAMERA_LOCKED));
     }
 
     public void attachToSubLevel(Level level, BlockPos pos) {
@@ -67,6 +90,26 @@ public class SeatEntity extends Entity {
         }
         this.setDeltaMovement(Vec3.ZERO);
 
+        // Sync sub-level rotation quaternion to client (for camera lock mode)
+        if (!this.level().isClientSide) {
+            SubLevel subLevel = ((EntityMovementExtension) this).sable$getTrackingSubLevel();
+            if (subLevel == null && this.blockPos != null) {
+                subLevel = Sable.HELPER.getContaining(this.level(), this.blockPos);
+            }
+            if (subLevel != null) {
+                var rot = subLevel.logicalPose().orientation();
+                this.entityData.set(DATA_SUB_ROT_X, (float) rot.x());
+                this.entityData.set(DATA_SUB_ROT_Y, (float) rot.y());
+                this.entityData.set(DATA_SUB_ROT_Z, (float) rot.z());
+                this.entityData.set(DATA_SUB_ROT_W, (float) rot.w());
+            } else {
+                this.entityData.set(DATA_SUB_ROT_X, 0f);
+                this.entityData.set(DATA_SUB_ROT_Y, 0f);
+                this.entityData.set(DATA_SUB_ROT_Z, 0f);
+                this.entityData.set(DATA_SUB_ROT_W, 1f);
+            }
+        }
+
         if (!this.level().isClientSide && this.isVehicle()) {
             notifyRedstone();
         }
@@ -86,6 +129,11 @@ public class SeatEntity extends Entity {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(DATA_BASE_YAW, 0f);
         builder.define(DATA_REDSTONE_DISABLED, true);
+        builder.define(DATA_CAMERA_LOCKED, false);
+        builder.define(DATA_SUB_ROT_X, 0f);
+        builder.define(DATA_SUB_ROT_Y, 0f);
+        builder.define(DATA_SUB_ROT_Z, 0f);
+        builder.define(DATA_SUB_ROT_W, 1f);
     }
 
     @Override
