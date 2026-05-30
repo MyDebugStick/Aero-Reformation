@@ -19,7 +19,6 @@ public class SeatCameraHandler {
     private static boolean middleWasDown = false;
     private static boolean altWasDown = false;
     private static boolean ctrlWasDown = false;
-    private static Boolean pendingLockState = null; // null = no pending toggle
 
     @SubscribeEvent
     public static void onCameraSetup(ViewportEvent.ComputeCameraAngles event) {
@@ -29,7 +28,6 @@ public class SeatCameraHandler {
             middleWasDown = false;
             altWasDown = false;
             ctrlWasDown = false;
-            pendingLockState = null;
             return;
         }
         Entity vehicle = mc.player.getVehicle();
@@ -38,7 +36,6 @@ public class SeatCameraHandler {
             middleWasDown = false;
             altWasDown = false;
             ctrlWasDown = false;
-            pendingLockState = null;
             return;
         }
 
@@ -48,9 +45,14 @@ public class SeatCameraHandler {
         }
         middleWasDown = middleDown;
 
-        // Alt to toggle redstone + clamp
-        boolean altDown = GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT) == GLFW.GLFW_PRESS
-                || GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_RIGHT_ALT) == GLFW.GLFW_PRESS;
+        // Alt to toggle redstone + clamp (only when no GUI is open)
+        boolean altDown = false, ctrlDown = false;
+        if (mc.screen == null) {
+            altDown = GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT) == GLFW.GLFW_PRESS
+                    || GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_RIGHT_ALT) == GLFW.GLFW_PRESS;
+            ctrlDown = GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
+                    || GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS;
+        }
         if (altDown && !altWasDown) {
             var conn = mc.player.connection;
             if (conn != null) {
@@ -70,23 +72,21 @@ public class SeatCameraHandler {
         altWasDown = altDown;
 
         // Ctrl to toggle camera rotation lock
-        boolean ctrlDown = GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
-                || GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS;
         if (ctrlDown && !ctrlWasDown) {
             var conn = mc.player.connection;
             if (conn != null) {
                 conn.send(new ToggleCameraLockPayload(seat.getId()));
             }
             boolean willLock = !seat.isCameraLocked();
-            pendingLockState = willLock;
+            seat.pendingCameraLock = willLock ? 1 : 0;
             needsSnap = true;
             mc.player.displayClientMessage(
                     Component.translatable(willLock ? "msg.aero_reformation.power.camera_lock_on" : "msg.aero_reformation.power.camera_lock_off"), true);
         }
         ctrlWasDown = ctrlDown;
 
-        // If we just toggled, use the pending state for snap; otherwise use current
-        boolean locked = pendingLockState != null ? pendingLockState : seat.isCameraLocked();
+        // Use pending state during toggle transition, otherwise current state
+        boolean locked = seat.pendingCameraLock >= 0 ? (seat.pendingCameraLock == 1) : seat.isCameraLocked();
 
         float seatYRot;
         if (locked) {
@@ -119,13 +119,13 @@ public class SeatCameraHandler {
             return;
         }
 
-        // After snap frame, if synced state matches pending, clear it
-        if (pendingLockState != null && pendingLockState == seat.isCameraLocked()) {
-            pendingLockState = null;
-        }
-
         // Skip clamping when redstone is disabled (free look)
         if (seat.isRedstoneDisabled()) return;
+
+        // Clear pending camera lock once synced
+        if (seat.pendingCameraLock >= 0 && (seat.pendingCameraLock == 1) == seat.isCameraLocked()) {
+            seat.pendingCameraLock = -1;
+        }
 
         float diff = Mth.wrapDegrees(mc.player.getYRot() - seatYRot);
         float clampedDiff = Mth.clamp(diff, -90, 90);

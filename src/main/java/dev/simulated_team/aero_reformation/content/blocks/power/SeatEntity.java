@@ -32,6 +32,8 @@ public class SeatEntity extends Entity {
             SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.FLOAT);
 
     private BlockPos blockPos = BlockPos.ZERO;
+    /** Client-only: target camera lock state during toggle transition, -1 = none */
+    public int pendingCameraLock = -1;
 
     public SeatEntity(EntityType<?> type, Level level) {
         super(type, level);
