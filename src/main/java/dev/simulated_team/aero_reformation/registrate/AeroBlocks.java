@@ -12,8 +12,12 @@ import dev.simulated_team.aero_reformation.content.blocks.electric_loadstone.Ele
 import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterBlock;
 import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterBlockEntity;
 import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterBlockItem;
+import dev.simulated_team.aero_reformation.content.blocks.power.PowerBlock;
+import dev.simulated_team.aero_reformation.content.blocks.power.SeatEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -43,6 +47,18 @@ public class AeroBlocks {
 
     public static final DeferredRegister<CreativeModeTab> CREATIVE_TAB =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, AeroReformation.MODID);
+
+    public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
+            DeferredRegister.create(Registries.ENTITY_TYPE, AeroReformation.MODID);
+
+    // ==================== Seat Entity ====================
+
+    public static final Supplier<EntityType<SeatEntity>> SEAT_ENTITY_TYPE =
+            ENTITY_TYPES.register("seat", () ->
+                    EntityType.Builder.<SeatEntity>of(SeatEntity::new, MobCategory.MISC)
+                            .sized(0.0F, 0.0F)
+                            .clientTrackingRange(10)
+                            .build("aero_reformation:seat"));
 
     // ==================== Redstone Spring ====================
 
@@ -188,6 +204,21 @@ public class AeroBlocks {
                             new dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyConfig()),
                             FeatureFlags.DEFAULT_FLAGS));
 
+    // ==================== Power (不可降解视角辅助装置) ====================
+
+    public static final Supplier<PowerBlock> POWER =
+            BLOCKS.register("power", () -> new PowerBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(2.0f)
+                            .noOcclusion()
+                            .isViewBlocking((s, l, p) -> false)
+            ));
+
+    public static final Supplier<BlockItem> POWER_ITEM =
+            ITEMS.register("power", () -> new BlockItem(
+                    POWER.get(), new Item.Properties()
+            ));
+
     // ==================== Creative Tab ====================
 
     public static final Supplier<CreativeModeTab> AERO_REFORMATION_TAB = CREATIVE_TAB.register(
@@ -203,6 +234,7 @@ public class AeroBlocks {
                         output.accept(SENSOR_AGENCY_ITEM.get());
                         output.accept(ELECTRIC_LOADSTONE_ITEM.get());
                         output.accept(RCS_THRUSTER_ITEM.get());
+                        output.accept(POWER_ITEM.get());
                     })
                     .build()
     );
