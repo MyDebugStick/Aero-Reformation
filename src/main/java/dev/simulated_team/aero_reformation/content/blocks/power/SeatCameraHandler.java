@@ -112,10 +112,24 @@ public class SeatCameraHandler {
             mc.player.yRotO = seatYRot;
             mc.player.yHeadRot = seatYRot;
             mc.player.yHeadRotO = seatYRot;
-            mc.player.setXRot(0);
-            mc.player.xRotO = 0;
+
+            float snapPitch = 0;
+            if (locked) {
+                float qx = seat.getSubRotX(), qy = seat.getSubRotY(), qz = seat.getSubRotZ(), qw = seat.getSubRotW();
+                boolean hasRot = Math.abs(qw - 1.0) > 0.0001 || Math.abs(qx) > 0.0001
+                        || Math.abs(qy) > 0.0001 || Math.abs(qz) > 0.0001;
+                if (hasRot) {
+                    Quaterniond Q = new Quaterniond(qx, qy, qz, qw);
+                    Vector3d fwd = new Vector3d(0, 0, 1)
+                            .rotateY(Math.toRadians(-seat.getBaseYaw()))
+                            .rotate(Q, new Vector3d());
+                    snapPitch = (float) Math.toDegrees(Math.asin(-fwd.y));
+                }
+            }
+            mc.player.setXRot(snapPitch);
+            mc.player.xRotO = snapPitch;
             event.setYaw(seatYRot);
-            event.setPitch(0);
+            event.setPitch(snapPitch);
             return;
         }
 
@@ -127,6 +141,7 @@ public class SeatCameraHandler {
             seat.pendingCameraLock = -1;
         }
 
+        // Clamping
         float diff = Mth.wrapDegrees(mc.player.getYRot() - seatYRot);
         float clampedDiff = Mth.clamp(diff, -90, 90);
         float clampedYaw = seatYRot + clampedDiff;
@@ -135,6 +150,7 @@ public class SeatCameraHandler {
         mc.player.yRotO = clampedYaw;
         mc.player.yHeadRot = clampedYaw;
         mc.player.yHeadRotO = clampedYaw;
+        event.setYaw(clampedYaw);
         event.setYaw(clampedYaw);
         event.setPitch(Mth.clamp(event.getPitch(), -45, 45));
     }

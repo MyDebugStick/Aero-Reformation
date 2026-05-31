@@ -113,16 +113,19 @@ public class PowerBlock extends Block {
 
                 float baseYaw = seat.getBaseYaw();
                 float yawDiff;
+                float pitchRef = 0; // world-space pitch reference when locked
                 if (seat.isCameraLocked()) {
-                    // Compute world-space forward from sub-level rotation
                     var subLevel = dev.ryanhcode.sable.Sable.HELPER.getContaining(lvl, pos);
                     if (subLevel != null) {
                         var rot = subLevel.logicalPose().orientation();
                         var forward = new org.joml.Vector3d(0, 0, 1)
                                 .rotateY(Math.toRadians(-baseYaw))
                                 .rotate(rot);
-                        float worldRef = (float) Math.toDegrees(Math.atan2(-forward.x, forward.z));
+                        var worldRef = (float) Math.toDegrees(Math.atan2(-forward.x, forward.z));
                         yawDiff = Mth.wrapDegrees(player.getYRot() - worldRef);
+                        // Compute world-space pitch of seat's forward (how tilted the seat is)
+                        float seatWorldPitch = (float) Math.toDegrees(Math.asin(-forward.y));
+                        pitchRef = seatWorldPitch; // relative to seat
                     } else {
                         yawDiff = Mth.wrapDegrees(player.getYRot() - baseYaw);
                     }
@@ -130,17 +133,18 @@ public class PowerBlock extends Block {
                     yawDiff = Mth.wrapDegrees(player.getYRot() - baseYaw);
                 }
                 float pitch = player.getXRot();
+                float pitchDiff = seat.isCameraLocked() ? pitch - pitchRef : pitch;
 
                 float yawSignal = Mth.clamp(Math.abs(yawDiff) / 90f * 15f, 0, 15);
-                float pitchSignal = Mth.clamp(Math.abs(pitch) / 45f * 15f, 0, 15);
+                float pitchSignal = Mth.clamp(Math.abs(pitchDiff) / 45f * 15f, 0, 15);
 
                 Direction right = state.getValue(FACING).getClockWise();
                 Direction left = right.getOpposite();
 
                 if (direction == right && yawDiff < 0) return (int) yawSignal;
                 if (direction == left && yawDiff > 0) return (int) yawSignal;
-                if (direction == state.getValue(FACING).getOpposite() && pitch > 0) return (int) pitchSignal;
-                if (direction == state.getValue(FACING) && pitch < 0) return (int) pitchSignal;
+                if (direction == state.getValue(FACING).getOpposite() && pitchDiff > 0) return (int) pitchSignal;
+                if (direction == state.getValue(FACING) && pitchDiff < 0) return (int) pitchSignal;
                 return 0;
             }
         }

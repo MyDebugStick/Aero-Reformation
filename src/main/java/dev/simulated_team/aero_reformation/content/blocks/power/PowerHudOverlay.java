@@ -32,26 +32,28 @@ public class PowerHudOverlay {
         if (seat.isRedstoneDisabled()) return;
 
         float yawDiff;
-        float pitch = Mth.clamp(player.getXRot(), -45, 45);
+        float pitchDiff;
 
         if (seat.isCameraLocked()) {
-            // World-space reference: Q * baseYaw
             float qx = seat.getSubRotX(), qy = seat.getSubRotY(), qz = seat.getSubRotZ(), qw = seat.getSubRotW();
             boolean hasRot = Math.abs(qw - 1.0) > 0.0001 || Math.abs(qx) > 0.0001
                     || Math.abs(qy) > 0.0001 || Math.abs(qz) > 0.0001;
-            float worldRef;
             if (hasRot) {
                 Quaterniond Q = new Quaterniond(qx, qy, qz, qw);
                 Vector3d fwd = new Vector3d(0, 0, 1)
                         .rotateY(Math.toRadians(-seat.getBaseYaw()))
                         .rotate(Q, new Vector3d());
-                worldRef = (float) Math.toDegrees(Math.atan2(-fwd.x, fwd.z));
+                float worldRef = (float) Math.toDegrees(Math.atan2(-fwd.x, fwd.z));
+                float seatWorldPitch = (float) Math.toDegrees(Math.asin(-fwd.y));
+                yawDiff = Mth.wrapDegrees(player.getYRot() - worldRef);
+                pitchDiff = Mth.clamp(player.getXRot() - seatWorldPitch, -45, 45);
             } else {
-                worldRef = seat.getBaseYaw();
+                yawDiff = Mth.wrapDegrees(player.getYRot() - seat.getBaseYaw());
+                pitchDiff = Mth.clamp(player.getXRot(), -45, 45);
             }
-            yawDiff = Mth.wrapDegrees(player.getYRot() - worldRef);
         } else {
             yawDiff = Mth.wrapDegrees(player.getYRot() - seat.getBaseYaw());
+            pitchDiff = Mth.clamp(player.getXRot(), -45, 45);
         }
 
         GuiGraphics gfx = event.getGuiGraphics();
@@ -86,16 +88,16 @@ public class PowerHudOverlay {
         gfx.fill(pBarX, pBarY, pBarX + BAR_H, pBarY + BAR_W, BG);
 
         // Invert: looking up (negative pitch) → bar above center; looking down → below
-        float pFrac = Mth.clamp(pitch / 45f, -1f, 1f);
+        float pFrac = Mth.clamp(pitchDiff / 45f, -1f, 1f);
         int py = cy + (int)(pFrac * BAR_W / 2);
         gfx.fill(pBarX - 2, py - 1, pBarX + BAR_H + 2, py + 1, TICK);
 
-        if (pitch < 0) {
-            int end = cy + (int)(pitch / 45f * BAR_W / 2);
+        if (pitchDiff < 0) {
+            int end = cy + (int)(pitchDiff / 45f * BAR_W / 2);
             gfx.fill(pBarX + 1, end, pBarX + BAR_H - 1, cy, FILL);
         }
-        if (pitch > 0) {
-            int end = cy + (int)(pitch / 45f * BAR_W / 2);
+        if (pitchDiff > 0) {
+            int end = cy + (int)(pitchDiff / 45f * BAR_W / 2);
             gfx.fill(pBarX + 1, cy, pBarX + BAR_H - 1, end, FILL);
         }
         gfx.fill(pBarX - 1, cy - 1, pBarX + BAR_H + 1, cy + 1, TICK);
