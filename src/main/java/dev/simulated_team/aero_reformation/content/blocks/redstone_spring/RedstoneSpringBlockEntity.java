@@ -261,17 +261,9 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
                 if (this.sequencedAngleLimit >= 0)
                     this.sequencedAngleLimit = Math.max(0, this.sequencedAngleLimit - Math.abs(angularSpeed));
 
-                // Clamp to remaining distance to prevent overshoot
-                double remaining = this.targetAngle - this.angle;
-                if (angularSpeed > 0)
-                    angularSpeed = (float) Math.min(angularSpeed, remaining);
-                else if (angularSpeed < 0)
-                    angularSpeed = (float) Math.max(angularSpeed, remaining);
-
                 this.angle += angularSpeed;
 
                 if (this.rotationProgressTicks == this.rotationDurationTicks) {
-                    this.angle = this.targetAngle; // snap to exact
                     this.sequenceContext = null;
                     this.rotationProgressTicks = -1;
                     this.rotationDurationTicks = -1;
@@ -381,7 +373,7 @@ public class RedstoneSpringBlockEntity extends KineticBlockEntity implements Ext
                     SequencerInstructions.TURN_ANGLE, relativeAngle / this.lastSpringSpeed);
 
             final double degreesPerTick = KineticBlockEntity.convertToAngular(Math.abs(this.lastSpringSpeed));
-            this.rotationDurationTicks = (int) Math.max(1, Math.ceil(Math.abs(relativeAngle) / degreesPerTick));
+            this.rotationDurationTicks = (int) Math.ceil(Math.abs(relativeAngle) / degreesPerTick) + 2;
             this.rotationProgressTicks = 0;
 
             this.sequencedAngleLimit = this.sequenceContext.getEffectiveValue(this.lastSpringSpeed);
