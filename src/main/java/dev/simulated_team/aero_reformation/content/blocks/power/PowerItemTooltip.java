@@ -14,11 +14,19 @@ public class PowerItemTooltip {
     @SubscribeEvent
     public static void onTooltip(ItemTooltipEvent event) {
         if (event.getItemStack().is(AeroBlocks.POWER_ITEM.get())) {
-            event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.info")
+            event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.info",
+                    PowerKeyBindings.VIEW_SYNC.getTranslatedKeyMessage(),
+                    PowerKeyBindings.CAMERA_LOCK.getTranslatedKeyMessage(),
+                    PowerKeyBindings.ROLL_LOCK.getTranslatedKeyMessage())
                     .withStyle(ChatFormatting.AQUA));
-            event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.alt")
+            event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.alt",
+                    PowerKeyBindings.VIEW_SYNC.getTranslatedKeyMessage())
                     .withStyle(ChatFormatting.YELLOW));
-            event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.ctrl")
+            event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.ctrl",
+                    PowerKeyBindings.CAMERA_LOCK.getTranslatedKeyMessage())
+                    .withStyle(ChatFormatting.YELLOW));
+            event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.c",
+                    PowerKeyBindings.ROLL_LOCK.getTranslatedKeyMessage())
                     .withStyle(ChatFormatting.YELLOW));
             event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.warning")
                     .withStyle(ChatFormatting.YELLOW));

@@ -122,18 +122,6 @@ public class PowerBlock extends Block implements IBE<PowerBlockEntity> {
 
                 if (seat.isRedstoneDisabled()) return 0;
 
-                if (seat.isCameraLocked()) {
-                    Direction right = state.getValue(FACING).getClockWise();
-                    Direction left = right.getOpposite();
-                    Direction back = state.getValue(FACING).getOpposite();
-                    Direction fwd = state.getValue(FACING);
-                    if (direction == right) return seat.sigRight;
-                    if (direction == left) return seat.sigLeft;
-                    if (direction == back) return seat.sigBack;
-                    if (direction == fwd) return seat.sigFwd;
-                    return 0;
-                }
-
                 float baseYaw = seat.getBaseYaw();
                 float yawDiff = Mth.wrapDegrees(player.getYRot() - baseYaw);
                 float pitchDiff = player.getXRot();
@@ -167,9 +155,8 @@ public class PowerBlock extends Block implements IBE<PowerBlockEntity> {
         if (level.isClientSide) {
             if (player.isShiftKeyDown()) {
                 PowerGuiOpener.open(pos, level);
-                return ItemInteractionResult.SUCCESS;
             }
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return ItemInteractionResult.SUCCESS;
         }
 
         if (player.isShiftKeyDown()) return ItemInteractionResult.SUCCESS;

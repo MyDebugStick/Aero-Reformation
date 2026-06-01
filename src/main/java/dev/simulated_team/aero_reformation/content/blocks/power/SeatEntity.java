@@ -30,8 +30,12 @@ public class SeatEntity extends Entity {
             SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> DATA_SUB_ROT_W =
             SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> DATA_ROLL_LOCKED =
+            SynchedEntityData.defineId(SeatEntity.class, EntityDataSerializers.BOOLEAN);
 
     private BlockPos blockPos = BlockPos.ZERO;
+    /** Server-side: latest signal levels synced from client */
+    public int sigRight, sigLeft, sigBack, sigFwd;
     /** Client-only: target camera lock state during toggle transition, -1 = none */
     public int pendingCameraLock = -1;
 
@@ -42,6 +46,10 @@ public class SeatEntity extends Entity {
 
     public void setBlockPos(BlockPos pos) {
         this.blockPos = pos;
+    }
+
+    public BlockPos getBlockPos() {
+        return this.blockPos;
     }
 
     public void setBaseYaw(float yaw) {
@@ -64,6 +72,8 @@ public class SeatEntity extends Entity {
     public float getSubRotY() { return this.entityData.get(DATA_SUB_ROT_Y); }
     public float getSubRotZ() { return this.entityData.get(DATA_SUB_ROT_Z); }
     public float getSubRotW() { return this.entityData.get(DATA_SUB_ROT_W); }
+    public boolean isRollLocked() { return this.entityData.get(DATA_ROLL_LOCKED); }
+    public void toggleRollLocked() { this.entityData.set(DATA_ROLL_LOCKED, !this.entityData.get(DATA_ROLL_LOCKED)); }
 
     public void toggleRedstoneDisabled() {
         this.entityData.set(DATA_REDSTONE_DISABLED, !this.entityData.get(DATA_REDSTONE_DISABLED));
@@ -136,6 +146,7 @@ public class SeatEntity extends Entity {
         builder.define(DATA_SUB_ROT_Y, 0f);
         builder.define(DATA_SUB_ROT_Z, 0f);
         builder.define(DATA_SUB_ROT_W, 1f);
+        builder.define(DATA_ROLL_LOCKED, false);
     }
 
     @Override

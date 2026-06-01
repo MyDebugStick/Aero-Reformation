@@ -13,6 +13,7 @@ import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrust
 import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterBlockEntity;
 import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterBlockItem;
 import dev.simulated_team.aero_reformation.content.blocks.power.PowerBlock;
+import dev.simulated_team.aero_reformation.content.blocks.power.PowerBlockEntity;
 import dev.simulated_team.aero_reformation.content.blocks.power.SeatEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -215,6 +216,11 @@ public class AeroBlocks {
             ITEMS.register("power", () -> new BlockItem(
                     POWER.get(), new Item.Properties()
             ));
+
+    public static final Supplier<BlockEntityType<PowerBlockEntity>> POWER_BE =
+            BLOCK_ENTITY_TYPES.register("power",
+                    () -> BlockEntityType.Builder.of(PowerBlockEntity::new, POWER.get())
+                            .build(null));
 
     // ==================== Creative Tab ====================
 

@@ -76,22 +76,22 @@ public class ElectricLoadstoneBlock extends Block implements IBE<ElectricLoadsto
 
         ItemStack held = loadstone.getHeldItem();
 
-        // Show outline when holding a valid compass — respond SUCCESS on both sides
+        // Show outline when holding a valid compass
         if (stack.getItem() instanceof dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassItem) {
             EnderCompassData data = stack.getOrDefault(AeroDataComponents.ENDER_COMPASS, EnderCompassData.EMPTY);
             if (!data.hasChannel()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
             if (!held.isEmpty()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-            if (level.isClientSide()) return ItemInteractionResult.SUCCESS;
+            if (level.isClientSide()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
             ItemStack toPlace = stack.split(1);
             loadstone.setHeldItem(toPlace);
             return ItemInteractionResult.SUCCESS;
         }
 
-        // Empty hand: take the compass off (show outline when there's something to take)
+        // Empty hand: take the compass off
         if (stack.isEmpty()) {
             if (held.isEmpty()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-            if (level.isClientSide()) return ItemInteractionResult.SUCCESS;
+            if (level.isClientSide()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 
             ItemStack toGive = held.copy();
             EnderArrowHandler.refreshCompassPublic(toGive);

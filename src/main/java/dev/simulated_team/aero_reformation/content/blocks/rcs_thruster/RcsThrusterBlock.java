@@ -62,7 +62,8 @@ public class RcsThrusterBlock extends Block implements IBE<RcsThrusterBlockEntit
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                                Player player, InteractionHand hand, BlockHitResult hit) {
         if (stack.is(Items.REDSTONE_TORCH)) {
-            if (!level.isClientSide() && level.getBlockEntity(pos) instanceof RcsThrusterBlockEntity rcs) {
+            if (level.isClientSide()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            if (level.getBlockEntity(pos) instanceof RcsThrusterBlockEntity rcs) {
                 rcs.cycleAngledMode();
                 double val = ANGLED_MODES[rcs.getAngledMode() % ANGLED_MODES.length];
                 level.playSound(null, pos, SoundEvents.NOTE_BLOCK_HAT.value(), SoundSource.BLOCKS, 0.6f,
@@ -77,7 +78,8 @@ public class RcsThrusterBlock extends Block implements IBE<RcsThrusterBlockEntit
         // Creative Blaze Cake: enable infinite fuel mode
         if (stack.getItem() == net.minecraft.core.registries.BuiltInRegistries.ITEM
                 .get(net.minecraft.resources.ResourceLocation.parse("create:creative_blaze_cake"))) {
-            if (!level.isClientSide() && level.getBlockEntity(pos) instanceof RcsThrusterBlockEntity rcs) {
+            if (level.isClientSide()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            if (level.getBlockEntity(pos) instanceof RcsThrusterBlockEntity rcs) {
                 if (!rcs.isCreativeMode()) {
                     rcs.setCreativeMode(true);
                     stack.shrink(1);

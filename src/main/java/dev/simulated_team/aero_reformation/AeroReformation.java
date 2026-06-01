@@ -4,7 +4,11 @@ import com.mojang.logging.LogUtils;
 import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassRecipe;
+import dev.simulated_team.aero_reformation.content.blocks.power.PowerConfigPayload;
 import dev.simulated_team.aero_reformation.content.blocks.power.ToggleCameraLockPayload;
+import dev.simulated_team.aero_reformation.content.blocks.power.ToggleRollLockPayload;
+import dev.simulated_team.aero_reformation.content.blocks.power.SyncSignalPayload;
+import dev.simulated_team.aero_reformation.content.blocks.power.PowerKeyBindings;
 import dev.simulated_team.aero_reformation.content.blocks.power.ToggleRedstonePayload;
 import dev.simulated_team.aero_reformation.network.EnderCompassSyncPacket;
 import dev.simulated_team.aero_reformation.network.GoggleBindPacket;
@@ -47,6 +51,9 @@ public class AeroReformation {
         AeroBlocks.ENTITY_TYPES.register(modEventBus);
         AeroDataComponents.REGISTER.register(modEventBus);
 
+        // Key bindings
+        modEventBus.addListener(PowerKeyBindings::register);
+
         // Register recipe serializer
         var recipeSerializers = DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
         recipeSerializers.register("ender_compass_channel", () -> EnderCompassRecipe.Serializer.INSTANCE);
@@ -69,6 +76,12 @@ public class AeroReformation {
                     ToggleRedstonePayload::handle);
             registrar.playToServer(ToggleCameraLockPayload.TYPE, ToggleCameraLockPayload.STREAM_CODEC,
                     ToggleCameraLockPayload::handle);
+            registrar.playToServer(ToggleRollLockPayload.TYPE, ToggleRollLockPayload.STREAM_CODEC,
+                    ToggleRollLockPayload::handle);
+            registrar.playToServer(PowerConfigPayload.TYPE, PowerConfigPayload.STREAM_CODEC,
+                    PowerConfigPayload::handle);
+            registrar.playToServer(SyncSignalPayload.TYPE, SyncSignalPayload.STREAM_CODEC,
+                    SyncSignalPayload::handle);
         });
 
         // Register NavigationTarget into Simulated's existing registry

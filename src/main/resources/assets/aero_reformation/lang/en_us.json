@@ -84,6 +84,9 @@
   "gui.aero_reformation.inverted_on": "Invert: ON",
   "gui.aero_reformation.inverted_off": "Invert: OFF",
   "gui.aero_reformation.confirm": "Apply",
+  "gui.aero_reformation.power_config": "Power Config",
+  "gui.aero_reformation.power_yaw_max": "X Axis Max Angle",
+  "gui.aero_reformation.power_pitch_max": "Y Axis Max Angle",
   "aero_reformation.tooltip.analog_transmission": "Right-click with Redstone Torch to toggle Linear mode",
 
   "aero_reformation.tooltip.synchronizer_slave": "Right-click to bind to Master. Outputs redstone based on Master's facing and mode",

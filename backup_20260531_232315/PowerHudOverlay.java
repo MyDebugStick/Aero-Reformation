@@ -32,8 +32,13 @@ public class PowerHudOverlay {
         float yawDiff;
         float pitchDiff;
 
-        yawDiff = Mth.wrapDegrees(SeatCameraHandler.intendedYaw - seat.getBaseYaw());
-        pitchDiff = Mth.clamp(SeatCameraHandler.intendedPitch, -45, 45);
+        if (seat.isCameraLocked()) {
+            yawDiff = Mth.wrapDegrees(player.getYRot() - seat.getBaseYaw());
+            pitchDiff = player.getXRot();
+        } else {
+            yawDiff = Mth.wrapDegrees(player.getYRot() - seat.getBaseYaw());
+            pitchDiff = Mth.clamp(player.getXRot(), -45, 45);
+        }
 
         GuiGraphics gfx = event.getGuiGraphics();
         PoseStack pose = gfx.pose();

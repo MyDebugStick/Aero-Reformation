@@ -1,5 +1,7 @@
 package dev.simulated_team.aero_reformation.content.blocks.power;
 
+import dev.ryanhcode.sable.Sable;
+import dev.ryanhcode.sable.sublevel.ClientSubLevel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -9,6 +11,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ViewportEvent;
 import org.joml.Quaterniond;
+import org.joml.Quaterniondc;
 import org.joml.Vector3d;
 import org.lwjgl.glfw.GLFW;
 
@@ -19,6 +22,11 @@ public class SeatCameraHandler {
     private static boolean middleWasDown = false;
     private static boolean altWasDown = false;
     private static boolean ctrlWasDown = false;
+    private static boolean cWasDown = false;
+    public static boolean skipRollFrame = false;
+    private static Quaterniond prevSubRot = null;
+    /** Player's intended yaw/pitch (pre-compensation), for HUD/redstone */
+    public static float intendedYaw, intendedPitch;
 
     @SubscribeEvent
     public static void onCameraSetup(ViewportEvent.ComputeCameraAngles event) {
@@ -45,13 +53,10 @@ public class SeatCameraHandler {
         }
         middleWasDown = middleDown;
 
-        // Alt to toggle redstone + clamp (only when no GUI is open)
         boolean altDown = false, ctrlDown = false;
         if (mc.screen == null) {
-            altDown = GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_ALT) == GLFW.GLFW_PRESS
-                    || GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_RIGHT_ALT) == GLFW.GLFW_PRESS;
-            ctrlDown = GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
-                    || GLFW.glfwGetKey(mc.getWindow().getWindow(), GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS;
+            altDown = PowerKeyBindings.VIEW_SYNC.isDown();
+            ctrlDown = PowerKeyBindings.CAMERA_LOCK.isDown();
         }
         if (altDown && !altWasDown) {
             var conn = mc.player.connection;
@@ -60,7 +65,6 @@ public class SeatCameraHandler {
             }
             boolean wasDisabled = seat.isRedstoneDisabled();
             if (wasDisabled) {
-                // Enabling: snap view to center
                 needsSnap = true;
                 mc.player.displayClientMessage(
                         Component.translatable("msg.aero_reformation.power.redstone_on"), true);
@@ -71,7 +75,6 @@ public class SeatCameraHandler {
         }
         altWasDown = altDown;
 
-        // Ctrl to toggle camera rotation lock
         if (ctrlDown && !ctrlWasDown) {
             var conn = mc.player.connection;
             if (conn != null) {
@@ -85,73 +88,94 @@ public class SeatCameraHandler {
         }
         ctrlWasDown = ctrlDown;
 
-        // Use pending state during toggle transition, otherwise current state
+        // Roll lock toggle
+        boolean cDown = mc.screen == null && PowerKeyBindings.ROLL_LOCK.isDown();
+        if (cDown && !cWasDown) {
+            var conn = mc.player.connection;
+            if (conn != null) {
+                conn.send(new ToggleRollLockPayload(seat.getId()));
+            }
+            seat.toggleRollLocked();
+            mc.player.displayClientMessage(Component.translatable(
+                    seat.isRollLocked() ? "msg.aero_reformation.power.axis3_on" : "msg.aero_reformation.power.axis3_off"), true);
+        }
+        cWasDown = cDown;
+
         boolean locked = seat.pendingCameraLock >= 0 ? (seat.pendingCameraLock == 1) : seat.isCameraLocked();
 
-        float seatYRot;
+        float seatYRot = seat.getBaseYaw();
+
         if (locked) {
-            float qx = seat.getSubRotX(), qy = seat.getSubRotY(), qz = seat.getSubRotZ(), qw = seat.getSubRotW();
-            boolean hasRot = Math.abs(qw - 1.0) > 0.0001 || Math.abs(qx) > 0.0001
-                    || Math.abs(qy) > 0.0001 || Math.abs(qz) > 0.0001;
-            if (hasRot) {
-                Quaterniond Q = new Quaterniond(qx, qy, qz, qw);
-                Vector3d localFwd = new Vector3d(0, 0, 1)
-                        .rotateY(Math.toRadians(-seat.getBaseYaw()));
-                Vector3d worldFwd = localFwd.rotate(Q, new Vector3d());
-                seatYRot = (float) Math.toDegrees(Math.atan2(-worldFwd.x, worldFwd.z));
+            var subLevel = Sable.HELPER.getContaining((Entity) seat);
+            Quaterniondc liveQ = subLevel instanceof ClientSubLevel cs ? cs.renderPose().orientation()
+                    : subLevel != null ? subLevel.logicalPose().orientation() : null;
+            if (liveQ != null && (Math.abs(liveQ.w() - 1.0) > 1e-4 || Math.abs(liveQ.x()) > 1e-4
+                    || Math.abs(liveQ.y()) > 1e-4 || Math.abs(liveQ.z()) > 1e-4)) {
+                Quaterniond Q = new Quaterniond(liveQ);
+
+                if (prevSubRot != null && !needsSnap) {
+                    Quaterniond deltaWorld = new Quaterniond(Q).mul(new Quaterniond(prevSubRot).invert());
+                    Quaterniond deltaLocal = new Quaterniond(Q).invert().mul(deltaWorld).mul(Q);
+                    Vector3d euler = deltaLocal.getEulerAnglesYXZ(new Vector3d());
+                    float deltaYaw = (float) Math.toDegrees(euler.y);
+                    float deltaPitch = (float) Math.toDegrees(euler.x);
+                    // Save intended direction BEFORE counter-rotating
+                    intendedYaw = mc.player.getYRot();
+                    intendedPitch = mc.player.getXRot();
+                    mc.player.setYRot(Mth.wrapDegrees(mc.player.getYRot() + deltaYaw));
+                    mc.player.setXRot(mc.player.getXRot() + deltaPitch);
+                    event.setYaw(mc.player.getYRot());
+                    event.setPitch(mc.player.getXRot());
+                } else {
+                    intendedYaw = mc.player.getYRot();
+                    intendedPitch = mc.player.getXRot();
+                }
+                // Compute & sync redstone signals from intended direction
+                float yawDev = Mth.wrapDegrees(intendedYaw - seatYRot);
+                float pitchDev = intendedPitch;
+                int yawMax = 90, pitchMax = 45;
+                if (mc.level != null && mc.level.getBlockEntity(seat.blockPosition()) instanceof PowerBlockEntity be) {
+                    yawMax = be.getYawMax(); pitchMax = be.getPitchMax();
+                }
+                int sigR = yawDev < 0 ? (int) Mth.clamp(Math.abs(yawDev) / yawMax * 15f, 0, 15) : 0;
+                int sigL = yawDev > 0 ? (int) Mth.clamp(Math.abs(yawDev) / yawMax * 15f, 0, 15) : 0;
+                int sigB = pitchDev > 0 ? (int) Mth.clamp(Math.abs(pitchDev) / pitchMax * 15f, 0, 15) : 0;
+                int sigF = pitchDev < 0 ? (int) Mth.clamp(Math.abs(pitchDev) / pitchMax * 15f, 0, 15) : 0;
+                var conn = mc.player.connection;
+                if (conn != null) conn.send(new SyncSignalPayload(seat.getId(), sigR, sigL, sigB, sigF));
+
+                prevSubRot = Q;
             } else {
-                seatYRot = seat.getBaseYaw();
+                prevSubRot = null;
             }
         } else {
-            seatYRot = seat.getBaseYaw();
+            prevSubRot = null;
+            intendedYaw = mc.player.getYRot();
+            intendedPitch = mc.player.getXRot();
         }
 
         if (needsSnap) {
             needsSnap = false;
+            if (locked) {
+                skipRollFrame = true;
+            }
             mc.player.setYRot(seatYRot);
             mc.player.yRotO = seatYRot;
             mc.player.yHeadRot = seatYRot;
             mc.player.yHeadRotO = seatYRot;
-
             float snapPitch = 0;
-            if (locked) {
-                float qx = seat.getSubRotX(), qy = seat.getSubRotY(), qz = seat.getSubRotZ(), qw = seat.getSubRotW();
-                boolean hasRot = Math.abs(qw - 1.0) > 0.0001 || Math.abs(qx) > 0.0001
-                        || Math.abs(qy) > 0.0001 || Math.abs(qz) > 0.0001;
-                if (hasRot) {
-                    Quaterniond Q = new Quaterniond(qx, qy, qz, qw);
-                    Vector3d fwd = new Vector3d(0, 0, 1)
-                            .rotateY(Math.toRadians(-seat.getBaseYaw()))
-                            .rotate(Q, new Vector3d());
-                    snapPitch = (float) Math.toDegrees(Math.asin(-fwd.y));
-                }
-            }
             mc.player.setXRot(snapPitch);
             mc.player.xRotO = snapPitch;
-            event.setYaw(seatYRot);
-            event.setPitch(snapPitch);
+            // Event already compensated above; don't overwrite
             return;
         }
 
-        // Skip clamping when redstone is disabled (free look)
         if (seat.isRedstoneDisabled()) return;
 
-        // Clear pending camera lock once synced
         if (seat.pendingCameraLock >= 0 && (seat.pendingCameraLock == 1) == seat.isCameraLocked()) {
             seat.pendingCameraLock = -1;
         }
 
-        // Clamping
-        float diff = Mth.wrapDegrees(mc.player.getYRot() - seatYRot);
-        float clampedDiff = Mth.clamp(diff, -90, 90);
-        float clampedYaw = seatYRot + clampedDiff;
-
-        mc.player.setYRot(clampedYaw);
-        mc.player.yRotO = clampedYaw;
-        mc.player.yHeadRot = clampedYaw;
-        mc.player.yHeadRotO = clampedYaw;
-        event.setYaw(clampedYaw);
-        event.setYaw(clampedYaw);
-        event.setPitch(Mth.clamp(event.getPitch(), -45, 45));
+        // Clamp disabled (conflicts with full Q)
     }
 }
