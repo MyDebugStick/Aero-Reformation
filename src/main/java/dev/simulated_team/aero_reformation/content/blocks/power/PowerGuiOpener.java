@@ -15,10 +15,12 @@ public class PowerGuiOpener {
 
         int yawMax = 90;
         int pitchMax = 45;
+        double seatHeight = 0.0;
         if (level.getBlockEntity(pos) instanceof PowerBlockEntity be) {
             yawMax = be.getYawMax();
             pitchMax = be.getPitchMax();
+            seatHeight = be.getSeatHeight();
         }
-        mc.setScreen(new PowerConfigScreen(pos, yawMax, pitchMax));
+        mc.setScreen(new PowerConfigScreen(pos, yawMax, pitchMax, seatHeight));
     }
 }

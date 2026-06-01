@@ -21,12 +21,12 @@ public class SeatCameraHandler {
     private static boolean needsSnap = false;
     private static boolean middleWasDown = false;
     private static boolean altWasDown = false;
-    private static boolean ctrlWasDown = false;
-    private static boolean cWasDown = false;
     public static boolean skipRollFrame = false;
     private static Quaterniond prevSubRot = null;
-    /** Player's intended yaw/pitch (pre-compensation), for HUD/redstone */
+    /** Player's intended yaw/pitch (pre-compensation), for delta camera lock HUD/redstone */
     public static float intendedYaw, intendedPitch;
+    /** Q-based worldRef yaw/pitch for roll lock HUD/snap/signal */
+    public static float rollYawRef, rollPitchRef;
 
     @SubscribeEvent
     public static void onCameraSetup(ViewportEvent.ComputeCameraAngles event) {
@@ -35,7 +35,6 @@ public class SeatCameraHandler {
             needsSnap = true;
             middleWasDown = false;
             altWasDown = false;
-            ctrlWasDown = false;
             return;
         }
         Entity vehicle = mc.player.getVehicle();
@@ -43,7 +42,6 @@ public class SeatCameraHandler {
             needsSnap = true;
             middleWasDown = false;
             altWasDown = false;
-            ctrlWasDown = false;
             return;
         }
 
@@ -53,59 +51,70 @@ public class SeatCameraHandler {
         }
         middleWasDown = middleDown;
 
-        boolean altDown = false, ctrlDown = false;
-        if (mc.screen == null) {
-            altDown = PowerKeyBindings.VIEW_SYNC.isDown();
-            ctrlDown = PowerKeyBindings.CAMERA_LOCK.isDown();
-        }
+        // Alt cycles: Off → ViewSync → CameraLock → RollLock → Off
+        boolean altDown = mc.screen == null && PowerKeyBindings.VIEW_SYNC.isDown();
         if (altDown && !altWasDown) {
             var conn = mc.player.connection;
-            if (conn != null) {
-                conn.send(new ToggleRedstonePayload(seat.getId()));
-            }
             boolean wasDisabled = seat.isRedstoneDisabled();
+            boolean wasLocked = seat.isCameraLocked();
+
             if (wasDisabled) {
+                if (conn != null) conn.send(new ToggleRedstonePayload(seat.getId()));
                 needsSnap = true;
-                mc.player.displayClientMessage(
-                        Component.translatable("msg.aero_reformation.power.redstone_on"), true);
+                mc.player.displayClientMessage(Component.translatable("msg.aero_reformation.power.mode_view_sync"), true);
+            } else if (!wasLocked) {
+                if (conn != null) conn.send(new ToggleCameraLockPayload(seat.getId()));
+                seat.pendingCameraLock = 1;
+                needsSnap = true;
+                mc.player.displayClientMessage(Component.translatable("msg.aero_reformation.power.mode_camera_lock"), true);
+            } else if (!seat.isRollLocked()) {
+                if (conn != null) conn.send(new ToggleRollLockPayload(seat.getId()));
+                seat.toggleRollLocked();
+                needsSnap = true;
+                mc.player.displayClientMessage(Component.translatable("msg.aero_reformation.power.mode_roll_lock"), true);
             } else {
-                mc.player.displayClientMessage(
-                        Component.translatable("msg.aero_reformation.power.redstone_off"), true);
+                if (conn != null) {
+                    conn.send(new ToggleRollLockPayload(seat.getId()));
+                    conn.send(new ToggleCameraLockPayload(seat.getId()));
+                    conn.send(new ToggleRedstonePayload(seat.getId()));
+                }
+                seat.toggleRollLocked();
+                seat.pendingCameraLock = 0;
+                needsSnap = true;
+                mc.player.displayClientMessage(Component.translatable("msg.aero_reformation.power.mode_off"), true);
             }
         }
         altWasDown = altDown;
 
-        if (ctrlDown && !ctrlWasDown) {
-            var conn = mc.player.connection;
-            if (conn != null) {
-                conn.send(new ToggleCameraLockPayload(seat.getId()));
-            }
-            boolean willLock = !seat.isCameraLocked();
-            seat.pendingCameraLock = willLock ? 1 : 0;
-            needsSnap = true;
-            mc.player.displayClientMessage(
-                    Component.translatable(willLock ? "msg.aero_reformation.power.camera_lock_on" : "msg.aero_reformation.power.camera_lock_off"), true);
-        }
-        ctrlWasDown = ctrlDown;
-
-        // Roll lock toggle
-        boolean cDown = mc.screen == null && PowerKeyBindings.ROLL_LOCK.isDown();
-        if (cDown && !cWasDown) {
-            var conn = mc.player.connection;
-            if (conn != null) {
-                conn.send(new ToggleRollLockPayload(seat.getId()));
-            }
-            seat.toggleRollLocked();
-            mc.player.displayClientMessage(Component.translatable(
-                    seat.isRollLocked() ? "msg.aero_reformation.power.axis3_on" : "msg.aero_reformation.power.axis3_off"), true);
-        }
-        cWasDown = cDown;
-
         boolean locked = seat.pendingCameraLock >= 0 ? (seat.pendingCameraLock == 1) : seat.isCameraLocked();
-
+        boolean rollLocked = locked && seat.isRollLocked();
         float seatYRot = seat.getBaseYaw();
 
-        if (locked) {
+        // Compute Q-based worldRef for roll lock mode (matches backup extractRollOnly reference)
+        if (rollLocked) {
+            var subLevel = Sable.HELPER.getContaining((Entity) seat);
+            Quaterniondc liveQ = subLevel instanceof ClientSubLevel cs ? cs.renderPose().orientation()
+                    : subLevel != null ? subLevel.logicalPose().orientation() : null;
+            if (liveQ != null && (Math.abs(liveQ.w() - 1.0) > 1e-4 || Math.abs(liveQ.x()) > 1e-4
+                    || Math.abs(liveQ.y()) > 1e-4 || Math.abs(liveQ.z()) > 1e-4)) {
+                Quaterniond Q = new Quaterniond(liveQ);
+                Vector3d worldRef = new Vector3d(0, 0, 1)
+                        .rotateY(Math.toRadians(-seatYRot))
+                        .rotate(Q, new Vector3d());
+                rollYawRef = (float) Math.toDegrees(Math.atan2(-worldRef.x, worldRef.z));
+                rollPitchRef = (float) Math.toDegrees(-Math.asin(worldRef.y));
+            } else {
+                rollYawRef = seatYRot;
+                rollPitchRef = 0;
+            }
+            // No delta compensation for roll lock
+        } else {
+            rollYawRef = seatYRot;
+            rollPitchRef = 0;
+        }
+
+        if (locked && !rollLocked) {
+            // CameraLock mode: delta compensation (unchanged)
             var subLevel = Sable.HELPER.getContaining((Entity) seat);
             Quaterniondc liveQ = subLevel instanceof ClientSubLevel cs ? cs.renderPose().orientation()
                     : subLevel != null ? subLevel.logicalPose().orientation() : null;
@@ -115,39 +124,45 @@ public class SeatCameraHandler {
 
                 if (prevSubRot != null && !needsSnap) {
                     Quaterniond deltaWorld = new Quaterniond(Q).mul(new Quaterniond(prevSubRot).invert());
-                    Quaterniond deltaLocal = new Quaterniond(Q).invert().mul(deltaWorld).mul(Q);
+                    Quaterniond baseYawQ = new Quaterniond().rotationY(Math.toRadians(-seatYRot));
+                    Quaterniond seatQ = new Quaterniond(Q).mul(baseYawQ);
+                    Quaterniond deltaLocal = new Quaterniond(seatQ).invert().mul(deltaWorld).mul(seatQ);
                     Vector3d euler = deltaLocal.getEulerAnglesYXZ(new Vector3d());
                     float deltaYaw = (float) Math.toDegrees(euler.y);
                     float deltaPitch = (float) Math.toDegrees(euler.x);
-                    // Save intended direction BEFORE counter-rotating
                     intendedYaw = mc.player.getYRot();
                     intendedPitch = mc.player.getXRot();
                     mc.player.setYRot(Mth.wrapDegrees(mc.player.getYRot() + deltaYaw));
-                    mc.player.setXRot(mc.player.getXRot() + deltaPitch);
+                    mc.player.setXRot(mc.player.getXRot() - deltaPitch);
                     event.setYaw(mc.player.getYRot());
                     event.setPitch(mc.player.getXRot());
                 } else {
                     intendedYaw = mc.player.getYRot();
                     intendedPitch = mc.player.getXRot();
                 }
-                // Compute & sync redstone signals from intended direction
-                float yawDev = Mth.wrapDegrees(intendedYaw - seatYRot);
-                float pitchDev = intendedPitch;
-                int yawMax = 90, pitchMax = 45;
-                if (mc.level != null && mc.level.getBlockEntity(seat.blockPosition()) instanceof PowerBlockEntity be) {
-                    yawMax = be.getYawMax(); pitchMax = be.getPitchMax();
-                }
-                int sigR = yawDev < 0 ? (int) Mth.clamp(Math.abs(yawDev) / yawMax * 15f, 0, 15) : 0;
-                int sigL = yawDev > 0 ? (int) Mth.clamp(Math.abs(yawDev) / yawMax * 15f, 0, 15) : 0;
-                int sigB = pitchDev > 0 ? (int) Mth.clamp(Math.abs(pitchDev) / pitchMax * 15f, 0, 15) : 0;
-                int sigF = pitchDev < 0 ? (int) Mth.clamp(Math.abs(pitchDev) / pitchMax * 15f, 0, 15) : 0;
-                var conn = mc.player.connection;
-                if (conn != null) conn.send(new SyncSignalPayload(seat.getId(), sigR, sigL, sigB, sigF));
-
                 prevSubRot = Q;
             } else {
                 prevSubRot = null;
+                intendedYaw = mc.player.getYRot();
+                intendedPitch = mc.player.getXRot();
             }
+
+            // Signal for CameraLock mode
+            float yawDev = Mth.wrapDegrees(intendedYaw - seatYRot);
+            float pitchDev = intendedPitch;
+            int yawMax = 90, pitchMax = 45;
+            if (mc.level != null && mc.level.getBlockEntity(seat.blockPosition()) instanceof PowerBlockEntity be) {
+                yawMax = be.getYawMax(); pitchMax = be.getPitchMax();
+            }
+            int sigR = yawDev < 0 ? (int) Mth.clamp(Math.abs(yawDev) / yawMax * 15f, 0, 15) : 0;
+            int sigL = yawDev > 0 ? (int) Mth.clamp(Math.abs(yawDev) / yawMax * 15f, 0, 15) : 0;
+            int sigB = pitchDev > 0 ? (int) Mth.clamp(Math.abs(pitchDev) / pitchMax * 15f, 0, 15) : 0;
+            int sigF = pitchDev < 0 ? (int) Mth.clamp(Math.abs(pitchDev) / pitchMax * 15f, 0, 15) : 0;
+            var conn = mc.player.connection;
+            if (conn != null) conn.send(new SyncSignalPayload(seat.getId(), sigR, sigL, sigB, sigF));
+        } else if (rollLocked) {
+            // RollLock: server computes signal (no client sync needed, prevents bounce)
+            prevSubRot = null;
         } else {
             prevSubRot = null;
             intendedYaw = mc.player.getYRot();
@@ -159,14 +174,16 @@ public class SeatCameraHandler {
             if (locked) {
                 skipRollFrame = true;
             }
-            mc.player.setYRot(seatYRot);
-            mc.player.yRotO = seatYRot;
-            mc.player.yHeadRot = seatYRot;
-            mc.player.yHeadRotO = seatYRot;
-            float snapPitch = 0;
+            float snapYaw = rollLocked ? rollYawRef : seatYRot;
+            float snapPitch = rollLocked ? rollPitchRef : 0;
+            mc.player.setYRot(snapYaw);
+            mc.player.yRotO = snapYaw;
+            mc.player.yHeadRot = snapYaw;
+            mc.player.yHeadRotO = snapYaw;
             mc.player.setXRot(snapPitch);
             mc.player.xRotO = snapPitch;
-            // Event already compensated above; don't overwrite
+            event.setYaw(snapYaw);
+            event.setPitch(snapPitch);
             return;
         }
 
@@ -175,7 +192,5 @@ public class SeatCameraHandler {
         if (seat.pendingCameraLock >= 0 && (seat.pendingCameraLock == 1) == seat.isCameraLocked()) {
             seat.pendingCameraLock = -1;
         }
-
-        // Clamp disabled (conflicts with full Q)
     }
 }

@@ -14,21 +14,7 @@ public class PowerKeyBindings {
             GLFW.GLFW_KEY_LEFT_ALT,
             CATEGORY);
 
-    public static final KeyMapping CAMERA_LOCK = new KeyMapping(
-            "key.aero_reformation.power.camera_lock",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_LEFT_CONTROL,
-            CATEGORY);
-
-    public static final KeyMapping ROLL_LOCK = new KeyMapping(
-            "key.aero_reformation.power.roll_lock",
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_C,
-            CATEGORY);
-
     public static void register(RegisterKeyMappingsEvent event) {
         event.register(VIEW_SYNC);
-        event.register(CAMERA_LOCK);
-        event.register(ROLL_LOCK);
     }
 }

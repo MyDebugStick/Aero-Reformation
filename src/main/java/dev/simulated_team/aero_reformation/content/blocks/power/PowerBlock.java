@@ -2,6 +2,7 @@ package dev.simulated_team.aero_reformation.content.blocks.power;
 
 import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
+import dev.ryanhcode.sable.Sable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -24,6 +25,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.joml.Quaterniond;
+import org.joml.Vector3d;
 
 import java.util.Map;
 
@@ -122,6 +125,45 @@ public class PowerBlock extends Block implements IBE<PowerBlockEntity> {
 
                 if (seat.isRedstoneDisabled()) return 0;
 
+                if (seat.isCameraLocked() && seat.isRollLocked()) {
+                    // RollLock: server-side Q-based signal (matches backup, prevents bounce)
+                    float baseYaw = seat.getBaseYaw();
+                    float yawDiff;
+                    float pitchDiff;
+
+                    var subLevel = Sable.HELPER.getContaining(lvl, pos);
+                    if (subLevel != null) {
+                        Quaterniond subRot = subLevel.logicalPose().orientation();
+                        Vector3d worldRef = new Vector3d(0, 0, 1)
+                                .rotateY(Math.toRadians(-baseYaw))
+                                .rotate(subRot);
+                        float yawRef = (float) Math.toDegrees(Math.atan2(-worldRef.x, worldRef.z));
+                        float pitchRef = (float) Math.toDegrees(-Math.asin(worldRef.y));
+                        yawDiff = Mth.wrapDegrees(player.getYRot() - yawRef);
+                        pitchDiff = player.getXRot() - pitchRef;
+                    } else {
+                        yawDiff = Mth.wrapDegrees(player.getYRot() - baseYaw);
+                        pitchDiff = player.getXRot();
+                    }
+
+                    float yawSignal, pitchSignal;
+                    if (lvl.getBlockEntity(pos) instanceof PowerBlockEntity be) {
+                        yawSignal = Mth.clamp(Math.abs(yawDiff) / be.getYawMax() * 15f, 0, 15);
+                        pitchSignal = Mth.clamp(Math.abs(pitchDiff) / be.getPitchMax() * 15f, 0, 15);
+                    } else {
+                        yawSignal = Mth.clamp(Math.abs(yawDiff) / 90f * 15f, 0, 15);
+                        pitchSignal = Mth.clamp(Math.abs(pitchDiff) / 45f * 15f, 0, 15);
+                    }
+
+                    Direction right = state.getValue(FACING).getClockWise();
+                    Direction left = right.getOpposite();
+                    if (direction == right && yawDiff < 0) return (int) yawSignal;
+                    if (direction == left && yawDiff > 0) return (int) yawSignal;
+                    if (direction == state.getValue(FACING).getOpposite() && pitchDiff > 0) return (int) pitchSignal;
+                    if (direction == state.getValue(FACING) && pitchDiff < 0) return (int) pitchSignal;
+                    return 0;
+                }
+
                 if (seat.isCameraLocked()) {
                     Direction right = state.getValue(FACING).getClockWise();
                     Direction left = right.getOpposite();
@@ -193,7 +235,8 @@ public class PowerBlock extends Block implements IBE<PowerBlockEntity> {
             seat.setBlockPos(pos);
             seat.setBaseYaw(localYaw);
 
-            seat.moveTo(pos.getX() + 0.5, pos.getY() + 11.0 / 16.0, pos.getZ() + 0.5, localYaw, 0);
+            double hOffset = level.getBlockEntity(pos) instanceof PowerBlockEntity be ? be.getSeatHeight() : 0.0;
+            seat.moveTo(pos.getX() + 0.5, pos.getY() + 11.0 / 16.0 + hOffset, pos.getZ() + 0.5, localYaw, 0);
             level.addFreshEntity(seat);
             // Move player to riding position before mounting to avoid arm shake
             player.moveTo(seat.getX(), seat.getY() + seat.getPassengersRidingOffset(), seat.getZ(), localYaw, 0);

@@ -32,8 +32,14 @@ public class PowerHudOverlay {
         float yawDiff;
         float pitchDiff;
 
-        yawDiff = Mth.wrapDegrees(SeatCameraHandler.intendedYaw - seat.getBaseYaw());
-        pitchDiff = Mth.clamp(SeatCameraHandler.intendedPitch, -45, 45);
+        if (seat.isCameraLocked() && seat.isRollLocked()) {
+            // RollLock: Q-based worldRef (matches backup extractRollOnly reference)
+            yawDiff = Mth.wrapDegrees(player.getYRot() - SeatCameraHandler.rollYawRef);
+            pitchDiff = Mth.clamp(player.getXRot() - SeatCameraHandler.rollPitchRef, -45, 45);
+        } else {
+            yawDiff = Mth.wrapDegrees(SeatCameraHandler.intendedYaw - seat.getBaseYaw());
+            pitchDiff = Mth.clamp(SeatCameraHandler.intendedPitch, -45, 45);
+        }
 
         GuiGraphics gfx = event.getGuiGraphics();
         PoseStack pose = gfx.pose();

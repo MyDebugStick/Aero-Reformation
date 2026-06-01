@@ -78,6 +78,7 @@ public class AeroReformation {
                     ToggleCameraLockPayload::handle);
             registrar.playToServer(ToggleRollLockPayload.TYPE, ToggleRollLockPayload.STREAM_CODEC,
                     ToggleRollLockPayload::handle);
+
             registrar.playToServer(PowerConfigPayload.TYPE, PowerConfigPayload.STREAM_CODEC,
                     PowerConfigPayload::handle);
             registrar.playToServer(SyncSignalPayload.TYPE, SyncSignalPayload.STREAM_CODEC,

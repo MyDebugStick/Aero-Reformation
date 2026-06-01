@@ -13,14 +13,17 @@ public class PowerConfigScreen extends Screen {
     private final BlockPos pos;
     private final int initialYawMax;
     private final int initialPitchMax;
+    private final double initialSeatHeight;
     private EditBox yawBox;
     private EditBox pitchBox;
+    private EditBox heightBox;
 
-    public PowerConfigScreen(BlockPos pos, int yawMax, int pitchMax) {
+    public PowerConfigScreen(BlockPos pos, int yawMax, int pitchMax, double seatHeight) {
         super(Component.translatable("gui.aero_reformation.power_config"));
         this.pos = pos;
         this.initialYawMax = yawMax;
         this.initialPitchMax = pitchMax;
+        this.initialSeatHeight = seatHeight;
     }
 
     @Override
@@ -40,14 +43,20 @@ public class PowerConfigScreen extends Screen {
         pitchBox.setFilter(s -> s.matches("\\d{0,3}"));
         addRenderableWidget(pitchBox);
 
+        heightBox = new EditBox(font, cx - boxW / 2, startY + rowH * 2, boxW, boxH, Component.empty());
+        heightBox.setValue(String.format("%.2f", initialSeatHeight));
+        heightBox.setFilter(s -> s.matches("-?\\d{0,2}(\\.\\d{0,2})?"));
+        addRenderableWidget(heightBox);
+
         addRenderableWidget(Button.builder(Component.translatable("gui.aero_reformation.confirm"), b -> {
             try {
-                int yaw = Math.clamp(Integer.parseInt(yawBox.getValue()), 1, 90);
-                int pitch = Math.clamp(Integer.parseInt(pitchBox.getValue()), 1, 45);
-                PacketDistributor.sendToServer(new PowerConfigPayload(pos, yaw, pitch));
+                int yaw = Math.clamp(Integer.parseInt(yawBox.getValue()), 1, 180);
+                int pitch = Math.clamp(Integer.parseInt(pitchBox.getValue()), 1, 90);
+                double h = Math.clamp(Double.parseDouble(heightBox.getValue()), -0.2, 0.2);
+                PacketDistributor.sendToServer(new PowerConfigPayload(pos, yaw, pitch, h));
             } catch (NumberFormatException ignored) {}
             onClose();
-        }).pos(cx - 44, startY + rowH * 2 + 6).size(88, 18).build());
+        }).pos(cx - 44, startY + rowH * 3 + 6).size(88, 18).build());
     }
 
     @Override
@@ -63,10 +72,12 @@ public class PowerConfigScreen extends Screen {
 
         g.drawString(font, Component.translatable("gui.aero_reformation.power_yaw_max"), labelX, startY + 4, 0x55AAFF);
         g.drawString(font, Component.translatable("gui.aero_reformation.power_pitch_max"), labelX, startY + rowH + 4, 0xFFAA55);
+        g.drawString(font, Component.translatable("gui.aero_reformation.power_seat_height"), labelX, startY + rowH * 2 + 4, 0x55FF55);
         g.drawString(font, "°", cx + boxW / 2 + 6, startY + 4, 0xAAAAAA);
         g.drawString(font, "°", cx + boxW / 2 + 6, startY + rowH + 4, 0xAAAAAA);
-        g.drawCenteredString(font, Component.literal("1-90"), cx + 88, startY + 4, 0x666666);
-        g.drawCenteredString(font, Component.literal("1-45"), cx + 88, startY + rowH + 4, 0x666666);
+        g.drawCenteredString(font, Component.literal("1-180"), cx + 88, startY + 4, 0x666666);
+        g.drawCenteredString(font, Component.literal("1-90"), cx + 88, startY + rowH + 4, 0x666666);
+        g.drawCenteredString(font, Component.literal("±0.20"), cx + 88, startY + rowH * 2 + 4, 0x666666);
     }
 
     @Override

@@ -13,6 +13,7 @@ public class PowerBlockEntity extends BlockEntity {
 
     private int yawMax = 90;
     private int pitchMax = 45;
+    private double seatHeight = 0.0;
 
     public PowerBlockEntity(BlockPos pos, BlockState state) {
         super(AeroBlocks.POWER_BE.get(), pos, state);
@@ -20,9 +21,10 @@ public class PowerBlockEntity extends BlockEntity {
 
     public int getYawMax() { return yawMax; }
     public int getPitchMax() { return pitchMax; }
+    public double getSeatHeight() { return seatHeight; }
 
     public void setYawMax(int v) {
-        yawMax = Math.clamp(v, 1, 90);
+        yawMax = Math.clamp(v, 1, 180);
         setChanged();
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
@@ -30,7 +32,15 @@ public class PowerBlockEntity extends BlockEntity {
     }
 
     public void setPitchMax(int v) {
-        pitchMax = Math.clamp(v, 1, 45);
+        pitchMax = Math.clamp(v, 1, 90);
+        setChanged();
+        if (level != null && !level.isClientSide) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
+        }
+    }
+
+    public void setSeatHeight(double v) {
+        seatHeight = Math.clamp(v, -0.2, 0.2);
         setChanged();
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
@@ -42,6 +52,7 @@ public class PowerBlockEntity extends BlockEntity {
         super.saveAdditional(tag, registries);
         tag.putInt("YawMax", yawMax);
         tag.putInt("PitchMax", pitchMax);
+        tag.putDouble("SeatHeight", seatHeight);
     }
 
     @Override
@@ -49,6 +60,7 @@ public class PowerBlockEntity extends BlockEntity {
         super.loadAdditional(tag, registries);
         yawMax = tag.getInt("YawMax");
         pitchMax = tag.getInt("PitchMax");
+        seatHeight = tag.getDouble("SeatHeight");
     }
 
     @Override
@@ -56,6 +68,7 @@ public class PowerBlockEntity extends BlockEntity {
         CompoundTag tag = super.getUpdateTag(registries);
         tag.putInt("YawMax", yawMax);
         tag.putInt("PitchMax", pitchMax);
+        tag.putDouble("SeatHeight", seatHeight);
         return tag;
     }
 
@@ -64,6 +77,7 @@ public class PowerBlockEntity extends BlockEntity {
         super.handleUpdateTag(tag, registries);
         yawMax = tag.getInt("YawMax");
         pitchMax = tag.getInt("PitchMax");
+        seatHeight = tag.getDouble("SeatHeight");
     }
 
     @Override

@@ -21,9 +21,7 @@ public record ToggleRollLockPayload(int entityId) implements CustomPacketPayload
     public static void handle(ToggleRollLockPayload msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             Entity entity = ctx.player().level().getEntity(msg.entityId);
-            if (entity instanceof SeatEntity seat) {
-                seat.toggleRollLocked();
-            }
+            if (entity instanceof SeatEntity seat) seat.toggleRollLocked();
         });
     }
 }
