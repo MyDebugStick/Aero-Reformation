@@ -13,7 +13,10 @@ public class PowerItemTooltip {
 
     @SubscribeEvent
     public static void onTooltip(ItemTooltipEvent event) {
-        if (event.getItemStack().is(AeroBlocks.POWER_ITEM.get())) {
+        if (event.getItemStack().is(AeroBlocks.POWER_ITEM.get()) ||
+                event.getItemStack().is(AeroBlocks.PILOT_SEAT_ITEM.get()) ||
+                event.getItemStack().is(AeroBlocks.CREATE_SEAT_ITEM.get()) ||
+                event.getItemStack().is(AeroBlocks.END_ROD_SEAT_ITEM.get())) {
             event.getToolTip().add(Component.translatable("tooltip.aero_reformation.power.info",
                     PowerKeyBindings.VIEW_SYNC.getTranslatedKeyMessage())
                     .withStyle(ChatFormatting.AQUA));

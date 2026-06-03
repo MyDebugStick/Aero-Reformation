@@ -14,6 +14,9 @@ import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrust
 import dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterBlockItem;
 import dev.simulated_team.aero_reformation.content.blocks.power.PowerBlock;
 import dev.simulated_team.aero_reformation.content.blocks.power.PowerBlockEntity;
+import dev.simulated_team.aero_reformation.content.blocks.power.PilotSeatBlock;
+import dev.simulated_team.aero_reformation.content.blocks.power.CreateSeatBlock;
+import dev.simulated_team.aero_reformation.content.blocks.power.EndRodSeatBlock;
 import dev.simulated_team.aero_reformation.content.blocks.power.SeatEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -31,6 +34,8 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AeroBlocks {
 
@@ -202,25 +207,82 @@ public class AeroBlocks {
                             new dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyConfig()),
                             FeatureFlags.DEFAULT_FLAGS));
 
-    // ==================== Power (不可降解视角辅助装置) ====================
+    // ==================== Power Seat Blocks (tag-based BE sharing) ====================
+    /** Add seat blocks here — all share PowerBlockEntity and tag aero_reformation:power_seats */
+    public static final List<Supplier<? extends Block>> POWER_SEAT_BLOCKS = new ArrayList<>();
 
     public static final Supplier<PowerBlock> POWER =
-            BLOCKS.register("power", () -> new PowerBlock(
-                    BlockBehaviour.Properties.of()
-                            .strength(2.0f)
-                            .noOcclusion()
-                            .isViewBlocking((s, l, p) -> false)
-            ));
+            BLOCKS.register("power", () -> {
+                var b = new PowerBlock(BlockBehaviour.Properties.of()
+                        .strength(2.0f)
+                        .noOcclusion()
+                        .isViewBlocking((s, l, p) -> false));
+                POWER_SEAT_BLOCKS.add(() -> b);
+                return b;
+            });
 
     public static final Supplier<BlockItem> POWER_ITEM =
             ITEMS.register("power", () -> new BlockItem(
                     POWER.get(), new Item.Properties()
             ));
 
+    // ==================== Pilot Seat (飞行员座椅) ====================
+
+    public static final Supplier<PilotSeatBlock> PILOT_SEAT =
+            BLOCKS.register("pilot_seat", () -> {
+                var b = new PilotSeatBlock(BlockBehaviour.Properties.of()
+                        .strength(2.0f)
+                        .noOcclusion()
+                        .isViewBlocking((s, l, p) -> false));
+                POWER_SEAT_BLOCKS.add(() -> b);
+                return b;
+            });
+
+    public static final Supplier<BlockItem> PILOT_SEAT_ITEM =
+            ITEMS.register("pilot_seat", () -> new BlockItem(
+                    PILOT_SEAT.get(), new Item.Properties()
+            ));
+
+    // ==================== Create Seat (机械动力白坐垫) ====================
+
+    public static final Supplier<CreateSeatBlock> CREATE_SEAT =
+            BLOCKS.register("create_seat", () -> {
+                var b = new CreateSeatBlock(BlockBehaviour.Properties.of()
+                        .strength(2.0f)
+                        .noOcclusion()
+                        .isViewBlocking((s, l, p) -> false));
+                POWER_SEAT_BLOCKS.add(() -> b);
+                return b;
+            });
+
+    public static final Supplier<BlockItem> CREATE_SEAT_ITEM =
+            ITEMS.register("create_seat", () -> new BlockItem(
+                    CREATE_SEAT.get(), new Item.Properties()
+            ));
+
+    // ==================== End Rod Seat (末地烛座椅) ====================
+
+    public static final Supplier<EndRodSeatBlock> END_ROD_SEAT =
+            BLOCKS.register("end_rod_seat", () -> {
+                var b = new EndRodSeatBlock(BlockBehaviour.Properties.of()
+                        .strength(2.0f)
+                        .noOcclusion()
+                        .isViewBlocking((s, l, p) -> false));
+                POWER_SEAT_BLOCKS.add(() -> b);
+                return b;
+            });
+
+    public static final Supplier<BlockItem> END_ROD_SEAT_ITEM =
+            ITEMS.register("end_rod_seat", () -> new BlockItem(
+                    END_ROD_SEAT.get(), new Item.Properties()
+            ));
+
     public static final Supplier<BlockEntityType<PowerBlockEntity>> POWER_BE =
             BLOCK_ENTITY_TYPES.register("power",
-                    () -> BlockEntityType.Builder.of(PowerBlockEntity::new, POWER.get())
-                            .build(null));
+                    () -> {
+                        var blocks = POWER_SEAT_BLOCKS.stream().map(Supplier::get).toArray(Block[]::new);
+                        return BlockEntityType.Builder.of(PowerBlockEntity::new, blocks).build(null);
+                    });
 
     // ==================== Creative Tab ====================
 
@@ -238,6 +300,9 @@ public class AeroBlocks {
                         output.accept(ELECTRIC_LOADSTONE_ITEM.get());
                         output.accept(RCS_THRUSTER_ITEM.get());
                         output.accept(POWER_ITEM.get());
+                        output.accept(PILOT_SEAT_ITEM.get());
+                        output.accept(CREATE_SEAT_ITEM.get());
+                        output.accept(END_ROD_SEAT_ITEM.get());
                     })
                     .build()
     );

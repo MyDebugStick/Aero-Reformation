@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "aero_reformation:power",
+    "aero_reformation:pilot_seat",
+    "aero_reformation:create_seat",
+    "aero_reformation:end_rod_seat"
+  ]
+}

@@ -238,14 +238,10 @@ public class PowerBlock extends Block implements IBE<PowerBlockEntity> {
             double hOffset = level.getBlockEntity(pos) instanceof PowerBlockEntity be ? be.getSeatHeight() : 0.0;
             seat.moveTo(pos.getX() + 0.5, pos.getY() + 11.0 / 16.0 + hOffset, pos.getZ() + 0.5, localYaw, 0);
             level.addFreshEntity(seat);
+            seat.attachToSubLevel(level, pos);
             // Move player to riding position before mounting to avoid arm shake
             player.moveTo(seat.getX(), seat.getY() + seat.getPassengersRidingOffset(), seat.getZ(), localYaw, 0);
             player.startRiding(seat);
-            player.setYRot(localYaw);
-            player.yRotO = localYaw;
-            player.setYHeadRot(localYaw);
-            player.yHeadRotO = localYaw;
-            seat.attachToSubLevel(level, pos);
         }
         return ItemInteractionResult.SUCCESS;
     }
