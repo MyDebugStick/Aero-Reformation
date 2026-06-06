@@ -17,6 +17,7 @@ public class RefCommands {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("ref")
+                .requires(s -> s.hasPermission(2))
                 .then(Commands.literal("removebc")
                         .executes(RefCommands::removeAnchor)
                         .then(Commands.literal("all")
