@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
@@ -37,7 +38,8 @@ public class AnchorChunkLoader {
         // Upgrade warmup entry if exists
         AnchorData warmup = WARMUP.remove(id);
         if (warmup != null) {
-            anchorsFor(sl.dimension()).put(pos, new AnchorData(subLevel, warmup.marker, null, 2));
+            int r = getSavedRadius(sl, id);
+            anchorsFor(sl.dimension()).put(pos, new AnchorData(subLevel, warmup.marker, null, r));
             ANCHORED_SUBLEVELS.add(id);
             AUTO_PROTECTED.remove(id);
             AeroReformation.LOGGER.info("[PhysicsAnchor] Upgraded warmup anchor sub={} at {}", id, pos);
@@ -51,7 +53,7 @@ public class AnchorChunkLoader {
         for (var entry : dimMap.entrySet()) {
             if (entry.getValue().subLevel != null && entry.getValue().subLevel.getUniqueId().equals(id)) {
                 var existing = entry.getValue();
-                dimMap.put(pos, new AnchorData(subLevel, existing.marker, null, 2));
+                dimMap.put(pos, new AnchorData(subLevel, existing.marker, null, getSavedRadius(sl, id)));
                 AeroReformation.LOGGER.info("[PhysicsAnchor] Shared marker for sub={} at new pos={}", id, pos);
                 return;
             }
@@ -73,11 +75,12 @@ public class AnchorChunkLoader {
         marker.setPos(pose.position().x(), pose.position().y(), pose.position().z());
         sl.addFreshEntity(marker);
         applySavedName(sl, id, marker);
+        int savedRadius = getSavedRadius(sl, id);
 
-        anchorsFor(sl.dimension()).put(pos, new AnchorData(subLevel, marker, null, 2));
+        anchorsFor(sl.dimension()).put(pos, new AnchorData(subLevel, marker, null, savedRadius));
         ANCHORED_SUBLEVELS.add(id);
         AUTO_PROTECTED.remove(id);
-        AnchorSavedData.get(sl).add(id, pose.position().x(), pose.position().y(), pose.position().z());
+        AnchorSavedData.get(sl).add(id, pose.position().x(), pose.position().y(), pose.position().z(), null, savedRadius);
         AeroReformation.LOGGER.info("[PhysicsAnchor] Anchor added at world {},{} sub={} pos={}",
                 (int)pose.position().x(), (int)pose.position().z(), id, pos);
     }
@@ -185,6 +188,8 @@ public class AnchorChunkLoader {
         WARMUP.clear();
         ANCHORED_SUBLEVELS.clear();
         AUTO_PROTECTED.clear();
+        // Also clear SavedData so warmup doesn't recreate markers
+        AnchorSavedData.get(serverLevel).clearAll();
         // Immediately tell clients there are no markers
         syncToClients(serverLevel);
         return count;
@@ -219,24 +224,35 @@ public class AnchorChunkLoader {
         return data != null ? data.ticketRadius : 2;
     }
 
-    public static void renameAnchor(Level level, BlockPos pos, String name) {
+    public static void renameAnchor(Level level, BlockPos pos, String name, int radius) {
         if (level.isClientSide()) return;
         AnchorMarkerEntity marker = getMarker(level, pos);
         if (marker == null) return;
         marker.setCustomName(name.isEmpty() ? null : net.minecraft.network.chat.Component.literal(name));
         marker.setCustomNameVisible(false);
         AnchorData data = anchorsFor(level.dimension()).get(pos);
-        if (data != null && data.subLevel != null && level instanceof ServerLevel sl)
+        if (data != null && data.subLevel != null && level instanceof ServerLevel sl) {
+            int clamped = Mth.clamp(radius, 2, 5);
+            anchorsFor(level.dimension()).put(pos, new AnchorData(data.subLevel, data.marker, data.lastTicketChunk, clamped));
             AnchorSavedData.get(sl).setMarkerName(data.subLevel.getUniqueId(), name.isEmpty() ? null : name);
-        AeroReformation.LOGGER.info("[PhysicsAnchor] Renamed marker at {} to '{}'", pos, name);
+            AnchorSavedData.get(sl).setRadius(data.subLevel.getUniqueId(), clamped);
+        }
+        AeroReformation.LOGGER.info("[PhysicsAnchor] Renamed marker at {} to '{}' radius={}", pos, name, radius);
     }
 
     private static void applySavedName(ServerLevel sl, UUID subLevelId, AnchorMarkerEntity marker) {
         AnchorSavedData.StoredEntry e = AnchorSavedData.get(sl).getEntry(subLevelId);
-        if (e != null && e.markerName() != null) {
-            marker.setCustomName(net.minecraft.network.chat.Component.literal(e.markerName()));
-            marker.setCustomNameVisible(false);
+        if (e != null) {
+            if (e.markerName() != null) {
+                marker.setCustomName(net.minecraft.network.chat.Component.literal(e.markerName()));
+                marker.setCustomNameVisible(false);
+            }
         }
+    }
+
+    private static int getSavedRadius(ServerLevel sl, UUID subLevelId) {
+        AnchorSavedData.StoredEntry e = AnchorSavedData.get(sl).getEntry(subLevelId);
+        return e != null ? e.radius() : 2;
     }
 
     public static void saveAllPositions(ServerLevel serverLevel) {
@@ -264,7 +280,7 @@ public class AnchorChunkLoader {
                     serverLevel.addFreshEntity(marker);
                     applySavedName(serverLevel, id, marker);
 
-                    WARMUP.put(id, new AnchorData(null, marker, null, 2));
+                    WARMUP.put(id, new AnchorData(null, marker, null, e.radius()));
                     ANCHORED_SUBLEVELS.add(id);
                     AeroReformation.LOGGER.info("[PhysicsAnchor] Warmup marker at {} {} sub={}",
                             (int)e.worldX(), (int)e.worldZ(), id);
@@ -295,13 +311,8 @@ public class AnchorChunkLoader {
             if (data.marker != null && !data.marker.isRemoved())
                 data.marker.setPos(wx, wy, wz);
 
-            // Adaptive radius based on SubLevel physical extent
-            int radius = 2;
-            try {
-                var bb = sl.boundingBox();
-                double extent = Math.max(bb.maxX() - bb.minX(), bb.maxZ() - bb.minZ());
-                radius = Math.max(2, (int) Math.ceil(extent / 32.0));
-            } catch (Exception ignored) {}
+            // Use stored radius (set via GUI, defaults to 2)
+            int radius = data.ticketRadius;
 
             // PORTAL ticket: refresh on chunk change OR every 5 seconds OR radius changed
             boolean chunkChanged = data.lastTicketChunk == null || !data.lastTicketChunk.equals(curChunk);

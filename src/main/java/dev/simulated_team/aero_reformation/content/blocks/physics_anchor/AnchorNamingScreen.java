@@ -13,11 +13,13 @@ public class AnchorNamingScreen extends Screen {
     private final BlockPos pos;
     private final String defaultName;
     private EditBox nameBox;
+    private int radius;
 
-    public AnchorNamingScreen(BlockPos pos, String defaultName) {
+    public AnchorNamingScreen(BlockPos pos, String defaultName, int radius) {
         super(Component.translatable("gui.aero_reformation.anchor_name"));
         this.pos = pos;
         this.defaultName = defaultName;
+        this.radius = radius;
     }
 
     @Override
@@ -28,8 +30,17 @@ public class AnchorNamingScreen extends Screen {
         nameBox.setFilter(s -> s.length() <= 32);
         addRenderableWidget(nameBox);
         setInitialFocus(nameBox);
+
+        // Radius: - / +
+        addRenderableWidget(Button.builder(Component.literal("-"), b -> {
+            if (radius > 2) radius--;
+        }).pos(cx - 80, cy + 40).size(18, 18).build());
+        addRenderableWidget(Button.builder(Component.literal("+"), b -> {
+            if (radius < 5) radius++;
+        }).pos(cx + 62, cy + 40).size(18, 18).build());
+
         addRenderableWidget(Button.builder(Component.translatable("gui.aero_reformation.confirm"), b -> {
-            PacketDistributor.sendToServer(new AnchorRenamePacket(pos, nameBox.getValue().trim()));
+            PacketDistributor.sendToServer(new AnchorRenamePacket(pos, nameBox.getValue().trim(), radius));
             onClose();
         }).pos(cx - 44, cy + 16).size(88, 18).build());
     }
@@ -38,9 +49,8 @@ public class AnchorNamingScreen extends Screen {
     public void render(GuiGraphics g, int mx, int my, float pt) {
         super.render(g, mx, my, pt);
         g.drawCenteredString(font, title, width / 2, height / 2 - 30, 0xFFFFFF);
-        int radius = AnchorMapClientData.getRadius(pos);
-        String rText = "加载半径: " + radius + " chunks (" + (radius*2+1) + "×" + (radius*2+1) + ")";
-        g.drawCenteredString(font, rText, width / 2, height / 2 + 40, 0xFFAAAAAA);
+        String rText = "加载半径: " + radius + " (" + (radius*2+1) + "×" + (radius*2+1) + ")";
+        g.drawCenteredString(font, rText, width / 2, height / 2 + 45, 0xFFAAAAAA);
     }
 
     @Override

@@ -18,6 +18,8 @@ public class PhysicsAnchorTooltip {
 
         event.getToolTip().add(Component.translatable("tooltip.aero_reformation.physics_anchor.load")
                 .withStyle(ChatFormatting.AQUA));
+        event.getToolTip().add(Component.translatable("tooltip.aero_reformation.physics_anchor.place_warn")
+                .withStyle(ChatFormatting.YELLOW));
 
         if (Screen.hasShiftDown()) {
             event.getToolTip().add(Component.translatable("tooltip.aero_reformation.physics_anchor.gui")

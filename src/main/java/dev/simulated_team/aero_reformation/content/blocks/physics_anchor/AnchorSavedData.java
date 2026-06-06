@@ -17,7 +17,7 @@ import java.util.*;
 public class AnchorSavedData extends SavedData {
     private static final String ID = "aero_reformation_anchors";
 
-    public record StoredEntry(UUID subLevelId, double worldX, double worldY, double worldZ, String markerName) {}
+    public record StoredEntry(UUID subLevelId, double worldX, double worldY, double worldZ, String markerName, int radius) {}
 
     private final Map<UUID, StoredEntry> entries = new LinkedHashMap<>();
 
@@ -32,14 +32,14 @@ public class AnchorSavedData extends SavedData {
     );
 
     public void add(UUID subLevelId, double wx, double wy, double wz) {
-        add(subLevelId, wx, wy, wz, null);
+        add(subLevelId, wx, wy, wz, null, 2);
     }
 
-    public void add(UUID subLevelId, double wx, double wy, double wz, @org.jetbrains.annotations.Nullable String markerName) {
-        // Preserve existing marker name if not provided
+    public void add(UUID subLevelId, double wx, double wy, double wz, @org.jetbrains.annotations.Nullable String markerName, int radius) {
         StoredEntry old = entries.get(subLevelId);
         String name = markerName != null ? markerName : (old != null ? old.markerName : null);
-        entries.put(subLevelId, new StoredEntry(subLevelId, wx, wy, wz, name));
+        int r = old != null ? old.radius : radius;
+        entries.put(subLevelId, new StoredEntry(subLevelId, wx, wy, wz, name, r));
         setDirty();
     }
 
@@ -47,13 +47,27 @@ public class AnchorSavedData extends SavedData {
     public void setMarkerName(UUID subLevelId, String name) {
         StoredEntry e = entries.get(subLevelId);
         if (e != null) {
-            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX, e.worldY, e.worldZ, name));
+            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX, e.worldY, e.worldZ, name, e.radius));
+            setDirty();
+        }
+    }
+
+    /** Update only the radius. */
+    public void setRadius(UUID subLevelId, int radius) {
+        StoredEntry e = entries.get(subLevelId);
+        if (e != null) {
+            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX, e.worldY, e.worldZ, e.markerName, radius));
             setDirty();
         }
     }
 
     public void remove(UUID subLevelId) {
         entries.remove(subLevelId);
+        setDirty();
+    }
+
+    public void clearAll() {
+        entries.clear();
         setDirty();
     }
 
@@ -78,6 +92,7 @@ public class AnchorSavedData extends SavedData {
             t.putDouble("y", e.worldY);
             t.putDouble("z", e.worldZ);
             if (e.markerName != null) t.putString("name", e.markerName);
+            t.putInt("radius", e.radius);
             list.add(t);
         }
         tag.put("anchors", list);
@@ -91,8 +106,9 @@ public class AnchorSavedData extends SavedData {
             CompoundTag t = list.getCompound(i);
             UUID id = t.getUUID("uuid");
             String name = t.contains("name") ? t.getString("name") : null;
+            int radius = t.contains("radius") ? t.getInt("radius") : 2;
             data.entries.put(id, new StoredEntry(id,
-                    t.getDouble("x"), t.getDouble("y"), t.getDouble("z"), name));
+                    t.getDouble("x"), t.getDouble("y"), t.getDouble("z"), name, radius));
         }
         return data;
     }

@@ -107,7 +107,8 @@
   "aero_reformation.tooltip.ender_compass": "Combine two compasses in crafting grid to bind a channel. Shift+Right-click to record position. Hold Right-click to throw and track location. Requires arrows in inventory (Survival)",
   "aero_reformation.tooltip.ender_compass_key": "Press [C] to manually input coordinates",
 
-  "tooltip.aero_reformation.physics_anchor.load": "Place on a physics body to load its chunks. Loading radius scales with body size.",
+  "tooltip.aero_reformation.physics_anchor.load": "Place on a physics body to load its chunks. Adjustable radius (2-5) in GUI.",
+  "tooltip.aero_reformation.physics_anchor.place_warn": "Use on a fully constructed physics body.",
   "tooltip.aero_reformation.physics_anchor.shift": "Hold [Shift] for more info",
   "tooltip.aero_reformation.physics_anchor.gui": "Sneak + Right-click with empty hand to name the anchor. The anchor continuously marks the body on Xaero's map.",
   "tooltip.aero_reformation.physics_anchor.command": "Use /ref removebc to remove anchor(s). /ref removeallmark clears all marker entities (re-place anchors needed).",

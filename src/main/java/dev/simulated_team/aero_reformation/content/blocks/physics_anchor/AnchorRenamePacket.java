@@ -9,22 +9,22 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record AnchorRenamePacket(BlockPos pos, String name) implements CustomPacketPayload {
+public record AnchorRenamePacket(BlockPos pos, String name, int radius) implements CustomPacketPayload {
 
     public static final Type<AnchorRenamePacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(AeroReformation.MODID, "anchor_rename"));
 
     public static final StreamCodec<FriendlyByteBuf, AnchorRenamePacket> STREAM_CODEC =
             StreamCodec.of(
-                    (buf, p) -> { buf.writeBlockPos(p.pos); buf.writeUtf(p.name); },
-                    buf -> new AnchorRenamePacket(buf.readBlockPos(), buf.readUtf()));
+                    (buf, p) -> { buf.writeBlockPos(p.pos); buf.writeUtf(p.name); buf.writeVarInt(p.radius); },
+                    buf -> new AnchorRenamePacket(buf.readBlockPos(), buf.readUtf(), buf.readVarInt()));
 
     @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public static void handle(AnchorRenamePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             if (!(ctx.player() instanceof ServerPlayer sp)) return;
-            AnchorChunkLoader.renameAnchor(sp.level(), packet.pos, packet.name);
+            AnchorChunkLoader.renameAnchor(sp.level(), packet.pos, packet.name, packet.radius);
         });
     }
 }

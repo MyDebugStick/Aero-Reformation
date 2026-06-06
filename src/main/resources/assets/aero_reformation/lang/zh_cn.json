@@ -109,7 +109,8 @@
   "aero_reformation.tooltip.ender_compass": "将两个指南针放在合成栏绑定频率，shift右键记录当前位置到频率中，长按右键丢出并记录所在位置。生存模式下需要背包里有箭才能丢出",
   "aero_reformation.tooltip.ender_compass_key": "按[C]手动输入坐标",
 
-  "tooltip.aero_reformation.physics_anchor.load": "放在物理体上时可以加载物理体所在区块，加载半径与物理体大小有关。",
+  "tooltip.aero_reformation.physics_anchor.load": "放在物理体上时可以加载物理体所在区块，可在GUI中调整加载半径（2-5）。",
+  "tooltip.aero_reformation.physics_anchor.place_warn": "尽量在构建完整的物理体上使用。",
   "tooltip.aero_reformation.physics_anchor.shift": "按住 [Shift] 查看更多信息",
   "tooltip.aero_reformation.physics_anchor.gui": "空手蹲下右键打开GUI为锚点命名，锚点会持续在Xaero地图上标记物理体。",
   "tooltip.aero_reformation.physics_anchor.command": "使用/ref removebc 可以移除指向或全部的锚点，/ref removeallmark 清理所有标记实体（需重放锚点恢复）。",

@@ -18,6 +18,7 @@ public class AnchorNamingGuiOpener {
         String currentName = (marker != null && marker.hasCustomName())
                 ? marker.getCustomName().getString()
                 : "";
-        mc.setScreen(new AnchorNamingScreen(pos, currentName));
+        int radius = AnchorChunkLoader.getRadius(level, pos);
+        mc.setScreen(new AnchorNamingScreen(pos, currentName, radius));
     }
 }
