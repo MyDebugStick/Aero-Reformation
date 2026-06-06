@@ -18,6 +18,9 @@ import dev.simulated_team.aero_reformation.content.blocks.power.PilotSeatBlock;
 import dev.simulated_team.aero_reformation.content.blocks.power.CreateSeatBlock;
 import dev.simulated_team.aero_reformation.content.blocks.power.EndRodSeatBlock;
 import dev.simulated_team.aero_reformation.content.blocks.power.SeatEntity;
+import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorMarkerEntity;
+import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.PhysicsAnchorBlock;
+import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.PhysicsAnchorBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -65,6 +68,14 @@ public class AeroBlocks {
                             .sized(0.0F, 0.0F)
                             .clientTrackingRange(10)
                             .build("aero_reformation:seat"));
+
+    public static final Supplier<EntityType<AnchorMarkerEntity>> ANCHOR_MARKER =
+            ENTITY_TYPES.register("anchor_marker", () ->
+                    EntityType.Builder.<AnchorMarkerEntity>of(AnchorMarkerEntity::new, MobCategory.MISC)
+                            .sized(0.0F, 0.0F)
+                            .clientTrackingRange(512)
+                            .updateInterval(1)
+                            .build("aero_reformation:anchor_marker"));
 
     // ==================== Redstone Spring ====================
 
@@ -284,6 +295,25 @@ public class AeroBlocks {
                         return BlockEntityType.Builder.of(PowerBlockEntity::new, blocks).build(null);
                     });
 
+    // ==================== Physics Anchor (物理锚点) ====================
+
+    public static final Supplier<PhysicsAnchorBlock> PHYSICS_ANCHOR =
+            BLOCKS.register("physics_anchor", () -> new PhysicsAnchorBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(3.0f)
+                            .noOcclusion()
+            ));
+
+    public static final Supplier<BlockEntityType<PhysicsAnchorBlockEntity>> PHYSICS_ANCHOR_BE =
+            BLOCK_ENTITY_TYPES.register("physics_anchor",
+                    () -> BlockEntityType.Builder.of(PhysicsAnchorBlockEntity::new, PHYSICS_ANCHOR.get())
+                            .build(null));
+
+    public static final Supplier<BlockItem> PHYSICS_ANCHOR_ITEM =
+            ITEMS.register("physics_anchor", () -> new BlockItem(
+                    PHYSICS_ANCHOR.get(), new Item.Properties()
+            ));
+
     // ==================== Creative Tab ====================
 
     public static final Supplier<CreativeModeTab> AERO_REFORMATION_TAB = CREATIVE_TAB.register(
@@ -303,6 +333,7 @@ public class AeroBlocks {
                         output.accept(PILOT_SEAT_ITEM.get());
                         output.accept(CREATE_SEAT_ITEM.get());
                         output.accept(END_ROD_SEAT_ITEM.get());
+                        output.accept(PHYSICS_ANCHOR_ITEM.get());
                     })
                     .build()
     );

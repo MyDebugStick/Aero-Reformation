@@ -137,6 +137,13 @@ dependencies {
     )
     // Curios (optional, for goggle HUD support in curio slots)
     implementation files("${projectDir}/curios-neoforge-9.5.1+1.21.1.jar")
+
+    // AppleSkin (compileOnly for mixin target reference)
+    compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[苹果皮] appleskin-neoforge-mc1.21-3.0.9.jar")
+    // Xaero's WorldMap (compileOnly for map overlay mixin)
+    compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[Xaero的世界地图] xaeroworldmap-neoforge-1.21.1-1.40.11.jar")
+    compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[Xaero的小地图] xaerominimap-neoforge-1.21.1-25.3.10.jar")
+    compileOnly files("C:/Users/21656/AppData/Local/Temp/xaerolib.jar")
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

@@ -31,7 +31,6 @@ public class PowerConfigScreen extends Screen {
         int cx = width / 2;
         int startY = height / 2 - 40;
         int boxW = 60, boxH = 18, rowH = 30;
-        int labelX = cx - boxW / 2 - 80;
 
         yawBox = new EditBox(font, cx - boxW / 2, startY, boxW, boxH, Component.empty());
         yawBox.setValue(String.valueOf(initialYawMax));

@@ -19,7 +19,6 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import com.mojang.serialization.MapCodec;
-import java.util.Map;
 
 public class PilotSeatBlock extends PowerBlock {
 
@@ -31,12 +30,6 @@ public class PilotSeatBlock extends PowerBlock {
     );
 
     private static final VoxelShape PILOT_OUTLINE = box(0, 0, 0, 16, 30, 16);
-    private static final Map<Direction, VoxelShape> PILOT_OUTLINES = Map.of(
-            Direction.NORTH, PILOT_OUTLINE,
-            Direction.EAST, PILOT_OUTLINE,
-            Direction.SOUTH, PILOT_OUTLINE,
-            Direction.WEST, PILOT_OUTLINE
-    );
 
     public PilotSeatBlock(Properties properties) {
         super(properties);

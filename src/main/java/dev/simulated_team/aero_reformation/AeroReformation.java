@@ -15,6 +15,8 @@ import dev.simulated_team.aero_reformation.network.GoggleBindPacket;
 import dev.simulated_team.aero_reformation.network.GoggleMonitorSyncPacket;
 import dev.simulated_team.aero_reformation.network.LoadstoneSyncPacket;
 import dev.simulated_team.aero_reformation.network.SensorAgencyConfigPacket;
+import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorRenamePacket;
+import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorMapSyncPacket;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
 import dev.simulated_team.simulated.index.SimRegistries;
@@ -68,6 +70,10 @@ public class AeroReformation {
                     EnderCompassSyncPacket::handle);
             registrar.playToServer(GoggleBindPacket.TYPE, GoggleBindPacket.STREAM_CODEC,
                     GoggleBindPacket::handle);
+            registrar.playToServer(AnchorRenamePacket.TYPE, AnchorRenamePacket.STREAM_CODEC,
+                    AnchorRenamePacket::handle);
+            registrar.playToClient(AnchorMapSyncPacket.TYPE, AnchorMapSyncPacket.STREAM_CODEC,
+                    AnchorMapSyncPacket::handle);
             registrar.playToClient(GoggleMonitorSyncPacket.TYPE, GoggleMonitorSyncPacket.STREAM_CODEC,
                     GoggleMonitorSyncPacket::handle);
             registrar.playToClient(LoadstoneSyncPacket.TYPE, LoadstoneSyncPacket.STREAM_CODEC,
@@ -102,6 +108,19 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.electric_loadstone.ElectricLoadstoneRenderer::new);
             e.registerEntityRenderer(AeroBlocks.SEAT_ENTITY_TYPE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.power.SeatRenderer::new);
+            e.registerEntityRenderer(AeroBlocks.ANCHOR_MARKER.get(),
+                    dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorMarkerRenderer::new);
+            e.registerBlockEntityRenderer(AeroBlocks.PHYSICS_ANCHOR_BE.get(),
+                    dev.simulated_team.aero_reformation.content.blocks.physics_anchor.PhysicsAnchorRenderer::new);
+        });
+
+        // Set block render type for cutout transparency
+        modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLClientSetupEvent e) -> {
+            e.enqueueWork(() -> {
+                net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                        AeroBlocks.PHYSICS_ANCHOR.get(),
+                        net.minecraft.client.renderer.RenderType.cutout());
+            });
         });
 
         // Register screen
@@ -109,6 +128,46 @@ public class AeroReformation {
             e.register(AeroBlocks.SENSOR_AGENCY_MENU.get(),
                     dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyScreen::new);
         });
+
+        // Global server tick for physics anchor chunk loading (all dimensions)
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.event.tick.ServerTickEvent.Post e) -> {
+                    for (var level : e.getServer().getAllLevels()) {
+                        dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorChunkLoader.tick(level);
+                    }
+                });
+
+        // Register SubLevel observer to auto-protect bearing-split children
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.event.server.ServerStartingEvent e) -> {
+                    // Discard stale marker entities from previous sessions
+                    for (var level : e.getServer().getAllLevels()) {
+                        if (level instanceof net.minecraft.server.level.ServerLevel sl)
+                            dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorChunkLoader.discardStaleEntities(sl);
+                    }
+                    var observer = new dev.simulated_team.aero_reformation.content.blocks.physics_anchor.SubLevelAutoAnchorObserver();
+                    for (var level : e.getServer().getAllLevels()) {
+                        if (level instanceof dev.ryanhcode.sable.mixinterface.plot.SubLevelContainerHolder holder) {
+                            holder.sable$getPlotContainer().addObserver(observer);
+                        }
+                    }
+                    LOGGER.info("[PhysicsAnchor] Registered SubLevel observer for auto-anchoring");
+                });
+
+        // Clear anchors when server stops (prevents stale data across world reloads)
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.event.server.ServerStoppingEvent e) -> {
+                    for (var level : e.getServer().getAllLevels()) {
+                        dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorChunkLoader.saveAllPositions(level);
+                    }
+                    dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorChunkLoader.clearAll();
+                });
+
+        // Register /ref removebc command
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.event.RegisterCommandsEvent e) -> {
+                    dev.simulated_team.aero_reformation.command.RefCommands.register(e.getDispatcher());
+                });
 
         LOGGER.info("Aero Reformation loaded! Features: nav_inverted, swivel_stiffness, swivel_swap, gimbal_inverted, levitite_mining, redstone_spring");
     }

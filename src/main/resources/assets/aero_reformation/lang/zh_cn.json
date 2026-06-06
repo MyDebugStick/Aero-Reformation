@@ -25,6 +25,7 @@
   "block.aero_reformation.pilot_seat": "飞行员座椅",
   "block.aero_reformation.create_seat": "坐垫（create）",
   "block.aero_reformation.end_rod_seat": "末地烛座椅",
+  "block.aero_reformation.physics_anchor": "物理锚点",
   "tooltip.aero_reformation.power.info": "根据玩家视角产生红石信号，中键归中，%s循环切换模式",
   "tooltip.aero_reformation.power.warning": "在组装物理体后再放置以防止bug",
   "tooltip.aero_reformation.power.alt": "%s：关闭 → 视角同步 → 视角锁定 → 第三轴锁定 → 关闭",
@@ -97,6 +98,7 @@
   "gui.aero_reformation.inverted_on": "反相: 开",
   "gui.aero_reformation.inverted_off": "反相: 关",
   "gui.aero_reformation.confirm": "确认应用",
+  "gui.aero_reformation.anchor_name": "锚点名称",
   "gui.aero_reformation.power_config": "Power 配置",
   "gui.aero_reformation.power_yaw_max": "X轴最大角度",
   "gui.aero_reformation.power_pitch_max": "Y轴最大角度",  "gui.aero_reformation.power_seat_height": "座椅高度偏移",  "aero_reformation.tooltip.analog_transmission": "手持红石火把右键切换线性模式",
@@ -106,6 +108,12 @@
 
   "aero_reformation.tooltip.ender_compass": "将两个指南针放在合成栏绑定频率，shift右键记录当前位置到频率中，长按右键丢出并记录所在位置。生存模式下需要背包里有箭才能丢出",
   "aero_reformation.tooltip.ender_compass_key": "按[C]手动输入坐标",
+
+  "tooltip.aero_reformation.physics_anchor.load": "放在物理体上时可以加载物理体所在区块，加载半径与物理体大小有关。",
+  "tooltip.aero_reformation.physics_anchor.shift": "按住 [Shift] 查看更多信息",
+  "tooltip.aero_reformation.physics_anchor.gui": "空手蹲下右键打开GUI为锚点命名，锚点会持续在Xaero地图上标记物理体。",
+  "tooltip.aero_reformation.physics_anchor.command": "使用/ref removebc 可以移除指向或全部的锚点，/ref removeallmark 清理所有标记实体（需重放锚点恢复）。",
+  "tooltip.aero_reformation.physics_anchor.dim_warn": "跨维度可能导致物理体渲染失效（不影响功能），退出重进或远离物理体后即可恢复。",
 
   "itemGroup.aero_reformation": "航空学：变革"
 }
