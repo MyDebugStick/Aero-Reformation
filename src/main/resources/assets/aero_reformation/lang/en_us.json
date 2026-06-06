@@ -70,6 +70,7 @@
   "aero_reformation.tooltip.swivel.warn": "Angle may deviate in dual-drive mode, faster speed = larger deviation",
   "aero_reformation.tooltip.gimbal": "Right-click with Redstone Torch to toggle inverted mode",
   "aero_reformation.tooltip.redstone_spring": "Angle scales with redstone signal",
+  "aero_reformation.tooltip.levitite": "Mine with a Silk Touch Golden Pickaxe",
   "aero_reformation.sensor_agency.bind": "§aBound sensor: §6%s",
   "aero_reformation.sensor_agency.clear": "§7Cleared all sensor bindings",
   "aero_reformation.sensor_agency.already_bound": "§cThis sensor is already bound to another agency",

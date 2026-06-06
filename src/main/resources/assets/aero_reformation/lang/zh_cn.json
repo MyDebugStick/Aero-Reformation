@@ -71,6 +71,7 @@
   "aero_reformation.tooltip.swivel.warn": "双驱动模式下角度可能存在偏差，转速越快偏差越大",
   "aero_reformation.tooltip.gimbal": "手持红石火把右键切换反相模式",
   "aero_reformation.tooltip.redstone_spring": "角度随红石信号强度变化，手持红石火把右键切换双向模式",
+  "aero_reformation.tooltip.levitite": "使用带精准采集的金镐开采",
   "aero_reformation.redstone_spring.bidirectional_on": "§a红石扭簧双向模式：§6已启用",
   "aero_reformation.redstone_spring.bidirectional_off": "§7红石扭簧双向模式：§8已关闭",
   "aero_reformation.sensor_agency.bind": "§a已绑定传感器: §6%s",
