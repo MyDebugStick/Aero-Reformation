@@ -9,6 +9,7 @@ public class AeroReformationConfig {
     public static final ModConfigSpec.DoubleValue REDSTONE_SPRING_STRESS_CAPACITY;
 
     public static final ModConfigSpec.DoubleValue RCS_FUEL_CONSUMPTION;
+    public static final ModConfigSpec.IntValue MAX_ANCHOR_RADIUS;
 
     static {
         BUILDER.push("Levitite Mining");
@@ -30,6 +31,12 @@ public class AeroReformationConfig {
                 .defineInRange("rcsFuelConsumption", 5000.0, 1.0, 1000000.0);
         BUILDER.pop();
 
+        BUILDER.push("Physics Anchor");
+        MAX_ANCHOR_RADIUS = BUILDER
+                .comment("Maximum chunk loading radius for the Physics Anchor (2 to this value). Default 5.")
+                .defineInRange("maxAnchorRadius", 5, 4, 64);
+        BUILDER.pop();
+
         CONFIG_SPEC = BUILDER.build();
     }
 
@@ -39,10 +46,12 @@ public class AeroReformationConfig {
     public static boolean levititeGoldPickaxeOnly = true;
     public static double redstoneSpringStressCapacity = 8.0;
     public static double rcsFuelConsumption = 5000.0;
+    public static int maxAnchorRadius = 5;
 
     public static void refresh() {
         levititeGoldPickaxeOnly = LEVITITE_GOLD_PICKAXE.get();
         redstoneSpringStressCapacity = REDSTONE_SPRING_STRESS_CAPACITY.get();
         rcsFuelConsumption = RCS_FUEL_CONSUMPTION.get();
+        maxAnchorRadius = MAX_ANCHOR_RADIUS.get();
     }
 }

@@ -30,7 +30,7 @@ public class AnchorMapRenderer {
 
         if (tickCount++ % 300 == 0) {
             var m = markers.iterator().next();
-            AeroReformation.LOGGER.info("[AnchorMap] cam=({},{}), marker=({},{}), mapScale={}, scale={}, screen={}x{}",
+            AeroReformation.LOGGER.debug("[AnchorMap] cam=({},{}), marker=({},{}), mapScale={}, scale={}, screen={}x{}",
                     (int)camX, (int)camZ, (int)m.x(), (int)m.z(), mapScale, scale, w, h);
         }
 

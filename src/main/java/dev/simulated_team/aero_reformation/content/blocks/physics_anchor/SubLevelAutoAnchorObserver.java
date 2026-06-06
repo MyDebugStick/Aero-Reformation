@@ -22,7 +22,7 @@ public class SubLevelAutoAnchorObserver implements SubLevelObserver {
         // Check if any sibling SubLevel in this container is already anchored
         if (AnchorChunkLoader.hasAnchoredSibling(subLevel)) {
             AnchorChunkLoader.protectSubLevel(id);
-            AeroReformation.LOGGER.info("[PhysicsAnchor] Auto-protected child sub={}", id);
+            AeroReformation.LOGGER.debug("[PhysicsAnchor] Auto-protected child sub={}", id);
         }
     }
 

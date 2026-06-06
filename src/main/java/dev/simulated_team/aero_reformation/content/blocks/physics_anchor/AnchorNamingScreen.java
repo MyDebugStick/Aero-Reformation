@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
+import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
 
 public class AnchorNamingScreen extends Screen {
 
@@ -14,12 +15,14 @@ public class AnchorNamingScreen extends Screen {
     private final String defaultName;
     private EditBox nameBox;
     private int radius;
+    private final int maxRadius;
 
     public AnchorNamingScreen(BlockPos pos, String defaultName, int radius) {
         super(Component.translatable("gui.aero_reformation.anchor_name"));
         this.pos = pos;
         this.defaultName = defaultName;
         this.radius = radius;
+        this.maxRadius = AeroReformationConfig.maxAnchorRadius;
     }
 
     @Override
@@ -36,7 +39,7 @@ public class AnchorNamingScreen extends Screen {
             if (radius > 2) radius--;
         }).pos(cx - 80, cy + 40).size(18, 18).build());
         addRenderableWidget(Button.builder(Component.literal("+"), b -> {
-            if (radius < 5) radius++;
+            if (radius < maxRadius) radius++;
         }).pos(cx + 62, cy + 40).size(18, 18).build());
 
         addRenderableWidget(Button.builder(Component.translatable("gui.aero_reformation.confirm"), b -> {
