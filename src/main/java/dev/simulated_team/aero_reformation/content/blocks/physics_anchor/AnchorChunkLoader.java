@@ -35,6 +35,21 @@ public class AnchorChunkLoader {
         UUID id = subLevel.getUniqueId();
         var pose = subLevel.logicalPose();
 
+        // Protect the new SubLevel FIRST, then clear old ones (prevents gap)
+        ANCHORED_SUBLEVELS.add(id);
+        AUTO_PROTECTED.remove(id);
+
+        var container = dev.ryanhcode.sable.api.sublevel.SubLevelContainer.getContainer(sl);
+        if (container != null) {
+            for (var other : container.getAllSubLevels()) {
+                UUID otherId = other.getUniqueId();
+                if (!otherId.equals(id) && ANCHORED_SUBLEVELS.contains(otherId)) {
+                    ANCHORED_SUBLEVELS.remove(otherId);
+                    AUTO_PROTECTED.remove(otherId);
+                }
+            }
+        }
+
         // Upgrade warmup entry if exists
         AnchorData warmup = WARMUP.remove(id);
         if (warmup != null) {

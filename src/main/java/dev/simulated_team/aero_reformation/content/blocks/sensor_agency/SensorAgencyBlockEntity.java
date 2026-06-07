@@ -153,8 +153,8 @@ public class SensorAgencyBlockEntity extends BlockEntity {
         }
 
         if (target != null && !be.binding.nav().isEmpty()) {
-            float maxRange = (nti != null && nti.getMaxRange() > 0) ? nti.getMaxRange() : 200;
-            float deadzone = (nti != null && nti.getDeadzone() > 0) ? nti.getDeadzone() : 2;
+            float maxRange = (nti != null) ? nti.getMaxRange() : 200;
+            float deadzone = (nti != null) ? nti.getDeadzone() : 2;
 
             // Use AGENCY's position, project onto XZ plane (horizontal)
             Quaterniond agencySubRot = sub != null ? sub.logicalPose().orientation() : new Quaterniond();
