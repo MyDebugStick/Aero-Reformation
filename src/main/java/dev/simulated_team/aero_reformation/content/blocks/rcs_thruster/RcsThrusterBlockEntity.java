@@ -231,9 +231,6 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         // Exhaust direction = facing direction (comes out the nozzle front)
         Vector3d particleDir = new Vector3d(
                 rcsFacing.getStepX(), rcsFacing.getStepY(), rcsFacing.getStepZ());
-        dev.ryanhcode.sable.sublevel.SubLevel subLevel =
-                dev.ryanhcode.sable.Sable.HELPER.getContaining(level, worldPosition);
-        if (subLevel != null) subLevel.logicalPose().transformNormal(particleDir);
 
         // Position: block center + 0.4 toward front (facing direction)
         Vector3d particleWorld = new Vector3d(
@@ -286,7 +283,6 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             Vector3d localDir = NOZZLE_LOCAL[nozzleIdx];
 
             transformByFacing(localDir, rcsFacing, thrustWorld);
-            subLevel.logicalPose().transformNormal(thrustWorld);
 
             double scale = signal / 15.0;
             double mult = (nozzleIdx == 0) ? 1.0 : ANGLED_REDUCTION[angledMode];
