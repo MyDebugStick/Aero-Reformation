@@ -121,6 +121,8 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorMarkerRenderer::new);
             e.registerBlockEntityRenderer(AeroBlocks.PHYSICS_ANCHOR_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.physics_anchor.PhysicsAnchorRenderer::new);
+            e.registerBlockEntityRenderer(AeroBlocks.GRAVITY_CRYSTAL_BE.get(),
+                    dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalRenderer::new);
         });
 
         // Set block render type for cutout transparency

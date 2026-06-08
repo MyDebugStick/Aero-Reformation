@@ -11,9 +11,9 @@ public class SensorAgencyConfig {
     public int gimbalSecondaryLimit = 45;
     public boolean gimbalInverted = false;
 
-    /** Altitude signal range in world-height (default: -64 to 320) */
+    /** Altitude signal range in world-height (default: -64 to 800) */
     public int altitudeLowWorld = -64;
-    public int altitudeHighWorld = 320;
+    public int altitudeHighWorld = 800;
     public boolean altitudeInverted = false;
 
     public int velocityMaxSpeed = 10;

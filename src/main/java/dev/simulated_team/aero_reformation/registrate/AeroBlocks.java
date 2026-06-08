@@ -323,6 +323,7 @@ public class AeroBlocks {
                     BlockBehaviour.Properties.of()
                             .strength(3.0f)
                             .noOcclusion()
+                            .lightLevel(s -> 8)
             ));
 
     public static final Supplier<BlockEntityType<GravityCrystalBlockEntity>> GRAVITY_CRYSTAL_BE =

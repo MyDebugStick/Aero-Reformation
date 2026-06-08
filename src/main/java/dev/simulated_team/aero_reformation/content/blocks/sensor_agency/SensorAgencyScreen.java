@@ -113,10 +113,10 @@ public class SensorAgencyScreen extends AbstractContainerScreen<SensorAgencyMenu
             case 1: c.gimbalPrimaryLimit = Math.clamp(c.gimbalPrimaryLimit + 5, 1, 90); break;
             case 2: c.gimbalSecondaryLimit = Math.clamp(c.gimbalSecondaryLimit - 5, 1, 90); break;
             case 3: c.gimbalSecondaryLimit = Math.clamp(c.gimbalSecondaryLimit + 5, 1, 90); break;
-            case 4: c.altitudeLowWorld = Math.clamp(c.altitudeLowWorld - 1, -64, 320); break;
-            case 5: c.altitudeLowWorld = Math.clamp(c.altitudeLowWorld + 1, -64, 320); break;
-            case 6: c.altitudeHighWorld = Math.clamp(c.altitudeHighWorld - 1, -64, 320); break;
-            case 7: c.altitudeHighWorld = Math.clamp(c.altitudeHighWorld + 1, -64, 320); break;
+            case 4: c.altitudeLowWorld = Math.clamp(c.altitudeLowWorld - 1, -64, 800); break;
+            case 5: c.altitudeLowWorld = Math.clamp(c.altitudeLowWorld + 1, -64, 800); break;
+            case 6: c.altitudeHighWorld = Math.clamp(c.altitudeHighWorld - 1, -64, 800); break;
+            case 7: c.altitudeHighWorld = Math.clamp(c.altitudeHighWorld + 1, -64, 800); break;
             case 8: c.velocityMaxSpeed = Math.clamp(c.velocityMaxSpeed - 1, 1, 50); break;
             case 9: c.velocityMaxSpeed = Math.clamp(c.velocityMaxSpeed + 1, 1, 50); break;
             case 10: c.gimbalInverted = !c.gimbalInverted; break;
@@ -141,8 +141,8 @@ public class SensorAgencyScreen extends AbstractContainerScreen<SensorAgencyMenu
         var c = menu.config;
         try { c.gimbalPrimaryLimit = Math.clamp(Integer.parseInt(gimbal1.getValue()), 1, 90); } catch (NumberFormatException ignored) {}
         try { c.gimbalSecondaryLimit = Math.clamp(Integer.parseInt(gimbal2.getValue()), 1, 90); } catch (NumberFormatException ignored) {}
-        try { c.altitudeLowWorld = Math.clamp(Integer.parseInt(altLow.getValue()), -64, 320); } catch (NumberFormatException ignored) {}
-        try { c.altitudeHighWorld = Math.clamp(Integer.parseInt(altHigh.getValue()), -64, 320); } catch (NumberFormatException ignored) {}
+        try { c.altitudeLowWorld = Math.clamp(Integer.parseInt(altLow.getValue()), -64, 800); } catch (NumberFormatException ignored) {}
+        try { c.altitudeHighWorld = Math.clamp(Integer.parseInt(altHigh.getValue()), -64, 800); } catch (NumberFormatException ignored) {}
         try { c.velocityMaxSpeed = Math.clamp(Integer.parseInt(velMax.getValue()), 1, 50); } catch (NumberFormatException ignored) {}
         // Send full config to server
         if (minecraft != null && minecraft.getConnection() != null) {

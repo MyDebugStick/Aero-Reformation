@@ -111,8 +111,8 @@ public class SensorAgencyBlockEntity extends BlockEntity {
             if (sub != null) {
                 Vector3d ld = new Vector3d(0, -1, 0);
                 sub.logicalPose().orientation().transformInverse(ld);
-                double xAngle = (ld.y < 0 || ld.z * ld.z > 0.001) ? Math.atan2(ld.z, -ld.y) : 0;
-                double zAngle = (ld.y < 0 || ld.x * ld.x > 0.001) ? Math.atan2(ld.x, -ld.y) : 0;
+                double xAngle = (ld.y < 0 || ld.z * ld.z > 1e-8) ? Math.atan2(ld.z, -ld.y) : 0;
+                double zAngle = (ld.y < 0 || ld.x * ld.x > 1e-8) ? Math.atan2(ld.x, -ld.y) : 0;
 
                 double limit = Math.toRadians(be.config.gimbalPrimaryLimit > 0 ? be.config.gimbalPrimaryLimit : 45);
                 SensorProxyData.setGimbalAngles(sensorPos, xAngle, zAngle, limit, be.config.gimbalInverted);
@@ -154,7 +154,7 @@ public class SensorAgencyBlockEntity extends BlockEntity {
 
         if (target != null && !be.binding.nav().isEmpty()) {
             float maxRange = Float.MAX_VALUE; // ignore nav distance limit
-            float deadzone = (nti != null && nti.getDeadzone() > 0) ? nti.getDeadzone() : 2;
+            float deadzone = (nti != null && nti.getDeadzone() > 0) ? nti.getDeadzone() : 0.5f;
 
             // Use AGENCY's position, project onto XZ plane (horizontal)
             Quaterniond agencySubRot = sub != null ? sub.logicalPose().orientation() : new Quaterniond();
@@ -165,7 +165,7 @@ public class SensorAgencyBlockEntity extends BlockEntity {
                     .getPlaneProjectedPos(diff, Direction.UP.getNormal());
             double dist = planeProj.length();
 
-            if ((maxRange > 0 && dist > maxRange - 0.0001) || dist < deadzone - 0.0001) {
+            if (maxRange > 0 && dist > maxRange - 0.0001) {
                 for (BlockPos sensorPos : be.binding.nav()) {
                     for (Direction dir : Direction.values()) {
                         SensorProxyData.setNavSignal(sensorPos, dir, 0);
@@ -193,7 +193,8 @@ public class SensorAgencyBlockEntity extends BlockEntity {
 
     /** Compute per-direction nav signal using asin formula from NavigationTarget.calculateSideStrength. */
     private static int computeDirSignal(double dot, double dist, boolean inverted) {
-        double normalizedDot = dot / dist;
+        if (dist < 0.001) return 0;
+        double normalizedDot = Mth.clamp(dot / dist, -1.0, 1.0);
         double angle = Math.asin(normalizedDot);
         int signal = (int) (angle / Math.PI * 30 + 0.5);
         signal = Mth.clamp(signal, 0, 15);

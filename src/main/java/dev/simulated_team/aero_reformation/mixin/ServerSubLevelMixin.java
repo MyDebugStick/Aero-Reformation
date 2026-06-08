@@ -34,12 +34,22 @@ public abstract class ServerSubLevelMixin {
         Vector3d scaledLin = new Vector3d(linearImpulse).mul(s.liftMultiplier);
         handle.applyLinearAndAngularImpulse(scaledLin, new Vector3d(), wakeUp);
 
-        // Angular velocity damping — always apply for crystal sublevels.
-        // Linear drag is handled by FloatingBlockMaterial friction.
+        // Linear drag: velocity-proportional damping via addLinearAndAngularVelocity.
+        // dragMultiplier: 0=slippery, 1=normal, 2=double drag.
+        if (s.dragMultiplier != 1f) {
+            Vector3d linVel = handle.getLinearVelocity(new Vector3d());
+            double dragStr = (s.dragMultiplier - 1f) * 0.05;
+            handle.addLinearAndAngularVelocity(
+                    new Vector3d(linVel).mul(-dragStr),
+                    new Vector3d()
+            );
+        }
+
+        // Angular velocity damping
         double angKeep = Math.pow(0.9, s.angularDragMultiplier);
         Vector3d angVel = handle.getAngularVelocity(new Vector3d());
         handle.addLinearAndAngularVelocity(
-                new Vector3d(),  // no linear velocity change
+                new Vector3d(),
                 new Vector3d(angVel).mul(angKeep - 1.0)
         );
     }

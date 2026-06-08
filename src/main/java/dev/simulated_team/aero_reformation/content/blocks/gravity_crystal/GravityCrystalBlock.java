@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -26,6 +27,8 @@ public class GravityCrystalBlock extends Block implements IBE<GravityCrystalBloc
     @Override protected MapCodec<? extends Block> codec() { return CODEC; }
 
     @Override protected VoxelShape getShape(BlockState s, BlockGetter l, BlockPos p, CollisionContext c) { return SHAPE; }
+
+    @Override public RenderShape getRenderShape(BlockState s) { return RenderShape.INVISIBLE; }
 
     @Override public Class<GravityCrystalBlockEntity> getBlockEntityClass() { return GravityCrystalBlockEntity.class; }
 
