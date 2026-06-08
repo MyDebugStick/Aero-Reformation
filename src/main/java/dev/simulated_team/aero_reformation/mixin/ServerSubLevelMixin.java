@@ -1,0 +1,54 @@
+package dev.simulated_team.aero_reformation.mixin;
+
+import dev.ryanhcode.sable.api.physics.handle.RigidBodyHandle;
+import dev.ryanhcode.sable.sublevel.ServerSubLevel;
+import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalSettings;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
+
+/**
+ * Intercepts the final impulse application to the rigid body.
+ * For gravity crystals: scales lift, applies velocity-based damping,
+ * and removes position-dependent torque.
+ */
+@Mixin(value = ServerSubLevel.class, remap = false)
+public abstract class ServerSubLevelMixin {
+
+    /** Redirect to apply scaled lift + velocity-based damping. */
+    @Redirect(method = "prePhysicsTick",
+            at = @At(value = "INVOKE",
+                    target = "Ldev/ryanhcode/sable/api/physics/handle/RigidBodyHandle;applyLinearAndAngularImpulse(Lorg/joml/Vector3dc;Lorg/joml/Vector3dc;Z)V"),
+            remap = false)
+    private void applyImpulseWithDamping(RigidBodyHandle handle, Vector3dc linearImpulse,
+                                         Vector3dc angularImpulse, boolean wakeUp) {
+        GravityCrystalSettings s = getSettings();
+        if (s == null) {
+            handle.applyLinearAndAngularImpulse(linearImpulse, angularImpulse, wakeUp);
+            return;
+        }
+
+        // Scale lift, apply zero angular (no position-dependent torque)
+        Vector3d scaledLin = new Vector3d(linearImpulse).mul(s.liftMultiplier);
+        handle.applyLinearAndAngularImpulse(scaledLin, new Vector3d(), wakeUp);
+
+        // Angular velocity damping — always apply for crystal sublevels.
+        // Linear drag is handled by FloatingBlockMaterial friction.
+        double angKeep = Math.pow(0.9, s.angularDragMultiplier);
+        Vector3d angVel = handle.getAngularVelocity(new Vector3d());
+        handle.addLinearAndAngularVelocity(
+                new Vector3d(),  // no linear velocity change
+                new Vector3d(angVel).mul(angKeep - 1.0)
+        );
+    }
+
+    private GravityCrystalSettings getSettings() {
+        ServerSubLevel self = (ServerSubLevel) (Object) this;
+        if (!GravityCrystalSettings.CRYSTAL_SUBLEVELS.contains(self.getUniqueId())) {
+            return null;
+        }
+        return GravityCrystalSettings.get(self.getUniqueId());
+    }
+}

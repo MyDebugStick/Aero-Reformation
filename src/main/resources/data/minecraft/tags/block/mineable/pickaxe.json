@@ -7,6 +7,7 @@
     "aero_reformation:pilot_seat",
     "aero_reformation:create_seat",
     "aero_reformation:end_rod_seat",
-    "aero_reformation:redstone_spring"
+    "aero_reformation:redstone_spring",
+    "aero_reformation:gravity_crystal"
   ]
 }

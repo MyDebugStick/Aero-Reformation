@@ -21,7 +21,9 @@
     "feature.nav_table_cache.NavTableChannelCacheMixin",
     "feature.power.CameraLockMixin",
     "feature.physics_anchor.XaeroMapMixin",
-    "feature.physics_anchor.XaeroMapAccessor"
+    "feature.physics_anchor.XaeroMapAccessor",
+    "FloatingBlockControllerMixin",
+    "ServerSubLevelMixin"
   ],
   "client": [
   ],

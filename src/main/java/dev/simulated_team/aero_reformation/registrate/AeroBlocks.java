@@ -21,6 +21,8 @@ import dev.simulated_team.aero_reformation.content.blocks.power.SeatEntity;
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorMarkerEntity;
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.PhysicsAnchorBlock;
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.PhysicsAnchorBlockEntity;
+import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalBlock;
+import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -314,6 +316,25 @@ public class AeroBlocks {
                     PHYSICS_ANCHOR.get(), new Item.Properties()
             ));
 
+    // ==================== Gravity Crystal (重力水晶) ====================
+
+    public static final Supplier<GravityCrystalBlock> GRAVITY_CRYSTAL =
+            BLOCKS.register("gravity_crystal", () -> new GravityCrystalBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(3.0f)
+                            .noOcclusion()
+            ));
+
+    public static final Supplier<BlockEntityType<GravityCrystalBlockEntity>> GRAVITY_CRYSTAL_BE =
+            BLOCK_ENTITY_TYPES.register("gravity_crystal",
+                    () -> BlockEntityType.Builder.of(GravityCrystalBlockEntity::new, GRAVITY_CRYSTAL.get())
+                            .build(null));
+
+    public static final Supplier<BlockItem> GRAVITY_CRYSTAL_ITEM =
+            ITEMS.register("gravity_crystal", () -> new BlockItem(
+                    GRAVITY_CRYSTAL.get(), new Item.Properties()
+            ));
+
     // ==================== Creative Tab ====================
 
     public static final Supplier<CreativeModeTab> AERO_REFORMATION_TAB = CREATIVE_TAB.register(
@@ -334,6 +355,7 @@ public class AeroBlocks {
                         output.accept(CREATE_SEAT_ITEM.get());
                         output.accept(END_ROD_SEAT_ITEM.get());
                         output.accept(PHYSICS_ANCHOR_ITEM.get());
+                        output.accept(GRAVITY_CRYSTAL_ITEM.get());
                     })
                     .build()
     );

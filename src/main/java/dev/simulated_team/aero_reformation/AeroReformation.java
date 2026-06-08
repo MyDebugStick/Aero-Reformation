@@ -17,6 +17,9 @@ import dev.simulated_team.aero_reformation.network.LoadstoneSyncPacket;
 import dev.simulated_team.aero_reformation.network.SensorAgencyConfigPacket;
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorRenamePacket;
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorMapSyncPacket;
+import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalSettingsPacket;
+import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalOpenPacket;
+import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalSyncPacket;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
 import dev.simulated_team.simulated.index.SimRegistries;
@@ -84,6 +87,12 @@ public class AeroReformation {
                     ToggleCameraLockPayload::handle);
             registrar.playToServer(ToggleRollLockPayload.TYPE, ToggleRollLockPayload.STREAM_CODEC,
                     ToggleRollLockPayload::handle);
+            registrar.playToServer(GravityCrystalSettingsPacket.TYPE, GravityCrystalSettingsPacket.STREAM_CODEC,
+                    GravityCrystalSettingsPacket::handle);
+            registrar.playToServer(GravityCrystalOpenPacket.TYPE, GravityCrystalOpenPacket.STREAM_CODEC,
+                    GravityCrystalOpenPacket::handle);
+            registrar.playToClient(GravityCrystalSyncPacket.TYPE, GravityCrystalSyncPacket.STREAM_CODEC,
+                    GravityCrystalSyncPacket::handle);
 
             registrar.playToServer(PowerConfigPayload.TYPE, PowerConfigPayload.STREAM_CODEC,
                     PowerConfigPayload::handle);
