@@ -232,6 +232,12 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         Vector3d particleDir = new Vector3d(
                 rcsFacing.getStepX(), rcsFacing.getStepY(), rcsFacing.getStepZ());
 
+        // Rotate direction by sublevel's world orientation
+        var sl = dev.ryanhcode.sable.Sable.HELPER.getContaining(level, worldPosition);
+        if (sl != null) {
+            sl.logicalPose().orientation().transform(particleDir);
+        }
+
         // Position: block center + 0.4 toward front (facing direction)
         Vector3d particleWorld = new Vector3d(
                 worldPosition.getX() + 0.5 + rcsFacing.getStepX() * 0.4,
