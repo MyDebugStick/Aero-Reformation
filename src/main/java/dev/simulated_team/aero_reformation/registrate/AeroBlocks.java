@@ -23,6 +23,7 @@ import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.Physics
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.PhysicsAnchorBlockEntity;
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalBlock;
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalBlockEntity;
+import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalBlockItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -332,7 +333,7 @@ public class AeroBlocks {
                             .build(null));
 
     public static final Supplier<BlockItem> GRAVITY_CRYSTAL_ITEM =
-            ITEMS.register("gravity_crystal", () -> new BlockItem(
+            ITEMS.register("gravity_crystal", () -> new GravityCrystalBlockItem(
                     GRAVITY_CRYSTAL.get(), new Item.Properties()
             ));
 

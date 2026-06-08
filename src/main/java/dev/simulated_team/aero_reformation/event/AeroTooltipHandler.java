@@ -57,6 +57,16 @@ public class AeroTooltipHandler {
                     .append(Component.translatable("aero_reformation.tooltip.electric_loadstone").withStyle(ChatFormatting.AQUA)));
         }
 
+        // Gravity Crystal: lift + GUI + redstone color
+        if (id.equals(ResourceLocation.parse("aero_reformation:gravity_crystal"))) {
+            event.getToolTip().add(Component.literal("▶ ").withStyle(ChatFormatting.GOLD)
+                    .append(Component.translatable("aero_reformation.tooltip.gravity_crystal.lift").withStyle(ChatFormatting.GOLD)));
+            event.getToolTip().add(Component.literal("▶ ").withStyle(ChatFormatting.AQUA)
+                    .append(Component.translatable("aero_reformation.tooltip.gravity_crystal.gui").withStyle(ChatFormatting.AQUA)));
+            event.getToolTip().add(Component.literal("▶ ").withStyle(ChatFormatting.LIGHT_PURPLE)
+                    .append(Component.translatable("aero_reformation.tooltip.gravity_crystal.color").withStyle(ChatFormatting.LIGHT_PURPLE)));
+        }
+
         // Levitite: Silk Touch Golden Pickaxe
         if (id.equals(ResourceLocation.parse("aeronautics:levitite"))
                 || id.equals(ResourceLocation.parse("aeronautics:pearlescent_levitite"))) {
