@@ -36,7 +36,7 @@
   "item.aero_reformation.ethereal_key.hide": "§5已隐藏该物理体",
   "item.aero_reformation.ethereal_key.show": "§b已显示该物理体",
   "item.aero_reformation.ethereal_key.bound_to": "绑定: %s",
-  "item.aero_reformation.ethereal_key.hidden": "§5已隐藏",
+  "item.aero_reformation.ethereal_key.desc": "右击物理锚点进行绑定。右键使绑定的物理体虚化",
   "tooltip.aero_reformation.com_offset.line1": "可以改变物理体的质心",
   "tooltip.aero_reformation.com_offset.line2": "不稳定！请不要在服务器里使用",
   "tooltip.aero_reformation.com_offset.line3": "使用前先备份存档和物理体以避免不必要的损失",

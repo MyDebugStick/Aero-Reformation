@@ -114,6 +114,8 @@ public class EtherealKeyItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
+        // Always show description
+        tooltip.add(Component.translatable("item.aero_reformation.ethereal_key.desc").withStyle(ChatFormatting.YELLOW));
         CompoundTag tag = getCustomTag(stack);
         if (tag != null && tag.contains(TAG_BOUND)) {
             GlobalPos.CODEC.parse(NbtOps.INSTANCE, tag.get(TAG_BOUND)).result().ifPresent(gp -> {

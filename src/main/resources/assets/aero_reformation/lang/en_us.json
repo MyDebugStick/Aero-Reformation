@@ -35,7 +35,7 @@
   "item.aero_reformation.ethereal_key.hide": "§5Sublevel hidden",
   "item.aero_reformation.ethereal_key.show": "§bSublevel shown",
   "item.aero_reformation.ethereal_key.bound_to": "Bound: %s",
-  "item.aero_reformation.ethereal_key.hidden": "§5Hidden",
+  "item.aero_reformation.ethereal_key.desc": "Right-click a physics anchor to bind. Right-click in air to phase the bound sublevel.",
   "tooltip.aero_reformation.com_offset.line1": "Can shift the center of mass of a physics body",
   "tooltip.aero_reformation.com_offset.line2": "UNSTABLE! Do NOT use on servers",
   "tooltip.aero_reformation.com_offset.line3": "Back up your world and physics body before use",

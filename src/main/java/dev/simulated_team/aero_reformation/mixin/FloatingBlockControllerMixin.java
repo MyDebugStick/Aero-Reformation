@@ -39,6 +39,9 @@ public abstract class FloatingBlockControllerMixin {
         if (isOurs) {
             GravityCrystalSettings.CRYSTAL_SUBLEVELS.add(subLevel.getUniqueId());
             GravityCrystalSettings.get(subLevel.getUniqueId()).active = true;
+        } else {
+            // Clean up stale entry when gravity crystal is removed
+            GravityCrystalSettings.CRYSTAL_SUBLEVELS.remove(subLevel.getUniqueId());
         }
     }
 
@@ -48,6 +51,8 @@ public abstract class FloatingBlockControllerMixin {
         if (isOurs) {
             GravityCrystalSettings.CRYSTAL_SUBLEVELS.add(subLevel.getUniqueId());
             GravityCrystalSettings.get(subLevel.getUniqueId()).active = true;
+        } else {
+            GravityCrystalSettings.CRYSTAL_SUBLEVELS.remove(subLevel.getUniqueId());
         }
     }
 
