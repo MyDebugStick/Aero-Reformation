@@ -3,11 +3,14 @@ package dev.simulated_team.aero_reformation.mixin;
 import dev.ryanhcode.sable.api.physics.handle.RigidBodyHandle;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalSettings;
+import dev.simulated_team.aero_reformation.feature.com_controller.ComShiftHelper;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * Intercepts the final impulse application to the rigid body.
@@ -16,6 +19,13 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  */
 @Mixin(value = ServerSubLevel.class, remap = false)
 public abstract class ServerSubLevelMixin {
+
+    /** Apply COM offset before physics calculations. */
+    @Inject(method = "prePhysicsTick", at = @At("HEAD"), remap = false)
+    private void applyComShift(dev.ryanhcode.sable.sublevel.system.SubLevelPhysicsSystem physicsSystem,
+                                RigidBodyHandle handle, double timeStep, CallbackInfo ci) {
+        ComShiftHelper.applyComShift((ServerSubLevel) (Object) this);
+    }
 
     /** Redirect to apply scaled lift + velocity-based damping. */
     @Redirect(method = "prePhysicsTick",

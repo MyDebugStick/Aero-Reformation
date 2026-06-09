@@ -24,6 +24,9 @@ import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.Physics
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalBlock;
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalBlockEntity;
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalBlockItem;
+import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlock;
+import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlockEntity;
+import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlockItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -337,6 +340,25 @@ public class AeroBlocks {
                     GRAVITY_CRYSTAL.get(), new Item.Properties()
             ));
 
+    // ==================== COM Offset (质心偏移器) ====================
+
+    public static final Supplier<ComOffsetBlock> COM_OFFSET =
+            BLOCKS.register("com_offset", () -> new ComOffsetBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(3.0f)
+                            .noOcclusion()
+            ));
+
+    public static final Supplier<BlockEntityType<ComOffsetBlockEntity>> COM_OFFSET_BE =
+            BLOCK_ENTITY_TYPES.register("com_offset",
+                    () -> BlockEntityType.Builder.of(ComOffsetBlockEntity::new, COM_OFFSET.get())
+                            .build(null));
+
+    public static final Supplier<BlockItem> COM_OFFSET_ITEM =
+            ITEMS.register("com_offset", () -> new ComOffsetBlockItem(
+                    COM_OFFSET.get(), new Item.Properties()
+            ));
+
     // ==================== Creative Tab ====================
 
     public static final Supplier<CreativeModeTab> AERO_REFORMATION_TAB = CREATIVE_TAB.register(
@@ -358,6 +380,7 @@ public class AeroBlocks {
                         output.accept(END_ROD_SEAT_ITEM.get());
                         output.accept(PHYSICS_ANCHOR_ITEM.get());
                         output.accept(GRAVITY_CRYSTAL_ITEM.get());
+                        output.accept(COM_OFFSET_ITEM.get());
                     })
                     .build()
     );

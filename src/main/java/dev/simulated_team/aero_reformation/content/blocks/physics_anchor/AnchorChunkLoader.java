@@ -12,10 +12,13 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.joml.Vector3d;
 
 public class AnchorChunkLoader {
     private record AnchorData(SubLevel subLevel, AnchorMarkerEntity marker, ChunkPos lastTicketChunk, int ticketRadius) {}
-    // Per-dimension anchor maps: dimension �?(BlockPos �?AnchorData)
+    // Per-dimension anchor maps: dimension 闁?(BlockPos 闁?AnchorData)
     private static final Map<ResourceKey<Level>, Map<BlockPos, AnchorData>> ANCHORS = new HashMap<>();
     private static final Map<UUID, AnchorData> WARMUP = new LinkedHashMap<>();
     private static final Set<UUID> ANCHORED_SUBLEVELS = new HashSet<>();
@@ -83,7 +86,7 @@ public class AnchorChunkLoader {
             if (e instanceof AnchorMarkerEntity m
                     && id.equals(m.getSubLevelUUID())
                     && !m.isRemoved()) {
-                m.discard();
+                m.forceDiscard();
                 AeroReformation.LOGGER.debug("[PhysicsAnchor] Discarded stale marker sub={}", id);
             }
         }
@@ -121,7 +124,7 @@ public class AnchorChunkLoader {
             boolean sameSubHasOther = map.values().stream().anyMatch(
                     a -> a.subLevel != null && id != null && a.subLevel.getUniqueId().equals(id));
             if (!sameSubHasOther) {
-                if (data.marker != null) data.marker.discard();
+                if (data.marker != null) data.marker.forceDiscard();
                 ANCHORED_SUBLEVELS.remove(id);
                 AnchorSavedData.get(sl).remove(id);
             }
@@ -156,11 +159,11 @@ public class AnchorChunkLoader {
     public static void clearAll() {
         for (var map : ANCHORS.values()) {
             for (var data : map.values()) {
-                if (data.marker != null) data.marker.discard();
+                if (data.marker != null) data.marker.forceDiscard();
             }
         }
         for (var data : WARMUP.values()) {
-            if (data.marker != null) data.marker.discard();
+            if (data.marker != null) data.marker.forceDiscard();
         }
         AeroReformation.LOGGER.debug("[PhysicsAnchor] Cleared {}A + {}W on server stop", ANCHORS.size(), WARMUP.size());
         ANCHORS.clear();
@@ -174,7 +177,7 @@ public class AnchorChunkLoader {
         int count = 0;
         for (var e : serverLevel.getEntities().getAll()) {
             if (e instanceof AnchorMarkerEntity m && !m.isRemoved()) {
-                m.discard();
+                m.forceDiscard();
                 count++;
             }
         }
@@ -187,7 +190,7 @@ public class AnchorChunkLoader {
         int count = 0;
         for (var e : serverLevel.getEntities().getAll()) {
             if (e instanceof AnchorMarkerEntity m && !m.isRemoved()) {
-                m.discard();
+                m.forceDiscard();
                 count++;
             }
         }
@@ -197,11 +200,11 @@ public class AnchorChunkLoader {
         // Also clear internal maps so ANCHORS won't reference dead entities
         for (var map : ANCHORS.values()) {
             for (var data : map.values()) {
-                if (data.marker != null) data.marker.discard();
+                if (data.marker != null) data.marker.forceDiscard();
             }
         }
         for (var data : WARMUP.values()) {
-            if (data.marker != null) data.marker.discard();
+            if (data.marker != null) data.marker.forceDiscard();
         }
         ANCHORS.clear();
         WARMUP.clear();
@@ -314,7 +317,7 @@ public class AnchorChunkLoader {
             if (sl == null) continue;
 
             if (sl.isRemoved()) {
-                if (data.marker != null) data.marker.discard();
+                if (data.marker != null) data.marker.forceDiscard();
                 if (data.lastTicketChunk != null)
                     serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
                             data.lastTicketChunk, data.ticketRadius, entry.getKey());
@@ -347,7 +350,7 @@ public class AnchorChunkLoader {
                         curChunk, radius, entry.getKey());
                 anchorsFor(serverLevel.dimension()).put(entry.getKey(), new AnchorData(sl, data.marker, curChunk, radius));
                 if (chunkChanged || radiusChanged || serverLevel.getServer().getTickCount() % 600 == 0) {
-                    AeroReformation.LOGGER.debug("[PhysicsAnchor] Ticket {}→{} radius={} loaded={}",
+                    AeroReformation.LOGGER.debug("[PhysicsAnchor] Ticket {}闁愁偅濮緘 radius={} loaded={}",
                             data.lastTicketChunk, curChunk, radius, serverLevel.getChunkSource().getLoadedChunksCount());
                 }
             }
@@ -379,6 +382,85 @@ public class AnchorChunkLoader {
         }
 
         if (serverLevel.getServer().getTickCount() % 3 == 0) syncToClients(serverLevel);
+
+        // === Self-check every 5 seconds ===
+        if (serverLevel.getServer().getTickCount() % 100 == 0)
+            selfCheckAnchors(serverLevel);
+
+        // === Runaway protection every tick ===
+        checkRunaway(serverLevel);
+    }
+
+    // === Runaway protection: last known position per anchored SubLevel (for velocity calc) ===
+    private static final Map<UUID, Vector3d> LAST_POS = new ConcurrentHashMap<>();
+    private static final double MAX_COORD = 29_999_984.0;  // just inside world border
+    private static final double MAX_SPEED = 500.0;          // blocks per tick (10k blocks/sec)
+
+    private static void checkRunaway(ServerLevel serverLevel) {
+        var dimMap = anchorsFor(serverLevel.dimension());
+
+        for (var entry : dimMap.entrySet()) {
+            AnchorData data = entry.getValue();
+            BlockPos anchorPos = entry.getKey();
+            SubLevel sl = data.subLevel;
+            if (sl == null || sl.isRemoved()) continue;
+
+            UUID id = sl.getUniqueId();
+            var pose = sl.logicalPose();
+            double x = pose.position().x(), y = pose.position().y(), z = pose.position().z();
+
+            // Check extreme coordinates
+            if (Math.abs(x) > MAX_COORD || Math.abs(z) > MAX_COORD) {
+                AeroReformation.LOGGER.warn("[PhysicsAnchor] RUNAWAY: sub={} at ({}, {}, {}) exceeded world border, self-destructing",
+                        id, (int) x, (int) y, (int) z);
+                destroySubLevelAnchors(serverLevel, dimMap, id, sl);
+                continue;
+            }
+
+            // Check extreme velocity
+            Vector3d last = LAST_POS.get(id);
+            if (last != null) {
+                double dx = x - last.x, dy = y - last.y, dz = z - last.z;
+                double speed = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                if (speed > MAX_SPEED) {
+                    AeroReformation.LOGGER.warn("[PhysicsAnchor] RUNAWAY: sub={} speed {} blocks/tick, self-destructing",
+                            id, (int) speed);
+                    destroySubLevelAnchors(serverLevel, dimMap, id, sl);
+                    continue;
+                }
+            }
+            LAST_POS.computeIfAbsent(id, k -> new Vector3d()).set(x, y, z);
+        }
+
+        // Purge stale entries every 100 ticks
+        if (serverLevel.getServer().getTickCount() % 100 == 0)
+            LAST_POS.keySet().removeIf(uid -> !ANCHORED_SUBLEVELS.contains(uid)
+                    || dimMap.values().stream().noneMatch(a -> a.subLevel != null && a.subLevel.getUniqueId().equals(uid)));
+    }
+
+    /** Remove all anchors for a runaway SubLevel, discarding marker and cleaning up tickets. */
+    private static void destroySubLevelAnchors(ServerLevel serverLevel,
+                                                Map<BlockPos, AnchorData> dimMap,
+                                                UUID id, SubLevel sl) {
+        // Find and remove all anchors pointing to this SubLevel
+        var it = dimMap.entrySet().iterator();
+        while (it.hasNext()) {
+            var e = it.next();
+            if (e.getValue().subLevel != null && e.getValue().subLevel.getUniqueId().equals(id)) {
+                AnchorData ad = e.getValue();
+                if (ad.marker != null) ad.marker.forceDiscard();
+                if (ad.lastTicketChunk != null)
+                    serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
+                            ad.lastTicketChunk, ad.ticketRadius, e.getKey());
+                it.remove();
+            }
+        }
+        ANCHORED_SUBLEVELS.remove(id);
+        LAST_POS.remove(id);
+        // Remove from warmup too
+        WARMUP.remove(id);
+        AnchorSavedData.get(serverLevel).remove(id);
+        syncToClients(serverLevel);
     }
 
     private static void syncToClients(ServerLevel serverLevel) {
@@ -411,6 +493,54 @@ public class AnchorChunkLoader {
                 ANCHORED_SUBLEVELS.remove(entry.getKey());
                 it.remove();
             }
+        }
+    }
+
+    /**
+     * Self-check every 5 seconds: if both SubLevel and marker entity exist but the marker
+     * is too far from the SubLevel's actual position, the tracking has desynced.
+     * Discard the stale marker, regenerate directly at the SubLevel position.
+     */
+    private static void selfCheckAnchors(ServerLevel serverLevel) {
+        var dimMap = anchorsFor(serverLevel.dimension());
+        // Threshold: if marker is more than 64 blocks away from SubLevel, restart tracking
+        final double MAX_DIST_SQ = 64.0 * 64.0;
+
+        for (var entry : dimMap.entrySet()) {
+            AnchorData data = entry.getValue();
+            BlockPos anchorPos = entry.getKey();
+
+            // Need both SubLevel and marker to be alive
+            if (data.subLevel == null || data.subLevel.isRemoved()) continue;
+            if (data.marker == null || data.marker.isRemoved()) continue;
+
+            var pose = data.subLevel.logicalPose();
+            double sx = pose.position().x(), sy = pose.position().y(), sz = pose.position().z();
+            double mx = data.marker.getX(), my = data.marker.getY(), mz = data.marker.getZ();
+
+            double dx = mx - sx, dy = my - sy, dz = mz - sz;
+            if (dx * dx + dy * dy + dz * dz <= MAX_DIST_SQ) continue; // within range, OK
+
+            UUID id = data.subLevel.getUniqueId();
+            AeroReformation.LOGGER.warn("[PhysicsAnchor] Self-check: sub={} marker drifted {} blocks away, regenerating at SubLevel",
+                    id, (int) Math.sqrt(dx * dx + dy * dy + dz * dz));
+
+            // Discard old marker
+            data.marker.forceDiscard();
+
+            // Create fresh marker directly at the SubLevel's position (on the physics body)
+            AnchorMarkerEntity newMarker = new AnchorMarkerEntity(
+                    dev.simulated_team.aero_reformation.registrate.AeroBlocks.ANCHOR_MARKER.get(), serverLevel);
+            newMarker.setSubLevelUUID(id);
+            newMarker.setPos(sx, sy, sz);
+            serverLevel.addFreshEntity(newMarker);
+            applySavedName(serverLevel, id, newMarker);
+
+            // Update anchor data with new marker
+            dimMap.put(anchorPos, new AnchorData(data.subLevel, newMarker, data.lastTicketChunk, data.ticketRadius));
+
+            AeroReformation.LOGGER.info("[PhysicsAnchor] Self-check: marker regenerated for sub={} at SubLevel pos ({}, {}, {})",
+                    id, (int) sx, (int) sy, (int) sz);
         }
     }
 }

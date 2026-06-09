@@ -20,6 +20,8 @@ import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorM
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalSettingsPacket;
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalOpenPacket;
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalSyncPacket;
+import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComConfigPayload;
+import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComSyncPayload;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
 import dev.simulated_team.simulated.index.SimRegistries;
@@ -93,6 +95,10 @@ public class AeroReformation {
                     GravityCrystalOpenPacket::handle);
             registrar.playToClient(GravityCrystalSyncPacket.TYPE, GravityCrystalSyncPacket.STREAM_CODEC,
                     GravityCrystalSyncPacket::handle);
+            registrar.playToServer(ComConfigPayload.TYPE, ComConfigPayload.STREAM_CODEC,
+                    ComConfigPayload::handle);
+            registrar.playToClient(ComSyncPayload.TYPE, ComSyncPayload.STREAM_CODEC,
+                    ComSyncPayload::handle);
 
             registrar.playToServer(PowerConfigPayload.TYPE, PowerConfigPayload.STREAM_CODEC,
                     PowerConfigPayload::handle);
@@ -123,6 +129,8 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.physics_anchor.PhysicsAnchorRenderer::new);
             e.registerBlockEntityRenderer(AeroBlocks.GRAVITY_CRYSTAL_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalRenderer::new);
+            e.registerBlockEntityRenderer(AeroBlocks.COM_OFFSET_BE.get(),
+                    dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetRenderer::new);
         });
 
         // Set block render type for cutout transparency
@@ -130,6 +138,9 @@ public class AeroReformation {
             e.enqueueWork(() -> {
                 net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
                         AeroBlocks.PHYSICS_ANCHOR.get(),
+                        net.minecraft.client.renderer.RenderType.cutout());
+                net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                        AeroBlocks.COM_OFFSET.get(),
                         net.minecraft.client.renderer.RenderType.cutout());
             });
         });

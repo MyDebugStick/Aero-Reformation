@@ -2,6 +2,7 @@ package dev.simulated_team.aero_reformation.content.blocks.physics_anchor;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
@@ -10,17 +11,46 @@ import java.util.UUID;
 
 /**
  * Invisible entity that follows a SubLevel's world position.
- * Each instance is bound to exactly one SubLevel via subLevelUUID.
+ * Immune to damage, /kill, and entity clearing — only removable via our own {@link #forceDiscard()}.
  */
 public class AnchorMarkerEntity extends Entity {
 
     private static final String TAG_SUBLEVEL_UUID = "aero_sublevel_id";
     private UUID subLevelUUID;
+    private boolean forceRemoval;
 
     public AnchorMarkerEntity(EntityType<?> type, Level level) {
         super(type, level);
         this.noPhysics = true;
         this.noCulling = true;
+    }
+
+    /** Public discard that other code can't block — use this instead of {@link #discard()}. */
+    public void forceDiscard() {
+        this.forceRemoval = true;
+        discard();
+    }
+
+    @Override
+    public void remove(RemovalReason reason) {
+        if (!forceRemoval && reason != RemovalReason.CHANGED_DIMENSION) return;
+        forceRemoval = false;
+        super.remove(reason);
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        return false;
+    }
+
+    @Override
+    public boolean isInvulnerableTo(DamageSource source) {
+        return true;
+    }
+
+    @Override
+    public boolean isInvulnerable() {
+        return true;
     }
 
     public void setSubLevelUUID(UUID id) { this.subLevelUUID = id; }
