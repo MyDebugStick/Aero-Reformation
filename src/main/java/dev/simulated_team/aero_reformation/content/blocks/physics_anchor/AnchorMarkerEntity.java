@@ -1,5 +1,6 @@
 package dev.simulated_team.aero_reformation.content.blocks.physics_anchor;
 
+import dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.damagesource.DamageSource;
@@ -25,10 +26,20 @@ public class AnchorMarkerEntity extends Entity {
         this.noCulling = true;
     }
 
-    /** Public discard that other code can't block — use this instead of {@link #discard()}. */
     public void forceDiscard() {
         this.forceRemoval = true;
+        // Clear hidden state when marker is discarded
+        EtherealKeyItem.HIDDEN_SUBLEVELS.remove(subLevelUUID);
         discard();
+    }
+
+    public void setHidden(boolean hidden) {
+        this.setInvisible(hidden);
+        if (hidden && subLevelUUID != null) {
+            EtherealKeyItem.HIDDEN_SUBLEVELS.add(subLevelUUID);
+        } else if (!hidden && subLevelUUID != null) {
+            EtherealKeyItem.HIDDEN_SUBLEVELS.remove(subLevelUUID);
+        }
     }
 
     @Override
@@ -72,9 +83,7 @@ public class AnchorMarkerEntity extends Entity {
     }
 
     @Override
-    public void tick() {
-        // Position is set externally by AnchorChunkLoader
-    }
+    public void tick() {}
 
     @Override
     public boolean isPickable() {
@@ -82,12 +91,7 @@ public class AnchorMarkerEntity extends Entity {
     }
 
     @Override
-    public boolean shouldRenderAtSqrDistance(double distance) {
-        return false;
-    }
-
-    @Override
     public int getTeamColor() {
-        return 0x64B4FF; // light blue dot
+        return 0x64B4FF;
     }
 }

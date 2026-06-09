@@ -2,7 +2,9 @@ package dev.simulated_team.aero_reformation.content.blocks.physics_anchor;
 
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.sublevel.SubLevel;
+import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.simulated_team.aero_reformation.AeroReformation;
+import dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -17,14 +19,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.joml.Vector3d;
 
 public class AnchorChunkLoader {
-    private record AnchorData(SubLevel subLevel, AnchorMarkerEntity marker, ChunkPos lastTicketChunk, int ticketRadius) {}
+    record AnchorData(SubLevel subLevel, AnchorMarkerEntity marker, ChunkPos lastTicketChunk, int ticketRadius) {}
     // Per-dimension anchor maps: dimension 闁?(BlockPos 闁?AnchorData)
     private static final Map<ResourceKey<Level>, Map<BlockPos, AnchorData>> ANCHORS = new HashMap<>();
     private static final Map<UUID, AnchorData> WARMUP = new LinkedHashMap<>();
     private static final Set<UUID> ANCHORED_SUBLEVELS = new HashSet<>();
     private static final Set<UUID> AUTO_PROTECTED = new HashSet<>();
 
-    private static Map<BlockPos, AnchorData> anchorsFor(ResourceKey<Level> dim) {
+    static Map<BlockPos, AnchorData> anchorsFor(ResourceKey<Level> dim) {
         return ANCHORS.computeIfAbsent(dim, k -> new LinkedHashMap<>());
     }
 
@@ -97,6 +99,10 @@ public class AnchorChunkLoader {
         marker.setPos(pose.position().x(), pose.position().y(), pose.position().z());
         sl.addFreshEntity(marker);
         applySavedName(sl, id, marker);
+        // Restore hidden state if this SubLevel was previously hidden
+        if (EtherealKeyItem.HIDDEN_SUBLEVELS.contains(id)) {
+            marker.setHidden(true);
+        }
         int savedRadius = getSavedRadius(sl, id);
 
         anchorsFor(sl.dimension()).put(pos, new AnchorData(subLevel, marker, null, savedRadius));
@@ -236,6 +242,14 @@ public class AnchorChunkLoader {
         return ANCHORED_SUBLEVELS.contains(subLevelId);
     }
 
+    static void removeAnchoredSubLevel(UUID id) {
+        ANCHORED_SUBLEVELS.remove(id);
+        AUTO_PROTECTED.remove(id);
+        LAST_POS.remove(id);
+        WARMUP.remove(id);
+        EtherealKeyItem.HIDDEN_SUBLEVELS.remove(id);
+    }
+
     public static AnchorMarkerEntity getMarker(Level level, BlockPos pos) {
         AnchorData data = anchorsFor(level.dimension()).get(pos);
         return data != null ? data.marker : null;
@@ -301,6 +315,9 @@ public class AnchorChunkLoader {
                     marker.setPos(e.worldX(), e.worldY(), e.worldZ());
                     serverLevel.addFreshEntity(marker);
                     applySavedName(serverLevel, id, marker);
+                    if (EtherealKeyItem.HIDDEN_SUBLEVELS.contains(id)) {
+                        marker.setHidden(true);
+                    }
 
                     WARMUP.put(id, new AnchorData(null, marker, null, e.radius()));
                     ANCHORED_SUBLEVELS.add(id);
@@ -470,7 +487,9 @@ public class AnchorChunkLoader {
             var data = entry.getValue();
             if (data.subLevel == null || data.subLevel.isRemoved()) continue;
             UUID id = data.subLevel.getUniqueId();
-            if (!seen.add(id)) continue; // deduplicate: one entry per SubLevel
+            // Skip hidden SubLevels — don't send map markers for them
+            if (EtherealKeyItem.HIDDEN_SUBLEVELS.contains(id)) continue;
+            if (!seen.add(id)) continue;
             var pose = data.subLevel.logicalPose();
             String name = data.marker != null && data.marker.hasCustomName()
                     ? data.marker.getCustomName().getString() : null;

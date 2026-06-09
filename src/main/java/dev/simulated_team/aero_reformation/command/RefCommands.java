@@ -3,6 +3,7 @@ package dev.simulated_team.aero_reformation.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorChunkLoader;
+import dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -26,6 +27,9 @@ public class RefCommands {
                 )
                 .then(Commands.literal("removeallmark")
                         .executes(RefCommands::removeAllMarkers)
+                )
+                .then(Commands.literal("hiddingremoveall")
+                        .executes(RefCommands::hiddingRemoveAll)
                 )
         );
     }
@@ -72,6 +76,14 @@ public class RefCommands {
         }
         int finalCount = count;
         source.sendSuccess(() -> Component.literal("Removed " + finalCount + " marker entity(s). Re-place anchors to restore."), true);
+        return 1;
+    }
+
+    private static int hiddingRemoveAll(CommandContext<CommandSourceStack> ctx) {
+        int count = EtherealKeyItem.HIDDEN_SUBLEVELS.size();
+        EtherealKeyItem.HIDDEN_SUBLEVELS.clear();
+        final int finalCount = count;
+        ctx.getSource().sendSuccess(() -> Component.literal("Unhid " + finalCount + " sublevel(s)."), true);
         return 1;
     }
 }

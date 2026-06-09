@@ -10,6 +10,7 @@ public class AeroReformationConfig {
 
     public static final ModConfigSpec.DoubleValue RCS_FUEL_CONSUMPTION;
     public static final ModConfigSpec.IntValue MAX_ANCHOR_RADIUS;
+    public static final ModConfigSpec.DoubleValue ANCHOR_TRACKING_RANGE;
 
     static {
         BUILDER.push("Levitite Mining");
@@ -35,6 +36,9 @@ public class AeroReformationConfig {
         MAX_ANCHOR_RADIUS = BUILDER
                 .comment("Maximum chunk loading radius for the Physics Anchor (2 to this value). Default 5.")
                 .defineInRange("maxAnchorRadius", 5, 4, 64);
+        ANCHOR_TRACKING_RANGE = BUILDER
+                .comment("Tracking range in blocks for anchored SubLevels. Higher values prevent SubLevels from being removed by Sable when far away. Default 1024.")
+                .defineInRange("anchorTrackingRange", 1024.0, 64.0, Double.MAX_VALUE);
         BUILDER.pop();
 
         CONFIG_SPEC = BUILDER.build();
@@ -47,11 +51,13 @@ public class AeroReformationConfig {
     public static double redstoneSpringStressCapacity = 8.0;
     public static double rcsFuelConsumption = 5000.0;
     public static int maxAnchorRadius = 5;
+    public static double anchorTrackingRange = 1024.0;
 
     public static void refresh() {
         levititeGoldPickaxeOnly = LEVITITE_GOLD_PICKAXE.get();
         redstoneSpringStressCapacity = REDSTONE_SPRING_STRESS_CAPACITY.get();
         rcsFuelConsumption = RCS_FUEL_CONSUMPTION.get();
         maxAnchorRadius = MAX_ANCHOR_RADIUS.get();
+        anchorTrackingRange = ANCHOR_TRACKING_RANGE.get();
     }
 }

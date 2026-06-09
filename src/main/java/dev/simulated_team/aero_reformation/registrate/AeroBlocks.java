@@ -27,6 +27,7 @@ import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.Gravit
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlock;
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlockEntity;
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlockItem;
+import dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -359,6 +360,13 @@ public class AeroBlocks {
                     COM_OFFSET.get(), new Item.Properties()
             ));
 
+    // ==================== Ethereal Key (空灵钥匙) ====================
+
+    public static final Supplier<Item> ETHEREAL_KEY =
+            ITEMS.register("ethereal_key", () -> new EtherealKeyItem(
+                    new Item.Properties().stacksTo(1)
+            ));
+
     // ==================== Creative Tab ====================
 
     public static final Supplier<CreativeModeTab> AERO_REFORMATION_TAB = CREATIVE_TAB.register(
@@ -381,6 +389,7 @@ public class AeroBlocks {
                         output.accept(PHYSICS_ANCHOR_ITEM.get());
                         output.accept(GRAVITY_CRYSTAL_ITEM.get());
                         output.accept(COM_OFFSET_ITEM.get());
+                        output.accept(ETHEREAL_KEY.get());
                     })
                     .build()
     );
