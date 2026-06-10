@@ -108,7 +108,8 @@ public class AnchorChunkLoader {
         anchorsFor(sl.dimension()).put(pos, new AnchorData(subLevel, marker, null, savedRadius));
         ANCHORED_SUBLEVELS.add(id);
         AUTO_PROTECTED.remove(id);
-        AnchorSavedData.get(sl).add(id, pose.position().x(), pose.position().y(), pose.position().z(), null, savedRadius);
+        AnchorSavedData.get(sl).add(id, pose.position().x(), pose.position().y(), pose.position().z(), null, savedRadius,
+                pos.getX(), pos.getY(), pos.getZ());
         AeroReformation.LOGGER.debug("[PhysicsAnchor] Anchor added at world {},{} sub={} pos={}",
                 (int)pose.position().x(), (int)pose.position().z(), id, pos);
     }
@@ -311,8 +312,11 @@ public class AnchorChunkLoader {
             SubLevel sl = entry.getValue().subLevel;
             if (sl != null && !sl.isRemoved()) {
                 var pose = sl.logicalPose();
+                BlockPos anchorPos = entry.getKey();
                 AnchorSavedData.get(serverLevel).add(sl.getUniqueId(),
-                        pose.position().x(), pose.position().y(), pose.position().z());
+                        pose.position().x(), pose.position().y(), pose.position().z(), null,
+                        entry.getValue().ticketRadius,
+                        anchorPos.getX(), anchorPos.getY(), anchorPos.getZ());
             }
         }
     }
@@ -321,9 +325,39 @@ public class AnchorChunkLoader {
         boolean every20 = serverLevel.getServer().getTickCount() % 20 == 0;
 
         if (every20) {
+            var container = dev.ryanhcode.sable.api.sublevel.SubLevelContainer.getContainer(serverLevel);
             for (AnchorSavedData.StoredEntry e : AnchorSavedData.get(serverLevel).getEntries()) {
                 UUID id = e.subLevelId();
                 if (!ANCHORED_SUBLEVELS.contains(id)) {
+                    // Try to upgrade to full anchor if SubLevel is now available and anchor pos is known
+                    if (e.hasAnchorPos() && container != null) {
+                        BlockPos anchorPos = e.anchorPos();
+                        // Check if anchor block still exists
+                        if (serverLevel.getBlockEntity(anchorPos) instanceof PhysicsAnchorBlockEntity) {
+                            SubLevel subLevel = dev.ryanhcode.sable.Sable.HELPER.getContaining(serverLevel.getBlockEntity(anchorPos));
+                            if (subLevel == null)
+                                subLevel = dev.ryanhcode.sable.Sable.HELPER.getContaining(serverLevel, anchorPos);
+                            if (subLevel != null && !subLevel.isRemoved() && subLevel.getUniqueId().equals(id)) {
+                                // Remove old warmup marker if exists
+                                AnchorData oldWarmup = WARMUP.remove(id);
+                                if (oldWarmup != null && oldWarmup.marker != null) {
+                                    if (oldWarmup.lastTicketChunk != null)
+                                        serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
+                                                oldWarmup.lastTicketChunk, oldWarmup.ticketRadius, oldWarmup.marker.blockPosition());
+                                    oldWarmup.marker.forceDiscard();
+                                }
+                                // Also discard any other stale markers for this sub
+                                for (var ent : serverLevel.getEntities().getAll()) {
+                                    if (ent instanceof AnchorMarkerEntity m && id.equals(m.getSubLevelUUID()) && !m.isRemoved())
+                                        m.forceDiscard();
+                                }
+                                // Create fresh anchor
+                                addAnchor(serverLevel, anchorPos);
+                                continue; // addAnchor already handles registration
+                            }
+                        }
+                    }
+                    // Fallback: create warmup marker at saved position
                     AnchorMarkerEntity marker = new AnchorMarkerEntity(
                             dev.simulated_team.aero_reformation.registrate.AeroBlocks.ANCHOR_MARKER.get(), serverLevel);
                     marker.setSubLevelUUID(id);
