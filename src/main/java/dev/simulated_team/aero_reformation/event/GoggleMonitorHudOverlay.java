@@ -34,9 +34,6 @@ public class GoggleMonitorHudOverlay {
         for (SensorMonitorEntry e : entries) {
             int[] data = GoggleMonitorSyncPacket.CLIENT_DATA.get(e.pos());
             String value = data != null ? formatValue(e.sensorType(), data) : "--";
-            if (data == null && GoggleMonitorHudOverlay.class.hashCode() % 100 == 0) {
-                AeroReformation.LOGGER.warn("AeroDebug GOGGLE: no data for pos={} CLIENT_DATA size={}", e.pos(), GoggleMonitorSyncPacket.CLIENT_DATA.size());
-            }
             g.drawString(mc.font, Component.literal("§e" + e.name() + ": §a" + value), x, y, 0x55FF55, false);
             y += 14;
         }

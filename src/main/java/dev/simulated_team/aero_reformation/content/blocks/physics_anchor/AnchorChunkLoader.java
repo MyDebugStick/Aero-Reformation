@@ -66,7 +66,6 @@ public class AnchorChunkLoader {
             anchorsFor(sl.dimension()).put(pos, new AnchorData(subLevel, warmup.marker, null, r));
             ANCHORED_SUBLEVELS.add(id);
             AUTO_PROTECTED.remove(id);
-            AeroReformation.LOGGER.debug("[PhysicsAnchor] Upgraded warmup anchor sub={} at {}", id, pos);
             return;
         }
 
@@ -78,7 +77,6 @@ public class AnchorChunkLoader {
             if (entry.getValue().subLevel != null && entry.getValue().subLevel.getUniqueId().equals(id)) {
                 var existing = entry.getValue();
                 dimMap.put(pos, new AnchorData(subLevel, existing.marker, null, getSavedRadius(sl, id)));
-                AeroReformation.LOGGER.debug("[PhysicsAnchor] Shared marker for sub={} at new pos={}", id, pos);
                 return;
             }
         }
@@ -89,7 +87,6 @@ public class AnchorChunkLoader {
                     && id.equals(m.getSubLevelUUID())
                     && !m.isRemoved()) {
                 m.forceDiscard();
-                AeroReformation.LOGGER.debug("[PhysicsAnchor] Discarded stale marker sub={}", id);
             }
         }
 
@@ -110,8 +107,6 @@ public class AnchorChunkLoader {
         AUTO_PROTECTED.remove(id);
         AnchorSavedData.get(sl).add(id, pose.position().x(), pose.position().y(), pose.position().z(), null, savedRadius,
                 pos.getX(), pos.getY(), pos.getZ());
-        AeroReformation.LOGGER.debug("[PhysicsAnchor] Anchor added at world {},{} sub={} pos={}",
-                (int)pose.position().x(), (int)pose.position().z(), id, pos);
     }
 
     public static void removeAnchor(Level level, BlockPos pos) {
@@ -161,7 +156,6 @@ public class AnchorChunkLoader {
                         UUID sid = sl2.getUniqueId();
                         if (AUTO_PROTECTED.remove(sid)) {
                             ANCHORED_SUBLEVELS.remove(sid);
-                            AeroReformation.LOGGER.debug("[PhysicsAnchor] Cleaned auto-protected sub={}", sid);
                         }
                     }
                 }
@@ -170,7 +164,6 @@ public class AnchorChunkLoader {
         // Immediately sync clients so map markers disappear without delay
         if (level instanceof ServerLevel sl)
             syncToClients(sl);
-        AeroReformation.LOGGER.debug("[PhysicsAnchor] Anchor removed at {}", pos);
     }
 
     /** Get all anchor positions in a specific dimension. */
@@ -187,7 +180,6 @@ public class AnchorChunkLoader {
         for (var data : WARMUP.values()) {
             if (data.marker != null) data.marker.forceDiscard();
         }
-        AeroReformation.LOGGER.debug("[PhysicsAnchor] Cleared {}A + {}W on server stop", ANCHORS.size(), WARMUP.size());
         ANCHORS.clear();
         WARMUP.clear();
         ANCHORED_SUBLEVELS.clear();
@@ -204,7 +196,7 @@ public class AnchorChunkLoader {
             }
         }
         if (count > 0)
-            AeroReformation.LOGGER.debug("[PhysicsAnchor] Discarded {} stale marker entities on start", count);
+            AeroReformation.LOGGER.warn("[PhysicsAnchor] Discarded {} stale marker entities on start", count);
     }
 
     /** Discard all marker entities and clear all anchor data. Returns count. */
@@ -217,7 +209,7 @@ public class AnchorChunkLoader {
             }
         }
         if (count > 0) {
-            AeroReformation.LOGGER.debug("[PhysicsAnchor] Command: discarded {} marker entities", count);
+            AeroReformation.LOGGER.warn("[PhysicsAnchor] Command: discarded {} marker entities", count);
         }
         // Also clear internal maps so ANCHORS won't reference dead entities
         for (var map : ANCHORS.values()) {
@@ -289,7 +281,6 @@ public class AnchorChunkLoader {
             AnchorSavedData.get(sl).setMarkerName(data.subLevel.getUniqueId(), name.isEmpty() ? null : name);
             AnchorSavedData.get(sl).setRadius(data.subLevel.getUniqueId(), clamped);
         }
-        AeroReformation.LOGGER.debug("[PhysicsAnchor] Renamed marker at {} to '{}' radius={}", pos, name, radius);
     }
 
     private static void applySavedName(ServerLevel sl, UUID subLevelId, AnchorMarkerEntity marker) {
@@ -370,8 +361,6 @@ public class AnchorChunkLoader {
 
                     WARMUP.put(id, new AnchorData(null, marker, null, e.radius()));
                     ANCHORED_SUBLEVELS.add(id);
-                    AeroReformation.LOGGER.debug("[PhysicsAnchor] Warmup marker at {} {} sub={}",
-                            (int)e.worldX(), (int)e.worldZ(), id);
                 }
             }
         }
@@ -420,10 +409,6 @@ public class AnchorChunkLoader {
                 serverLevel.getChunkSource().addRegionTicket(TicketType.PORTAL,
                         curChunk, radius, entry.getKey());
                 anchorsFor(serverLevel.dimension()).put(entry.getKey(), new AnchorData(sl, data.marker, curChunk, radius));
-                if (chunkChanged || radiusChanged || serverLevel.getServer().getTickCount() % 600 == 0) {
-                    AeroReformation.LOGGER.debug("[PhysicsAnchor] Ticket {}闁愁偅濮緘 radius={} loaded={}",
-                            data.lastTicketChunk, curChunk, radius, serverLevel.getChunkSource().getLoadedChunksCount());
-                }
             }
 
             if (every20)

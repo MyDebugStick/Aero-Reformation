@@ -28,12 +28,6 @@ public class AnchorMapRenderer {
         double interfaceScale = (double) window.getWidth() / window.getScreenWidth();
         double scale = mapScale / guiScale / interfaceScale;
 
-        if (tickCount++ % 300 == 0) {
-            var m = markers.iterator().next();
-            AeroReformation.LOGGER.debug("[AnchorMap] cam=({},{}), marker=({},{}), mapScale={}, scale={}, screen={}x{}",
-                    (int)camX, (int)camZ, (int)m.x(), (int)m.z(), mapScale, scale, w, h);
-        }
-
         PoseStack pose = g.pose();
         pose.pushPose();
         pose.translate(w / 2.0, h / 2.0, 0);

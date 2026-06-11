@@ -30,7 +30,6 @@ public record GoggleBindPacket(BlockPos pos, String sensorType, String name) imp
             if (GoggleMonitorData.findGoggles(sp).isEmpty()) return;
             boolean added = GoggleMonitorData.addEntry(sp,
                     new SensorMonitorEntry(packet.name, packet.sensorType, packet.pos));
-            AeroReformation.LOGGER.warn("AeroDebug GOGGLE: bind pos={} type={} name={} added={}", packet.pos, packet.sensorType, packet.name, added);
             if (!added) {
                 sp.displayClientMessage(Component.literal("§c该传感器已绑定"), true);
             } else {

@@ -93,8 +93,6 @@ public class GoggleMonitorEventHandler {
             var entries = GoggleMonitorData.getEntries(player);
             if (entries.isEmpty()) continue;
             List<BlockPos> positions = entries.stream().map(SensorMonitorEntry::pos).toList();
-            AeroReformation.LOGGER.warn("AeroDebug GOGGLE: sending sync to {} with {} positions",
-                    player.getName().getString(), positions.size());
                 PacketDistributor.sendToPlayer(player, GoggleMonitorSyncPacket.fromPositions(positions, player.serverLevel()));
         }
     }

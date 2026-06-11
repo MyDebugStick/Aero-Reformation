@@ -86,7 +86,6 @@ public record GoggleMonitorSyncPacket(Map<BlockPos, int[]> data) implements Cust
         ctx.enqueueWork(() -> {
             CLIENT_DATA.clear();
             CLIENT_DATA.putAll(packet.data);
-            AeroReformation.LOGGER.warn("AeroDebug GOGGLE: client received {} entries", packet.data.size());
         });
     }
 }
