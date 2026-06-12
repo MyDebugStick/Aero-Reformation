@@ -40,17 +40,25 @@ public abstract class ServerSubLevelMixin {
             return;
         }
 
-        // Scale lift, apply zero angular (no position-dependent torque)
+        // Scale lift, keep angular — crystal torque is already zeroed by FloatingBlockControllerMixin
         Vector3d scaledLin = new Vector3d(linearImpulse).mul(s.liftMultiplier);
-        handle.applyLinearAndAngularImpulse(scaledLin, new Vector3d(), wakeUp);
+        handle.applyLinearAndAngularImpulse(scaledLin, angularImpulse, wakeUp);
 
-        // Linear drag: velocity-proportional damping via addLinearAndAngularVelocity.
-        // dragMultiplier: 0=slippery, 1=normal, 2=double drag.
-        if (s.dragMultiplier != 1f) {
+        // Extra linear drag
+        int comparison = Float.compare(s.dragMultiplier, 1f);
+        if (comparison > 0) {
             Vector3d linVel = handle.getLinearVelocity(new Vector3d());
             double dragStr = (s.dragMultiplier - 1f) * 0.05;
             handle.addLinearAndAngularVelocity(
                     new Vector3d(linVel).mul(-dragStr),
+                    new Vector3d()
+            );
+        } else if (comparison < 0) {
+            // Below 1: reduce Sable's default drag (counteract a portion)
+            Vector3d linVel = handle.getLinearVelocity(new Vector3d());
+            double dragStr = (1f - s.dragMultiplier) * 0.05;
+            handle.addLinearAndAngularVelocity(
+                    new Vector3d(linVel).mul(dragStr),
                     new Vector3d()
             );
         }
@@ -69,6 +77,7 @@ public abstract class ServerSubLevelMixin {
         if (!GravityCrystalSettings.CRYSTAL_SUBLEVELS.contains(self.getUniqueId())) {
             return null;
         }
-        return GravityCrystalSettings.get(self.getUniqueId());
+        GravityCrystalSettings s = GravityCrystalSettings.get(self.getUniqueId());
+        return s.active ? s : null;
     }
 }
