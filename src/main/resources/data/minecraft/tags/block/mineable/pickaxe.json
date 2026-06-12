@@ -8,6 +8,8 @@
     "aero_reformation:create_seat",
     "aero_reformation:end_rod_seat",
     "aero_reformation:redstone_spring",
-    "aero_reformation:gravity_crystal"
+    "aero_reformation:gravity_crystal",
+    "aero_reformation:mushroom_shell"
   ]
 }
+

@@ -1,7 +1,6 @@
 package dev.simulated_team.aero_reformation.content.blocks.physics_anchor;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.mixin.feature.physics_anchor.XaeroMapAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -9,8 +8,6 @@ import net.minecraft.util.Mth;
 import xaero.map.gui.GuiMap;
 
 public class AnchorMapRenderer {
-
-    private static int tickCount = 0;
 
     public static void render(GuiGraphics g, GuiMap screen, int mX, int mY, float pt) {
         var markers = AnchorMapClientData.getMarkers();

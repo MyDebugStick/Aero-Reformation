@@ -133,7 +133,9 @@ dependencies {
         // Veil (extracted from sable jarjar)
         "${projectDir}/extracted/veil-neoforge-1.21.1-4.0.0.jar",
         // Create
-        "${projectDir}/create-1.21.1-6.0.10.jar"
+        "${projectDir}/create-1.21.1-6.0.10.jar",
+        // Create Big Cannons
+        "${projectDir}/createbigcannons-5.11.5+mc.1.21.1.jar"
     )
     // Curios (optional, for goggle HUD support in curio slots)
     implementation files("${projectDir}/curios-neoforge-9.5.1+1.21.1.jar")

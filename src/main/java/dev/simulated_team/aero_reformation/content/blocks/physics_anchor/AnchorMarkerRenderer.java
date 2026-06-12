@@ -3,7 +3,6 @@ package dev.simulated_team.aero_reformation.content.blocks.physics_anchor;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 
 /**
  * No-op renderer for AnchorMarkerEntity — invisible in world,

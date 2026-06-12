@@ -1,6 +1,5 @@
 package dev.simulated_team.aero_reformation.event;
 
-import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.content.items.goggle_monitor.GoggleMonitorData;
 import dev.simulated_team.aero_reformation.content.items.goggle_monitor.SensorMonitorEntry;
 import dev.simulated_team.aero_reformation.network.GoggleBindPacket;

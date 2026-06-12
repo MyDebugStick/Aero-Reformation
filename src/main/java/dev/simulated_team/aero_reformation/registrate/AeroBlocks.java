@@ -41,6 +41,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -367,6 +368,34 @@ public class AeroBlocks {
                     new Item.Properties().stacksTo(1)
             ));
 
+    // ==================== Mushroom Shell ====================
+    // Only registered when Create Big Cannons is present.
+    // Actual registration is in AeroCBCBlocks to avoid classloading CBC types.
+
+    @SuppressWarnings("rawtypes")
+    public static final Supplier MUSHROOM_SHELL_ENTITY;
+    @SuppressWarnings("rawtypes")
+    public static final Supplier MUSHROOM_SHELL;
+    @SuppressWarnings("rawtypes")
+    public static final Supplier MUSHROOM_SHELL_ITEM;
+    @SuppressWarnings("rawtypes")
+    public static final Supplier MUSHROOM_SHELL_BE;
+
+    static {
+        if (ModList.get().isLoaded("createbigcannons")) {
+            AeroCBCBlocks.init();
+            MUSHROOM_SHELL_ENTITY = AeroCBCBlocks.MUSHROOM_SHELL_ENTITY;
+            MUSHROOM_SHELL       = AeroCBCBlocks.MUSHROOM_SHELL;
+            MUSHROOM_SHELL_ITEM  = AeroCBCBlocks.MUSHROOM_SHELL_ITEM;
+            MUSHROOM_SHELL_BE    = AeroCBCBlocks.MUSHROOM_SHELL_BE;
+        } else {
+            MUSHROOM_SHELL_ENTITY = () -> null;
+            MUSHROOM_SHELL       = () -> null;
+            MUSHROOM_SHELL_ITEM  = () -> null;
+            MUSHROOM_SHELL_BE    = () -> null;
+        }
+    }
+
     // ==================== Creative Tab ====================
 
     public static final Supplier<CreativeModeTab> AERO_REFORMATION_TAB = CREATIVE_TAB.register(
@@ -390,6 +419,9 @@ public class AeroBlocks {
                         output.accept(GRAVITY_CRYSTAL_ITEM.get());
                         output.accept(COM_OFFSET_ITEM.get());
                         output.accept(ETHEREAL_KEY.get());
+                        if (ModList.get().isLoaded("createbigcannons") && MUSHROOM_SHELL_ITEM.get() != null) {
+                            output.accept((net.minecraft.world.level.ItemLike) MUSHROOM_SHELL_ITEM.get());
+                        }
                     })
                     .build()
     );

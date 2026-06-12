@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "createbigcannons"
+    }
+  ],
+  "pattern": [
+    "MBM",
+    "BHB",
+    "MBM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:red_mushroom_block"
+    },
+    "B": {
+      "item": "minecraft:bone_block"
+    },
+    "H": {
+      "item": "createbigcannons:he_shell"
+    }
+  },
+  "result": {
+    "id": "aero_reformation:mushroom_shell",
+    "count": 1
+  }
+}

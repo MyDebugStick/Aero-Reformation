@@ -27,6 +27,8 @@
   "block.aero_reformation.physics_anchor": "Physics Anchor",
   "block.aero_reformation.gravity_crystal": "Gravity Crystal",
   "block.aero_reformation.com_offset": "COM Offset Controller",
+  "block.aero_reformation.mushroom_shell": "Mushroom Shell",
+  "item.aero_reformation.mushroom_shell": "Mushroom Shell",
   "item.aero_reformation.ethereal_key": "kcits sublevel's key",
   "item.aero_reformation.ethereal_key.bound_name": "§akcits sublevel's key §7(Bound)",
   "item.aero_reformation.ethereal_key.bind": "§aBound to this sublevel",

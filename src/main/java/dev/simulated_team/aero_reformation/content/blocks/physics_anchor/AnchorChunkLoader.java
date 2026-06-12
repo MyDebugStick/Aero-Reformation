@@ -61,7 +61,7 @@ public class AnchorChunkLoader {
             // Remove warmup's ticket (keyed by marker position, not anchor pos)
             if (warmup.lastTicketChunk != null && warmup.marker != null)
                 sl.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                        warmup.lastTicketChunk, warmup.ticketRadius, warmup.marker.blockPosition());
+                        warmup.lastTicketChunk, warmup.ticketRadius + 1, warmup.marker.blockPosition());
             int r = getSavedRadius(sl, id);
             anchorsFor(sl.dimension()).put(pos, new AnchorData(subLevel, warmup.marker, null, r));
             ANCHORED_SUBLEVELS.add(id);
@@ -123,7 +123,7 @@ public class AnchorChunkLoader {
             // Remove PORTAL ticket for this anchor
             if (data.lastTicketChunk != null) {
                 sl.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                        data.lastTicketChunk, data.ticketRadius, pos);
+                        data.lastTicketChunk, data.ticketRadius + 1, pos);
             }
             boolean sameSubHasOther = map.values().stream().anyMatch(
                     a -> a.subLevel != null && id != null && a.subLevel.getUniqueId().equals(id));
@@ -334,7 +334,7 @@ public class AnchorChunkLoader {
                                 if (oldWarmup != null && oldWarmup.marker != null) {
                                     if (oldWarmup.lastTicketChunk != null)
                                         serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                                                oldWarmup.lastTicketChunk, oldWarmup.ticketRadius, oldWarmup.marker.blockPosition());
+                                                oldWarmup.lastTicketChunk, oldWarmup.ticketRadius + 1, oldWarmup.marker.blockPosition());
                                     oldWarmup.marker.forceDiscard();
                                 }
                                 // Also discard any other stale markers for this sub
@@ -376,7 +376,7 @@ public class AnchorChunkLoader {
                 if (data.marker != null) data.marker.forceDiscard();
                 if (data.lastTicketChunk != null)
                     serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                            data.lastTicketChunk, data.ticketRadius, entry.getKey());
+                            data.lastTicketChunk, data.ticketRadius + 1, entry.getKey());
                 ANCHORED_SUBLEVELS.remove(sid);
                 WARMUP.remove(sid);
                 LAST_POS.remove(sid);
@@ -395,6 +395,7 @@ public class AnchorChunkLoader {
 
             // Use stored radius (set via GUI, defaults to 2)
             int radius = data.ticketRadius;
+            int ticketDist = radius + 1; // addRegionTicket distance is exclusive
 
             // PORTAL ticket: refresh on chunk change OR every 5 seconds OR radius changed
             boolean chunkChanged = data.lastTicketChunk == null || !data.lastTicketChunk.equals(curChunk);
@@ -404,10 +405,10 @@ public class AnchorChunkLoader {
                 // Always remove old ticket first to ensure proper timeout refresh
                 if (data.lastTicketChunk != null) {
                     serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                            data.lastTicketChunk, data.ticketRadius, entry.getKey());
+                            data.lastTicketChunk, ticketDist, entry.getKey());
                 }
                 serverLevel.getChunkSource().addRegionTicket(TicketType.PORTAL,
-                        curChunk, radius, entry.getKey());
+                        curChunk, ticketDist, entry.getKey());
                 anchorsFor(serverLevel.dimension()).put(entry.getKey(), new AnchorData(sl, data.marker, curChunk, radius));
             }
 
@@ -426,18 +427,22 @@ public class AnchorChunkLoader {
             }
             BlockPos markerPos = data.marker.blockPosition();
             ChunkPos curChunk = new ChunkPos(markerPos);
+            int wTicketDist = data.ticketRadius + 1;
             boolean fiveSec = serverLevel.getServer().getTickCount() % 100 == 0;
             if (data.lastTicketChunk == null || !data.lastTicketChunk.equals(curChunk) || fiveSec) {
                 if (data.lastTicketChunk != null)
                     serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                            data.lastTicketChunk, data.ticketRadius, markerPos);
+                            data.lastTicketChunk, wTicketDist, markerPos);
                 serverLevel.getChunkSource().addRegionTicket(TicketType.PORTAL,
-                        curChunk, data.ticketRadius, markerPos);
+                        curChunk, wTicketDist, markerPos);
                 WARMUP.put(e.getKey(), new AnchorData(null, data.marker, curChunk, data.ticketRadius));
             }
         }
 
         if (serverLevel.getServer().getTickCount() % 3 == 0) syncToClients(serverLevel);
+
+        // Process delayed mushroom shell explosions
+        dev.simulated_team.aero_reformation.content.items.mushroom_shell.DelayedExplosionManager.tick(serverLevel);
 
         // === Self-check every 5 seconds ===
         if (serverLevel.getServer().getTickCount() % 100 == 0)
@@ -507,7 +512,7 @@ public class AnchorChunkLoader {
                 if (ad.marker != null) ad.marker.forceDiscard();
                 if (ad.lastTicketChunk != null)
                     serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                            ad.lastTicketChunk, ad.ticketRadius, e.getKey());
+                            ad.lastTicketChunk, ad.ticketRadius + 1, e.getKey());
                 it.remove();
             }
         }

@@ -35,7 +35,7 @@ public class SubLevelAutoAnchorObserver implements SubLevelObserver {
                     if (d.marker() != null) d.marker().forceDiscard();
                     if (d.lastTicketChunk() != null)
                         sl.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                                d.lastTicketChunk(), d.ticketRadius(), e.getKey());
+                                d.lastTicketChunk(), d.ticketRadius() + 1, e.getKey());
                     it.remove();
                 }
             }
