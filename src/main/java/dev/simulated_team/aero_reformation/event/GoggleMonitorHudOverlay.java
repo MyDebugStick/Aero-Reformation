@@ -36,6 +36,7 @@ public class GoggleMonitorHudOverlay {
             g.drawString(mc.font, Component.literal("§e" + e.name() + ": §a" + value), x, y, 0x55FF55, false);
             y += 14;
         }
+        g.drawString(mc.font, Component.literal("§7摘下护目镜以清除绑定"), x, y + 4, 0x55FF55, false);
     }
 
     private static String formatValue(String type, int[] data) {
