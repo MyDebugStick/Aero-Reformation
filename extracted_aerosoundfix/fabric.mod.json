@@ -1,0 +1,13 @@
+{
+    "schemaVersion": 1,
+    "id": "aerosoundfix",
+    "version": "1.0.0",
+    "name": "AeroSoundFix",
+    "description": "Fixes Aeronautics BalloonBurnerSoundInstance OpenAL source exhaustion",
+    "authors": [],
+    "license": "MIT",
+    "environment": "client",
+    "mixins": [
+        "aerosoundfix.mixins.json"
+    ]
+}
