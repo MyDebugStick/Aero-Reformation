@@ -46,6 +46,9 @@ public class GravityCrystalBlock extends Block implements IBE<GravityCrystalBloc
         }
     }
 
+    // onRemove: don't touch CRYSTAL_SUBLEVELS — detectApplyLift/detectPhysTick
+    // will notice the material is gone and clean up automatically on next tick.
+
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                Player player, BlockHitResult hit) {

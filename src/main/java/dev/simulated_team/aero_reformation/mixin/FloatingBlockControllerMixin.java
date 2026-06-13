@@ -27,7 +27,12 @@ public abstract class FloatingBlockControllerMixin {
     abstract void callRecordForce(FloatingClusterContainer c, FloatingBlockCluster cl, QueuedForceGroup fg, Vector3d f);
 
     private boolean hasOurMaterial() {
-        return GravityCrystalSettings.CRYSTAL_SUBLEVELS.contains(subLevel.getUniqueId());
+        for (FloatingClusterContainer c : containers)
+            for (FloatingBlockCluster cl : c.clusters)
+                if (cl.getMaterial().scaleWithPressure()
+                        && cl.getMaterial().liftStrength() == 10.0
+                        && cl.getMaterial().transitionSpeed() == 3.0) return true;
+        return false;
     }
 
     @Inject(method = "applyLift", at = @At("HEAD"), remap = false)
