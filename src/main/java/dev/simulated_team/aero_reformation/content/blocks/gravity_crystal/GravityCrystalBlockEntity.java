@@ -25,6 +25,17 @@ public class GravityCrystalBlockEntity extends BlockEntity {
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        if (level != null && !level.isClientSide()) {
+            var sl = dev.ryanhcode.sable.Sable.HELPER.getContaining(level, worldPosition);
+            if (sl != null) {
+                GravityCrystalSettings.CRYSTAL_SUBLEVELS.add(sl.getUniqueId());
+            }
+        }
+    }
+
+    @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
         GravityCrystalSettings s = settings();

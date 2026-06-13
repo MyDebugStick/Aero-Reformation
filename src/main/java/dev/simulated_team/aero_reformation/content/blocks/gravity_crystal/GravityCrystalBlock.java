@@ -37,6 +37,16 @@ public class GravityCrystalBlock extends Block implements IBE<GravityCrystalBloc
     }
 
     @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moved) {
+        if (!level.isClientSide()) {
+            SubLevel sl = Sable.HELPER.getContaining(level, pos);
+            if (sl != null) {
+                GravityCrystalSettings.CRYSTAL_SUBLEVELS.add(sl.getUniqueId());
+            }
+        }
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                Player player, BlockHitResult hit) {
         if (!player.isShiftKeyDown()) return InteractionResult.PASS;
