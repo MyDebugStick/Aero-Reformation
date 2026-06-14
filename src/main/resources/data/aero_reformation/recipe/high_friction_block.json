@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WWW",
+    "WSW",
+    "WWW"
+  ],
+  "key": {
+    "W": { "item": "minecraft:black_wool" },
+    "S": { "item": "minecraft:slime_block" }
+  },
+  "result": {
+    "id": "aero_reformation:high_friction_block",
+    "count": 4
+  }
+}

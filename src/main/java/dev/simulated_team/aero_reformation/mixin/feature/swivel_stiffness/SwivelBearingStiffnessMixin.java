@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * Adds adjustable stiffness (kP) level to SwivelBearingBlockEntity.
  *
- * Three levels: 1x (default), 3x (medium), 8x (heavy).
+ * Five levels: 1x (default), 3x (medium), 8x (heavy), 0.5x (soft), 0.25x (light).
  *
  * The setMotor target descriptor uses ConstraintJointAxis (enum) as first param,
  * NOT int: (L...ConstraintJointAxis;DDDZD)V
@@ -21,13 +21,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = SwivelBearingBlockEntity.class, remap = false)
 public class SwivelBearingStiffnessMixin implements ISwivelStiffnessAccessor {
 
-    /** Stiffness (kP) level: 0=1x, 1=3x, 2=8x */
+    /** Stiffness (kP) level: 0=1x, 1=3x, 2=8x, 3=0.5x, 4=0.25x */
     @Unique
     private int aero_reformation$stiffnessLevel = 0;
 
     /** Multipliers for each stiffness level */
     @Unique
-    private static final double[] STIFFNESS_MULTIPLIERS = {1.0, 3.0, 8.0};
+    private static final double[] STIFFNESS_MULTIPLIERS = {1.0, 3.0, 8.0, 0.5, 0.25};
 
     @Override
     public int aero_reformation$getStiffnessLevel() { return this.aero_reformation$stiffnessLevel; }

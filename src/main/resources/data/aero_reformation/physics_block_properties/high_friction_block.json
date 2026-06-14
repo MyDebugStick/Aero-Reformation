@@ -1,0 +1,7 @@
+{
+  "selector": "#aero_reformation:high_friction",
+  "properties": {
+    "sable:friction": 5.0,
+    "sable:floating_material": "aero_reformation:high_friction_block"
+  }
+}

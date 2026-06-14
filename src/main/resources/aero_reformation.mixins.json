@@ -24,6 +24,7 @@
     "feature.physics_anchor.XaeroMapAccessor",
     "feature.physics_anchor.SubLevelTrackingSystemMixin",
     "FloatingBlockControllerMixin",
+    "HighFrictionMixin",
     "ServerSubLevelMixin"
   ],
   "client": [

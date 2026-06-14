@@ -27,7 +27,10 @@ import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.Gravit
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlock;
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlockEntity;
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlockItem;
+import dev.simulated_team.aero_reformation.content.blocks.high_friction.HighFrictionBlock;
+import dev.simulated_team.aero_reformation.content.blocks.high_friction.HighFrictionVerticalSlabBlock;
 import dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem;
+import dev.simulated_team.aero_reformation.content.items.high_friction.HighFrictionBlockItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -39,6 +42,8 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.fml.ModList;
@@ -361,6 +366,55 @@ public class AeroBlocks {
                     COM_OFFSET.get(), new Item.Properties()
             ));
 
+    // ==================== High Friction Block (高摩擦方块) ====================
+
+    public static final Supplier<HighFrictionBlock> HIGH_FRICTION_BLOCK =
+            BLOCKS.register("high_friction_block", () -> new HighFrictionBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(2.0f)
+                            .requiresCorrectToolForDrops()
+                            .noOcclusion()
+            ));
+
+    public static final Supplier<BlockItem> HIGH_FRICTION_BLOCK_ITEM =
+            ITEMS.register("high_friction_block", () -> new HighFrictionBlockItem(
+                    HIGH_FRICTION_BLOCK.get(), new Item.Properties()
+            ));
+
+    // --- High Friction Slab ---
+    public static final Supplier<SlabBlock> HIGH_FRICTION_SLAB =
+            BLOCKS.register("high_friction_slab", () -> new SlabBlock(
+                    BlockBehaviour.Properties.of().strength(2.0f).requiresCorrectToolForDrops().noOcclusion()
+            ));
+
+    public static final Supplier<BlockItem> HIGH_FRICTION_SLAB_ITEM =
+            ITEMS.register("high_friction_slab", () -> new HighFrictionBlockItem(
+                    HIGH_FRICTION_SLAB.get(), new Item.Properties()
+            ));
+
+    // --- High Friction Stairs ---
+    public static final Supplier<StairBlock> HIGH_FRICTION_STAIRS =
+            BLOCKS.register("high_friction_stairs", () -> new StairBlock(
+                    HIGH_FRICTION_BLOCK.get().defaultBlockState(),
+                    BlockBehaviour.Properties.of().strength(2.0f).requiresCorrectToolForDrops().noOcclusion()
+            ));
+
+    public static final Supplier<BlockItem> HIGH_FRICTION_STAIRS_ITEM =
+            ITEMS.register("high_friction_stairs", () -> new HighFrictionBlockItem(
+                    HIGH_FRICTION_STAIRS.get(), new Item.Properties()
+            ));
+
+    // --- High Friction Vertical Slab ---
+    public static final Supplier<HighFrictionVerticalSlabBlock> HIGH_FRICTION_VERTICAL_SLAB =
+            BLOCKS.register("high_friction_vertical_slab", () -> new HighFrictionVerticalSlabBlock(
+                    BlockBehaviour.Properties.of().strength(2.0f).requiresCorrectToolForDrops().noOcclusion()
+            ));
+
+    public static final Supplier<BlockItem> HIGH_FRICTION_VERTICAL_SLAB_ITEM =
+            ITEMS.register("high_friction_vertical_slab", () -> new HighFrictionBlockItem(
+                    HIGH_FRICTION_VERTICAL_SLAB.get(), new Item.Properties()
+            ));
+
     // ==================== Ethereal Key (空灵钥匙) ====================
 
     public static final Supplier<Item> ETHEREAL_KEY =
@@ -418,6 +472,10 @@ public class AeroBlocks {
                         output.accept(PHYSICS_ANCHOR_ITEM.get());
                         output.accept(GRAVITY_CRYSTAL_ITEM.get());
                         output.accept(COM_OFFSET_ITEM.get());
+                        output.accept(HIGH_FRICTION_BLOCK_ITEM.get());
+                        output.accept(HIGH_FRICTION_SLAB_ITEM.get());
+                        output.accept(HIGH_FRICTION_STAIRS_ITEM.get());
+                        output.accept(HIGH_FRICTION_VERTICAL_SLAB_ITEM.get());
                         output.accept(ETHEREAL_KEY.get());
                         if (ModList.get().isLoaded("createbigcannons") && MUSHROOM_SHELL_ITEM.get() != null) {
                             output.accept((net.minecraft.world.level.ItemLike) MUSHROOM_SHELL_ITEM.get());

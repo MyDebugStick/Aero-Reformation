@@ -5,6 +5,8 @@
   "aero_reformation.swivel.stiffness_0": "§7Swivel Stiffness: §fDefault (1x)",
   "aero_reformation.swivel.stiffness_1": "§7Swivel Stiffness: §eMedium (3x)",
   "aero_reformation.swivel.stiffness_2": "§7Swivel Stiffness: §cHeavy (8x)",
+  "aero_reformation.swivel.stiffness_3": "§7Swivel Stiffness: §bSoft (0.5x)",
+  "aero_reformation.swivel.stiffness_4": "§7Swivel Stiffness: §dLight (0.25x)",
 
   "aero_reformation.swivel.swap_enabled": "§aSwivel Dual-Drive: §6ON",
   "aero_reformation.swivel.swap_disabled": "§7Swivel Dual-Drive: §8OFF",
@@ -140,6 +142,12 @@
   "tooltip.aero_reformation.physics_anchor.gui": "Sneak + Right-click with empty hand to name the anchor. The anchor continuously marks the body on Xaero's map.",
   "tooltip.aero_reformation.physics_anchor.command": "Use /ref removebc to remove anchor(s). /ref removeallmark clears all marker entities (re-place anchors needed).",
   "tooltip.aero_reformation.physics_anchor.dim_warn": "Cross-dimension travel may break rendering (function unaffected). Rejoin or move far away to restore.",
+
+  "block.aero_reformation.high_friction_block": "High Friction Block",
+  "block.aero_reformation.high_friction_slab": "High Friction Slab",
+  "block.aero_reformation.high_friction_stairs": "High Friction Stairs",
+  "block.aero_reformation.high_friction_vertical_slab": "High Friction Vertical Slab",
+  "tooltip.aero_reformation.high_friction_block": "§bIncreases friction based on body mass: doubles per 1000kg, up to 10x",
 
   "itemGroup.aero_reformation": "Aero Reformation"
 }

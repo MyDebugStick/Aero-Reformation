@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS"
+  ],
+  "key": {
+    "S": { "item": "aero_reformation:high_friction_block" }
+  },
+  "result": {
+    "id": "aero_reformation:high_friction_slab",
+    "count": 6
+  }
+}

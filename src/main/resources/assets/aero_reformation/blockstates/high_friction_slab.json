@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "type=bottom": { "model": "aero_reformation:block/high_friction_slab" },
+    "type=top":    { "model": "aero_reformation:block/high_friction_slab_top" },
+    "type=double": { "model": "aero_reformation:block/high_friction_block" }
+  }
+}

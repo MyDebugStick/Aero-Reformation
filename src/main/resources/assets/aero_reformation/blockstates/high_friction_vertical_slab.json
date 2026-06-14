@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "aero_reformation:block/high_friction_vertical_slab", "y": 0 },
+    "facing=east":  { "model": "aero_reformation:block/high_friction_vertical_slab", "y": 90 },
+    "facing=south": { "model": "aero_reformation:block/high_friction_vertical_slab", "y": 180 },
+    "facing=west":  { "model": "aero_reformation:block/high_friction_vertical_slab", "y": 270 }
+  }
+}

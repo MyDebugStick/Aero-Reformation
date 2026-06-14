@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "aero_reformation:high_friction_slab" }
+  ],
+  "result": {
+    "id": "aero_reformation:high_friction_vertical_slab",
+    "count": 1
+  }
+}

@@ -9,7 +9,11 @@
     "aero_reformation:end_rod_seat",
     "aero_reformation:redstone_spring",
     "aero_reformation:gravity_crystal",
-    "aero_reformation:mushroom_shell"
+    "aero_reformation:mushroom_shell",
+    "aero_reformation:high_friction_block",
+    "aero_reformation:high_friction_slab",
+    "aero_reformation:high_friction_stairs",
+    "aero_reformation:high_friction_vertical_slab"
   ]
 }
 

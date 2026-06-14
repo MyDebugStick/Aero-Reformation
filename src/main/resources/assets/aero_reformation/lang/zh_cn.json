@@ -5,6 +5,8 @@
   "aero_reformation.swivel.stiffness_0": "§7旋转轴承刚度：§f默认 (1x)",
   "aero_reformation.swivel.stiffness_1": "§7旋转轴承刚度：§e中等 (3x)",
   "aero_reformation.swivel.stiffness_2": "§7旋转轴承刚度：§c重型 (8x)",
+  "aero_reformation.swivel.stiffness_3": "§7旋转轴承刚度：§b柔和 (0.5x)",
+  "aero_reformation.swivel.stiffness_4": "§7旋转轴承刚度：§d极轻 (0.25x)",
 
   "aero_reformation.swivel.swap_enabled": "§a双驱动模式：§6已启用",
   "aero_reformation.swivel.swap_disabled": "§7双驱动模式：§8已关闭",
@@ -147,6 +149,12 @@
   "tooltip.aero_reformation.physics_anchor.gui": "空手蹲下右键打开GUI为锚点命名，锚点会持续在Xaero地图上标记物理体。",
   "tooltip.aero_reformation.physics_anchor.command": "使用/ref removebc 可以移除指向或全部的锚点，/ref removeallmark 清理所有标记实体（需重放锚点恢复）。",
   "tooltip.aero_reformation.physics_anchor.dim_warn": "跨维度可能导致物理体渲染失效（不影响功能），退出重进或远离物理体后即可恢复。",
+
+  "block.aero_reformation.high_friction_block": "高摩擦方块",
+  "block.aero_reformation.high_friction_slab": "高摩擦台阶",
+  "block.aero_reformation.high_friction_stairs": "高摩擦楼梯",
+  "block.aero_reformation.high_friction_vertical_slab": "高摩擦竖直台阶",
+  "tooltip.aero_reformation.high_friction_block": "§b根据物理体质量增加摩擦力：每1000kg增加一倍，最高十倍",
 
   "itemGroup.aero_reformation": "航空学：变革"
 }
