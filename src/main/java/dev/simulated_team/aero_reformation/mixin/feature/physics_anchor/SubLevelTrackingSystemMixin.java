@@ -28,15 +28,57 @@ public abstract class SubLevelTrackingSystemMixin {
                                          org.joml.Vector3dc entityPos) {
         if (player instanceof ServerPlayer sp) {
             UUID subId = getSubLevelIdAt(sp, entityPos);
-            if (subId != null && AnchorChunkLoader.hasAnchor(subId)) {
-                // Hidden SubLevels: tiny tracking range so they disappear
-                if (dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem.HIDDEN_SUBLEVELS.contains(subId)) {
+            if (subId != null && isInAnchoredChain(sp, subId)) {
+                if (isInHiddenChain(sp, subId)) {
                     return 1.0;
                 }
                 return dev.simulated_team.aero_reformation.config.AeroReformationConfig.anchorTrackingRange;
             }
         }
         return SableConfig.SUB_LEVEL_TRACKING_RANGE.getAsDouble();
+    }
+
+    /** 检查该 SubLevel 或其约束连接链上的任意 SubLevel 是否有锚点 */
+    private static boolean isInAnchoredChain(ServerPlayer sp, UUID subId) {
+        if (AnchorChunkLoader.hasAnchor(subId)) return true;
+        try {
+            var container = dev.ryanhcode.sable.api.sublevel.SubLevelContainer.getContainer(sp.serverLevel());
+            if (container == null) return false;
+            for (var sl : container.getAllSubLevels()) {
+                if (sl instanceof ServerSubLevel ssl && ssl.getUniqueId().equals(subId)) {
+                    var chain = dev.ryanhcode.sable.api.SubLevelHelper.getConnectedChain(ssl);
+                    for (var cs : chain) {
+                        if (cs instanceof ServerSubLevel cssl && AnchorChunkLoader.hasAnchor(cssl.getUniqueId())) {
+                            return true;
+                        }
+                    }
+                    break;
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
+
+    /** 检查该 SubLevel 或其约束连接链上的任意 SubLevel 是否被隐藏 */
+    private static boolean isInHiddenChain(ServerPlayer sp, UUID subId) {
+        var hidden = dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem.HIDDEN_SUBLEVELS;
+        if (hidden.contains(subId)) return true;
+        try {
+            var container = dev.ryanhcode.sable.api.sublevel.SubLevelContainer.getContainer(sp.serverLevel());
+            if (container == null) return false;
+            for (var sl : container.getAllSubLevels()) {
+                if (sl instanceof ServerSubLevel ssl && ssl.getUniqueId().equals(subId)) {
+                    var chain = dev.ryanhcode.sable.api.SubLevelHelper.getConnectedChain(ssl);
+                    for (var cs : chain) {
+                        if (cs instanceof ServerSubLevel cssl && hidden.contains(cssl.getUniqueId())) {
+                            return true;
+                        }
+                    }
+                    break;
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
     }
 
     private static UUID getSubLevelIdAt(ServerPlayer sp, org.joml.Vector3dc entityPos) {

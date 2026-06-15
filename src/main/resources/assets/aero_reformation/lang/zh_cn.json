@@ -154,7 +154,6 @@
   "block.aero_reformation.high_friction_slab": "高摩擦台阶",
   "block.aero_reformation.high_friction_stairs": "高摩擦楼梯",
   "block.aero_reformation.high_friction_vertical_slab": "高摩擦竖直台阶",
-  "tooltip.aero_reformation.high_friction_block": "§b根据物理体质量增加摩擦力：每1000kg增加一倍，最高十倍",
 
   "itemGroup.aero_reformation": "航空学：变革"
 }

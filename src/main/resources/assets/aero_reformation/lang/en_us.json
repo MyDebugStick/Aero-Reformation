@@ -147,7 +147,6 @@
   "block.aero_reformation.high_friction_slab": "High Friction Slab",
   "block.aero_reformation.high_friction_stairs": "High Friction Stairs",
   "block.aero_reformation.high_friction_vertical_slab": "High Friction Vertical Slab",
-  "tooltip.aero_reformation.high_friction_block": "§bIncreases friction based on body mass: doubles per 1000kg, up to 10x",
 
   "itemGroup.aero_reformation": "Aero Reformation"
 }
