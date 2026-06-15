@@ -23,6 +23,8 @@ public class SubLevelAutoAnchorObserver implements SubLevelObserver {
         UUID id = subLevel.getUniqueId();
         if (!AnchorChunkLoader.hasAnchor(id)) return;
 
+        AeroReformation.LOGGER.debug("[PhysicsAnchor] SubLevel removed externally sub={} reason={}, cleaning up", id, reason);
+
         // Clean up marker and tickets for all anchors in this dimension
         if (subLevel.getLevel() instanceof ServerLevel sl) {
             var dimMap = AnchorChunkLoader.anchorsFor(sl.dimension());
@@ -35,7 +37,7 @@ public class SubLevelAutoAnchorObserver implements SubLevelObserver {
                     if (d.marker() != null) d.marker().forceDiscard();
                     if (d.lastTicketChunk() != null)
                         sl.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                                d.lastTicketChunk(), d.ticketRadius() + 1, e.getKey());
+                                d.lastTicketChunk(), d.ticketRadius(), e.getKey());
                     it.remove();
                 }
             }

@@ -58,11 +58,6 @@ public class AeroReformation {
         AeroBlocks.ENTITY_TYPES.register(modEventBus);
         AeroDataComponents.REGISTER.register(modEventBus);
 
-        // Register mushroom shell munition properties handler (CBC only)
-        if (net.neoforged.fml.ModList.get().isLoaded("createbigcannons")) {
-            dev.simulated_team.aero_reformation.registrate.AeroCBCBlocks.registerHandlers(modEventBus);
-        }
-
         // Key bindings
         modEventBus.addListener(PowerKeyBindings::register);
 
@@ -130,9 +125,6 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.power.SeatRenderer::new);
             e.registerEntityRenderer(AeroBlocks.ANCHOR_MARKER.get(),
                     dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorMarkerRenderer::new);
-            if (net.neoforged.fml.ModList.get().isLoaded("createbigcannons")) {
-                dev.simulated_team.aero_reformation.registrate.AeroCBCBlocks.registerRenderers(e);
-            }
             e.registerBlockEntityRenderer(AeroBlocks.PHYSICS_ANCHOR_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.physics_anchor.PhysicsAnchorRenderer::new);
             e.registerBlockEntityRenderer(AeroBlocks.GRAVITY_CRYSTAL_BE.get(),

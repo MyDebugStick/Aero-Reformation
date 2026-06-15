@@ -17,16 +17,7 @@ import java.util.*;
 public class AnchorSavedData extends SavedData {
     private static final String ID = "aero_reformation_anchors";
 
-    public record StoredEntry(UUID subLevelId, double worldX, double worldY, double worldZ,
-                              @org.jetbrains.annotations.Nullable String markerName, int radius,
-                              int anchorX, int anchorY, int anchorZ) {
-        public BlockPos anchorPos() {
-            return new BlockPos(anchorX, anchorY, anchorZ);
-        }
-        public boolean hasAnchorPos() {
-            return anchorX != Integer.MAX_VALUE;
-        }
-    }
+    public record StoredEntry(UUID subLevelId, double worldX, double worldY, double worldZ, String markerName, int radius) {}
 
     private final Map<UUID, StoredEntry> entries = new LinkedHashMap<>();
 
@@ -41,23 +32,14 @@ public class AnchorSavedData extends SavedData {
     );
 
     public void add(UUID subLevelId, double wx, double wy, double wz) {
-        add(subLevelId, wx, wy, wz, null, 2, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        add(subLevelId, wx, wy, wz, null, 2);
     }
 
     public void add(UUID subLevelId, double wx, double wy, double wz, @org.jetbrains.annotations.Nullable String markerName, int radius) {
-        add(subLevelId, wx, wy, wz, markerName, radius, Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-    }
-
-    public void add(UUID subLevelId, double wx, double wy, double wz, @org.jetbrains.annotations.Nullable String markerName, int radius,
-                    int ax, int ay, int az) {
         StoredEntry old = entries.get(subLevelId);
         String name = markerName != null ? markerName : (old != null ? old.markerName : null);
         int r = old != null ? old.radius : radius;
-        // Preserve old anchor pos if not provided and old entry had one
-        int savedAx = (ax != Integer.MAX_VALUE || old == null) ? ax : old.anchorX;
-        int savedAy = (ay != Integer.MAX_VALUE || old == null) ? ay : old.anchorY;
-        int savedAz = (az != Integer.MAX_VALUE || old == null) ? az : old.anchorZ;
-        entries.put(subLevelId, new StoredEntry(subLevelId, wx, wy, wz, name, r, savedAx, savedAy, savedAz));
+        entries.put(subLevelId, new StoredEntry(subLevelId, wx, wy, wz, name, r));
         setDirty();
     }
 
@@ -65,8 +47,7 @@ public class AnchorSavedData extends SavedData {
     public void setMarkerName(UUID subLevelId, String name) {
         StoredEntry e = entries.get(subLevelId);
         if (e != null) {
-            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX, e.worldY, e.worldZ, name, e.radius,
-                    e.anchorX, e.anchorY, e.anchorZ));
+            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX, e.worldY, e.worldZ, name, e.radius));
             setDirty();
         }
     }
@@ -75,8 +56,7 @@ public class AnchorSavedData extends SavedData {
     public void setRadius(UUID subLevelId, int radius) {
         StoredEntry e = entries.get(subLevelId);
         if (e != null) {
-            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX, e.worldY, e.worldZ, e.markerName, radius,
-                    e.anchorX, e.anchorY, e.anchorZ));
+            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX, e.worldY, e.worldZ, e.markerName, radius));
             setDirty();
         }
     }
@@ -113,11 +93,6 @@ public class AnchorSavedData extends SavedData {
             t.putDouble("z", e.worldZ);
             if (e.markerName != null) t.putString("name", e.markerName);
             t.putInt("radius", e.radius);
-            if (e.hasAnchorPos()) {
-                t.putInt("ax", e.anchorX);
-                t.putInt("ay", e.anchorY);
-                t.putInt("az", e.anchorZ);
-            }
             list.add(t);
         }
         tag.put("anchors", list);
@@ -132,11 +107,8 @@ public class AnchorSavedData extends SavedData {
             UUID id = t.getUUID("uuid");
             String name = t.contains("name") ? t.getString("name") : null;
             int radius = t.contains("radius") ? t.getInt("radius") : 2;
-            int ax = t.contains("ax") ? t.getInt("ax") : Integer.MAX_VALUE;
-            int ay = t.contains("ay") ? t.getInt("ay") : Integer.MAX_VALUE;
-            int az = t.contains("az") ? t.getInt("az") : Integer.MAX_VALUE;
             data.entries.put(id, new StoredEntry(id,
-                    t.getDouble("x"), t.getDouble("y"), t.getDouble("z"), name, radius, ax, ay, az));
+                    t.getDouble("x"), t.getDouble("y"), t.getDouble("z"), name, radius));
         }
         return data;
     }
