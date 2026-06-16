@@ -146,6 +146,9 @@ dependencies {
     compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[Xaero的世界地图] xaeroworldmap-neoforge-1.21.1-1.40.11.jar")
     compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[Xaero的小地图] xaerominimap-neoforge-1.21.1-25.3.10.jar")
     compileOnly files("C:/Users/21656/AppData/Local/Temp/xaerolib.jar")
+
+    // Mod Update Checker (compileOnly for auto-update API)
+    compileOnly files("D:/Users/21656/Desktop/idea/hotfix/build/libs/modupdatechecker-1.0.0.jar")
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

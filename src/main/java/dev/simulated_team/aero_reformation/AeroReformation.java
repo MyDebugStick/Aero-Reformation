@@ -49,6 +49,11 @@ public class AeroReformation {
             if (e.getConfig().getSpec() == AeroReformationConfig.CONFIG_SPEC) AeroReformationConfig.refresh();
         });
 
+        // Register with Mod Update Checker for automatic update detection
+        try {
+            com.aero.modupdatechecker.ModUpdateCheckerAPI.registerMod("aero_reformation", "aero-reformation");
+        } catch (NoClassDefFoundError ignored) {}
+
         // Register blocks, items, block entities & creative tab
         AeroBlocks.BLOCKS.register(modEventBus);
         AeroBlocks.ITEMS.register(modEventBus);
