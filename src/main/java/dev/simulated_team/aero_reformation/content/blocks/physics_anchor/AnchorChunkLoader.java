@@ -61,7 +61,7 @@ public class AnchorChunkLoader {
             // Remove warmup's ticket (keyed by marker position, not anchor pos)
             if (warmup.lastTicketChunk != null && warmup.marker != null)
                 sl.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                        warmup.lastTicketChunk, warmup.ticketRadius, warmup.marker.blockPosition());
+                        warmup.lastTicketChunk, warmup.ticketRadius + 1, warmup.marker.blockPosition());
             int r = getSavedRadius(sl, id);
             anchorsFor(sl.dimension()).put(pos, new AnchorData(subLevel, warmup.marker, null, r));
             ANCHORED_SUBLEVELS.add(id);
@@ -124,10 +124,10 @@ public class AnchorChunkLoader {
             // Resolve UUID from SubLevel first, fall back to marker entity
             UUID id = data.subLevel != null ? data.subLevel.getUniqueId()
                     : (data.marker != null ? data.marker.getSubLevelUUID() : null);
-            // Remove PORTAL ticket for this anchor
+            // Remove PORTAL ticket for this anchor (+1 to match add compensation)
             if (data.lastTicketChunk != null) {
                 sl.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                        data.lastTicketChunk, data.ticketRadius, pos);
+                        data.lastTicketChunk, data.ticketRadius + 1, pos);
             }
             boolean sameSubHasOther = map.values().stream().anyMatch(
                     a -> a.subLevel != null && id != null && a.subLevel.getUniqueId().equals(id));
@@ -336,8 +336,6 @@ public class AnchorChunkLoader {
 
                     WARMUP.put(id, new AnchorData(null, marker, null, e.radius()));
                     ANCHORED_SUBLEVELS.add(id);
-                    AeroReformation.LOGGER.debug("[PhysicsAnchor] Warmup marker at {} {} sub={}",
-                            (int)e.worldX(), (int)e.worldZ(), id);
                 }
             }
         }
@@ -353,7 +351,7 @@ public class AnchorChunkLoader {
                 if (data.marker != null) data.marker.forceDiscard();
                 if (data.lastTicketChunk != null)
                     serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                            data.lastTicketChunk, data.ticketRadius, entry.getKey());
+                            data.lastTicketChunk, data.ticketRadius + 1, entry.getKey());
                 ANCHORED_SUBLEVELS.remove(sid);
                 WARMUP.remove(sid);
                 LAST_POS.remove(sid);
@@ -371,25 +369,23 @@ public class AnchorChunkLoader {
                 data.marker.setPos(wx, wy, wz);
 
             // Use stored radius (set via GUI, defaults to 2)
-            int radius = data.ticketRadius;
+            // +1 compensates for Minecraft ticket system off-by-one:
+            // addRegionTicket(radius=N) loads chunks within Chebyshev distance N,
+            // which yields (2N+1) chunks per side only after +1 correction.
+            int radius = data.ticketRadius + 1;
 
             // PORTAL ticket: refresh on chunk change OR every 5 seconds OR radius changed
             boolean chunkChanged = data.lastTicketChunk == null || !data.lastTicketChunk.equals(curChunk);
-            boolean radiusChanged = data.ticketRadius != radius;
             boolean fiveSec = serverLevel.getServer().getTickCount() % 100 == 0;
-            if (chunkChanged || fiveSec || radiusChanged) {
+            if (chunkChanged || fiveSec) {
                 // Always remove old ticket first to ensure proper timeout refresh
                 if (data.lastTicketChunk != null) {
                     serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                            data.lastTicketChunk, data.ticketRadius, entry.getKey());
+                            data.lastTicketChunk, data.ticketRadius + 1, entry.getKey());
                 }
                 serverLevel.getChunkSource().addRegionTicket(TicketType.PORTAL,
                         curChunk, radius, entry.getKey());
-                anchorsFor(serverLevel.dimension()).put(entry.getKey(), new AnchorData(sl, data.marker, curChunk, radius));
-                if (chunkChanged || radiusChanged || serverLevel.getServer().getTickCount() % 600 == 0) {
-                    AeroReformation.LOGGER.debug("[PhysicsAnchor] Ticket {}闁愁偅濮緘 radius={} loaded={}",
-                            data.lastTicketChunk, curChunk, radius, serverLevel.getChunkSource().getLoadedChunksCount());
-                }
+                anchorsFor(serverLevel.dimension()).put(entry.getKey(), new AnchorData(sl, data.marker, curChunk, data.ticketRadius));
             }
 
             if (every20)
@@ -409,11 +405,12 @@ public class AnchorChunkLoader {
             ChunkPos curChunk = new ChunkPos(markerPos);
             boolean fiveSec = serverLevel.getServer().getTickCount() % 100 == 0;
             if (data.lastTicketChunk == null || !data.lastTicketChunk.equals(curChunk) || fiveSec) {
+                int warmupRadius = data.ticketRadius + 1;
                 if (data.lastTicketChunk != null)
                     serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                            data.lastTicketChunk, data.ticketRadius, markerPos);
+                            data.lastTicketChunk, warmupRadius, markerPos);
                 serverLevel.getChunkSource().addRegionTicket(TicketType.PORTAL,
-                        curChunk, data.ticketRadius, markerPos);
+                        curChunk, warmupRadius, markerPos);
                 WARMUP.put(e.getKey(), new AnchorData(null, data.marker, curChunk, data.ticketRadius));
             }
         }
@@ -488,7 +485,7 @@ public class AnchorChunkLoader {
                 if (ad.marker != null) ad.marker.forceDiscard();
                 if (ad.lastTicketChunk != null)
                     serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                            ad.lastTicketChunk, ad.ticketRadius, e.getKey());
+                            ad.lastTicketChunk, ad.ticketRadius + 1, e.getKey());
                 it.remove();
             }
         }
