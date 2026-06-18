@@ -1,0 +1,6 @@
+{
+  "selector": "#aero_reformation:gravity_crystal",
+  "properties": {
+    "sable:floating_material": "aero_reformation:gravity_crystal"
+  }
+}

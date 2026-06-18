@@ -1,0 +1,52 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="MIT"
+
+[[mods]]
+modId="aero_reformation"
+version="1.2.9.1"
+displayName="Aero Reformation"
+authors="Simulated Team"
+description='''
+An addon for Create: Simulated (Aeronautics) that adds inverted redstone output functionality to the Navigation Table.
+Right-click a Navigation Table with a Redstone Torch to toggle inverted mode.
+In inverted mode, all four sides output redstone power, except the side pointing toward the target.
+'''
+
+[[mixins]]
+config="aero_reformation.mixins.json"
+
+[[dependencies.aero_reformation]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.224,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.aero_reformation]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1]"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.aero_reformation]]
+modId="simulated"
+type="required"
+versionRange="[1.2.1,)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.aero_reformation]]
+modId="sable"
+type="required"
+versionRange="[1.2.2,)"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.aero_reformation]]
+modId="create"
+type="required"
+versionRange="[6.0.10,)"
+ordering="AFTER"
+side="BOTH"

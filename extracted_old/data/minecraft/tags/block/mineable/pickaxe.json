@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "aero_reformation:rcs_thruster",
+    "aero_reformation:electric_loadstone",
+    "aero_reformation:power",
+    "aero_reformation:pilot_seat",
+    "aero_reformation:create_seat",
+    "aero_reformation:end_rod_seat",
+    "aero_reformation:redstone_spring",
+    "aero_reformation:gravity_crystal",
+    "aero_reformation:mushroom_shell"
+  ]
+}
+

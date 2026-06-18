@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "aero_reformation:block/physics_anchor" }
+  }
+}

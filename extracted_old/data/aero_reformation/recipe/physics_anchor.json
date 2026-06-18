@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EEE",
+    "TBT",
+    "TTT"
+  ],
+  "key": {
+    "E": { "item": "minecraft:ender_eye" },
+    "T": { "item": "create:railway_casing" },
+    "B": { "item": "minecraft:beacon" }
+  },
+  "result": {
+    "id": "aero_reformation:physics_anchor",
+    "count": 1
+  }
+}

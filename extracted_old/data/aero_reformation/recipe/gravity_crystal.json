@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LP",
+    "PL"
+  ],
+  "key": {
+    "L": { "item": "aeronautics:levitite" },
+    "P": { "item": "aeronautics:pearlescent_levitite" }
+  },
+  "result": {
+    "id": "aero_reformation:gravity_crystal",
+    "count": 3
+  }
+}

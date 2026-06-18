@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "create:white_seat"
+    },
+    {
+      "item": "simulated:gimbal_sensor"
+    }
+  ],
+  "result": {
+    "id": "aero_reformation:power",
+    "count": 1
+  }
+}

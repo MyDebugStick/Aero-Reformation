@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "R",
+    "L",
+    "C"
+  ],
+  "key": {
+    "R": { "item": "simulated:redstone_magnet" },
+    "L": { "item": "minecraft:lodestone" },
+    "C": { "item": "create:railway_casing" }
+  },
+  "result": {
+    "id": "aero_reformation:electric_loadstone",
+    "count": 1
+  }
+}

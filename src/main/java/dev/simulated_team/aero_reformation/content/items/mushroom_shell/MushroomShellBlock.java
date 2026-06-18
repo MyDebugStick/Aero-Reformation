@@ -7,7 +7,6 @@ import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import rbasamoyai.createbigcannons.index.CBCMunitionPropertiesHandlers;
 import rbasamoyai.createbigcannons.munitions.big_cannon.FuzedBlockEntity;
-import rbasamoyai.createbigcannons.munitions.big_cannon.ProjectileBlock;
 import rbasamoyai.createbigcannons.munitions.big_cannon.SimpleShellBlock;
 
 public class MushroomShellBlock extends SimpleShellBlock<MushroomShellProjectile> {
@@ -27,6 +26,7 @@ public class MushroomShellBlock extends SimpleShellBlock<MushroomShellProjectile
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public BlockEntityType<? extends FuzedBlockEntity> getBlockEntityType() {
         return (BlockEntityType<? extends FuzedBlockEntity>) dev.simulated_team.aero_reformation.registrate.AeroBlocks.MUSHROOM_SHELL_BE.get();
     }
@@ -38,6 +38,7 @@ public class MushroomShellBlock extends SimpleShellBlock<MushroomShellProjectile
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public EntityType<? extends MushroomShellProjectile> getAssociatedEntityType() {
         return (EntityType<? extends MushroomShellProjectile>) dev.simulated_team.aero_reformation.registrate.AeroBlocks.MUSHROOM_SHELL_ENTITY.get();
     }

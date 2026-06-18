@@ -23,12 +23,14 @@ import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.Gravit
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComConfigPayload;
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComSyncPayload;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
+import dev.simulated_team.aero_reformation.registrate.AeroCBCBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
 import dev.simulated_team.simulated.index.SimRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -51,8 +53,11 @@ public class AeroReformation {
 
         // Register with Mod Update Checker for automatic update detection
         try {
-            com.aero.modupdatechecker.ModUpdateCheckerAPI.registerMod("aero_reformation", "aero-reformation");
-        } catch (NoClassDefFoundError ignored) {}
+            Class.forName("com.aero.modupdatechecker.ModUpdateCheckerAPI")
+                    .getMethod("registerMod", String.class, String.class)
+                    .invoke(null, "aero_reformation", "aero-reformation");
+        } catch (ReflectiveOperationException ignored) {}
+
 
         // Register blocks, items, block entities & creative tab
         AeroBlocks.BLOCKS.register(modEventBus);
@@ -62,6 +67,11 @@ public class AeroReformation {
         AeroBlocks.CREATIVE_TAB.register(modEventBus);
         AeroBlocks.ENTITY_TYPES.register(modEventBus);
         AeroDataComponents.REGISTER.register(modEventBus);
+
+        // Register CBC-dependent projectile handler and renderers
+        if (ModList.get().isLoaded("createbigcannons")) {
+            AeroCBCBlocks.registerHandlers(modEventBus);
+        }
 
         // Key bindings
         modEventBus.addListener(PowerKeyBindings::register);
@@ -136,10 +146,15 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalRenderer::new);
             e.registerBlockEntityRenderer(AeroBlocks.COM_OFFSET_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetRenderer::new);
+            // Register CBC-dependent renderers when Create Big Cannons is present
+            if (ModList.get().isLoaded("createbigcannons")) {
+                AeroCBCBlocks.registerRenderers(e);
+            }
         });
 
         // Set block render type for cutout transparency
-        modEventBus.addListener((net.neoforged.fml.event.lifecycle.FMLClientSetupEvent e) -> {
+        @SuppressWarnings("deprecation")
+        java.util.function.Consumer<net.neoforged.fml.event.lifecycle.FMLClientSetupEvent> cutoutListener = e -> {
             e.enqueueWork(() -> {
                 net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
                         AeroBlocks.PHYSICS_ANCHOR.get(),
@@ -148,7 +163,8 @@ public class AeroReformation {
                         AeroBlocks.COM_OFFSET.get(),
                         net.minecraft.client.renderer.RenderType.cutout());
             });
-        });
+        };
+        modEventBus.addListener(cutoutListener);
 
         // Register screen
         modEventBus.addListener((net.neoforged.neoforge.client.event.RegisterMenuScreensEvent e) -> {
@@ -156,11 +172,12 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.sensor_agency.SensorAgencyScreen::new);
         });
 
-        // Global server tick for physics anchor chunk loading (all dimensions)
+        // Global server tick for physics anchor chunk loading and delayed explosions (all dimensions)
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
                 (net.neoforged.neoforge.event.tick.ServerTickEvent.Post e) -> {
                     for (var level : e.getServer().getAllLevels()) {
                         dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorChunkLoader.tick(level);
+                        dev.simulated_team.aero_reformation.content.items.mushroom_shell.DelayedExplosionManager.tick(level);
                     }
                 });
 

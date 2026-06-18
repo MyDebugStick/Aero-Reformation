@@ -2,7 +2,6 @@ package dev.simulated_team.aero_reformation.content.blocks.physics_anchor;
 
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.sublevel.SubLevel;
-import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem;
 import net.minecraft.core.BlockPos;
@@ -435,7 +434,6 @@ public class AnchorChunkLoader {
 
         for (var entry : dimMap.entrySet()) {
             AnchorData data = entry.getValue();
-            BlockPos anchorPos = entry.getKey();
             SubLevel sl = data.subLevel;
             if (sl == null || sl.isRemoved()) continue;
 

@@ -79,6 +79,7 @@ public class GravityCrystalRenderer implements BlockEntityRenderer<GravityCrysta
         renderModelQuads(pose, vc, model, state, r, g, b, alpha, light);
     }
 
+    @SuppressWarnings("deprecation")
     private void renderModelQuads(PoseStack pose, VertexConsumer vc, BakedModel model,
                                    BlockState state, float r, float g, float b, float a, int light) {
         RandomSource rand = RandomSource.create();

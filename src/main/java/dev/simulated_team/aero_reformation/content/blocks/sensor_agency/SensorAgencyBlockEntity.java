@@ -130,7 +130,6 @@ public class SensorAgencyBlockEntity extends BlockEntity {
         var compassNti = dev.simulated_team.simulated.content.blocks.nav_table.navigation_target.NavigationTarget
                 .ofStack(be.config.compassSlot.getItem(0));
         Vec3 target = null;
-        var nti = compassNti;
         if (compassNti != null) {
             for (BlockPos sp : be.binding.nav()) {
                 NavTableBlockEntity n = findBE(level, sp, NavTableBlockEntity.class);
@@ -146,15 +145,14 @@ public class SensorAgencyBlockEntity extends BlockEntity {
                 NavTableBlockEntity n = findBE(level, sp, NavTableBlockEntity.class);
                 if (n != null) {
                     target = n.getTargetPosition(true);
-                    nti = n.getNavTableItem();
                     break;
                 }
             }
         }
 
         if (target != null && !be.binding.nav().isEmpty()) {
-            float maxRange = Float.MAX_VALUE; // ignore nav distance limit
-            float deadzone = (nti != null && nti.getDeadzone() > 0) ? nti.getDeadzone() : 0.5f;
+            // ignore nav distance limit, deadzone filtered by NavTable
+            float maxRange = Float.MAX_VALUE;
 
             // Use AGENCY's position, project onto XZ plane (horizontal)
             Quaterniond agencySubRot = sub != null ? sub.logicalPose().orientation() : new Quaterniond();

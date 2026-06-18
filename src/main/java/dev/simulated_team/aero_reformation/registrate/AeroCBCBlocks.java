@@ -1,6 +1,5 @@
 package dev.simulated_team.aero_reformation.registrate;
 
-import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.content.items.mushroom_shell.MushroomShellBlock;
 import dev.simulated_team.aero_reformation.content.items.mushroom_shell.MushroomShellItem;
 import dev.simulated_team.aero_reformation.content.items.mushroom_shell.MushroomShellProjectile;
@@ -11,8 +10,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.neoforged.fml.ModList;
-import rbasamoyai.createbigcannons.munitions.FuzedProjectileBlockItem;
 import rbasamoyai.createbigcannons.munitions.big_cannon.FuzedBlockEntity;
 
 import java.util.function.Supplier;
@@ -23,6 +20,7 @@ import static dev.simulated_team.aero_reformation.registrate.AeroBlocks.*;
  * All CBC-dependent registrations, isolated in a separate class
  * to avoid classloading CBC types when the mod is absent.
  */
+@SuppressWarnings("unchecked")
 public class AeroCBCBlocks {
 
     public static final Supplier<EntityType<MushroomShellProjectile>> MUSHROOM_SHELL_ENTITY;

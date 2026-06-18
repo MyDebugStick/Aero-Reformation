@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "EAE",
+    "GCN",
+    "EVE"
+  ],
+  "key": {
+    "E": { "item": "minecraft:ender_eye" },
+    "A": { "item": "simulated:altitude_sensor" },
+    "G": { "item": "simulated:gimbal_sensor" },
+    "V": { "item": "simulated:velocity_sensor" },
+    "N": { "item": "simulated:navigation_table" },
+    "C": { "item": "create:linked_controller" }
+  },
+  "result": {
+    "count": 1,
+    "id": "aero_reformation:sensor_agency"
+  }
+}
