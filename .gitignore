@@ -25,3 +25,7 @@ runServer/
 runs/
 .vscode/
 server/
+extracted_old/
+extracted_cca/
+_cbctmp/
+cbcat_extract/

@@ -30,9 +30,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.joml.Vector3d;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Set;
 import java.util.List;
 
 public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEntitySubLevelActor {
@@ -69,8 +72,11 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     private BlockPos boundSyncPos = null;
     public ScrollValueBehaviour thrustScroll;
 
-    // Gasoline fluid ID
-    private static final String GASOLINE_FLUID = "createdieselgenerators:gasoline";
+    // Accepted fuel fluid IDs
+    private static final Set<String> ACCEPTED_FUELS = Set.of(
+            "createdieselgenerators:gasoline",
+            "createdieselgenerators:ethanol"
+    );
 
     // Angled nozzle reduction mode: 0=100%, 1=50%, 2=25%, 3=10%
     private static final double[] ANGLED_REDUCTION = {1.0, 0.5, 0.25, 0.1, 0.05, 0.02};
@@ -82,6 +88,9 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     }
     private boolean creativeMode = false;
     private boolean fuelAvailable = false; // synced for client VFX
+
+    // Forge Energy extraction ratio (pN per FE, higher = more efficient)
+    private static final double ENERGY_EFFICIENCY = 20.0;
 
 
     // Working vectors (reused)
@@ -118,7 +127,18 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     public void setCreativeMode(boolean v) { this.creativeMode = v; setChanged(); }
     public boolean isCreativeMode() { return creativeMode; }
 
-    /** Find and return a gasoline IFluidHandler from the back face (non-nozzle side) */
+    /** Find and return an energy source (IEnergyStorage) from the back face. */
+    @Nullable
+    private IEnergyStorage getEnergySource() {
+        if (level == null) return null;
+        Direction back = getBlockState().getValue(RcsThrusterBlock.FACING).getOpposite();
+        BlockPos backPos = worldPosition.relative(back);
+        return level.getCapability(
+                net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
+                backPos, back);
+    }
+
+    /** Find and return a fuel IFluidHandler from the back face (non-nozzle side) */
     private IFluidHandler getFuelSource() {
         if (level == null) return null;
         Direction back = getBlockState().getValue(RcsThrusterBlock.FACING).getOpposite();
@@ -128,25 +148,25 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                 backPos, back);
     }
 
-    /** Returns available gasoline in mB from connected container */
+    /** Returns available accepted fuel in mB from connected container */
     public int getFuelAmount() {
         IFluidHandler source = getFuelSource();
         if (source == null) return 0;
-        // Check if the fluid is gasoline
+        int total = 0;
         for (int i = 0; i < source.getTanks(); i++) {
             var stack = source.getFluidInTank(i);
             if (!stack.isEmpty()) {
                 var key = net.minecraft.core.registries.BuiltInRegistries.FLUID
                         .getKey(stack.getFluid());
-                if (key != null && key.toString().equals(GASOLINE_FLUID)) {
-                    return stack.getAmount();
+                if (key != null && ACCEPTED_FUELS.contains(key.toString())) {
+                    total += stack.getAmount();
                 }
             }
         }
-        return 0;
+        return total;
     }
 
-    /** Drain up to 'amount' mB of gasoline from the connected container. */
+    /** Drain up to 'amount' mB of accepted fuel from the connected container. */
     private int drainFuel(int amount) {
         IFluidHandler source = getFuelSource();
         if (source == null) return 0;
@@ -155,7 +175,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             if (!stack.isEmpty()) {
                 var key = net.minecraft.core.registries.BuiltInRegistries.FLUID
                         .getKey(stack.getFluid());
-                if (key != null && key.toString().equals(GASOLINE_FLUID)) {
+                if (key != null && ACCEPTED_FUELS.contains(key.toString())) {
                     return source.drain(amount, IFluidHandler.FluidAction.EXECUTE).getAmount();
                 }
             }
@@ -297,18 +317,31 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             totalForce.add(thrustWorld.mul(thrustPN / 40.0, force));
         }
 
-        // Fuel consumption
-        int fuelNeeded = creativeMode ? 0 : (int) Math.ceil(totalThrustPN / getFuelConsumption());
+        // Fuel / Energy consumption (electricity first, then fluid fuel)
         boolean prevFuel = fuelAvailable;
-        if (!creativeMode && fuelNeeded > 0) {
-            int drained = drainFuel(fuelNeeded);
-            fuelAvailable = drained > 0;
-            if (drained < fuelNeeded) {
-                double ratio = fuelNeeded > 0 ? (double) drained / fuelNeeded : 0;
-                totalForce.mul(ratio);
+        if (creativeMode) {
+            fuelAvailable = true;
+        } else if (totalThrustPN > 0) {
+            // Try electricity first (same back face as fluid)
+            var energySource = getEnergySource();
+            int energyNeeded = (int) Math.ceil(totalThrustPN / ENERGY_EFFICIENCY);
+            int energyDrained = energySource != null ? energySource.extractEnergy(energyNeeded, false) : 0;
+            double energyCovered = energyDrained * ENERGY_EFFICIENCY;
+            if (energyCovered >= totalThrustPN) {
+                fuelAvailable = false; // fully powered by electricity
+            } else {
+                // Fall back to fluid fuel for the remaining thrust
+                double remainingPN = totalThrustPN - energyCovered;
+                int fuelNeeded = (int) Math.ceil(remainingPN / getFuelConsumption());
+                int drained = drainFuel(fuelNeeded);
+                fuelAvailable = drained > 0;
+                if (energyDrained > 0 || drained < fuelNeeded) {
+                    double ratio = (energyCovered + drained * getFuelConsumption()) / totalThrustPN;
+                    totalForce.mul(ratio);
+                }
             }
         } else {
-            fuelAvailable = creativeMode;
+            fuelAvailable = false;
         }
         if (fuelAvailable != prevFuel) {
             sendData();

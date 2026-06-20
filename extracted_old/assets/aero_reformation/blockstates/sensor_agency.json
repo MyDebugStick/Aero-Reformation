@@ -1,8 +1,0 @@
-{
-  "variants": {
-    "facing=north": { "model": "aero_reformation:block/sensor_agency" },
-    "facing=east":  { "model": "aero_reformation:block/sensor_agency", "y": 90 },
-    "facing=south": { "model": "aero_reformation:block/sensor_agency", "y": 180 },
-    "facing=west":  { "model": "aero_reformation:block/sensor_agency", "y": 270 }
-  }
-}

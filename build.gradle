@@ -190,6 +190,19 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
+// Deploy built JAR to mods folder
+def modsDir = file("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods")
+tasks.register('cleanDeploy', Delete) {
+    delete fileTree(modsDir) { include "aero_reformation-*.jar" }
+}
+tasks.register('deploy', Copy) {
+    dependsOn build, cleanDeploy
+    from "build/libs"
+    include "aero_reformation-${mod_version}.jar"
+    into modsDir
+}
+build.finalizedBy(deploy)
+
 idea {
     module {
         downloadSources = true

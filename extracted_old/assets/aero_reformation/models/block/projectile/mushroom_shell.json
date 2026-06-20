@@ -1,9 +1,0 @@
-{
-  "parent": "createbigcannons:block/projectile_block",
-  "textures": {
-    "top": "aero_reformation:block/projectile/mushroom_shell_top",
-    "side": "aero_reformation:block/projectile/mushroom_shell",
-    "bottom": "aero_reformation:block/projectile/mushroom_shell_bottom",
-    "particle": "aero_reformation:block/projectile/mushroom_shell"
-  }
-}
