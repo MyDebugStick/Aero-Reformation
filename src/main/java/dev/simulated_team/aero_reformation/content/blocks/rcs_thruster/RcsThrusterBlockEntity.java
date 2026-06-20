@@ -82,18 +82,16 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     private static final double[] ANGLED_REDUCTION = {1.0, 0.5, 0.25, 0.1, 0.05, 0.02};
     private int angledMode = 0;
 
-    // Fuel: configurable via AeroReformationConfig, default 5000pN/mB/tick
+    // Forge Energy extraction ratio (pN per FE, higher = more efficient)
+    private static final double ENERGY_EFFICIENCY = 20.0;
     private double getFuelConsumption() {
         return dev.simulated_team.aero_reformation.config.AeroReformationConfig.rcsFuelConsumption;
     }
     private boolean creativeMode = false;
     private boolean fuelAvailable = false; // synced for client VFX
+    private boolean electricMode = false;  // true = using electricity, false = fluid fuel
 
-    // Forge Energy extraction ratio (pN per FE, higher = more efficient)
-    private static final double ENERGY_EFFICIENCY = 20.0;
-
-
-    // Working vectors (reused)
+    // Fuel: configurable via AeroReformationConfig, default 5000pN/mB/tick
     private final Vector3d thrustWorld = new Vector3d();
     private final Vector3d blockCenter = new Vector3d();
     private final Vector3d force = new Vector3d();
@@ -127,7 +125,6 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     public void setCreativeMode(boolean v) { this.creativeMode = v; setChanged(); }
     public boolean isCreativeMode() { return creativeMode; }
 
-    /** Find and return an energy source (IEnergyStorage) from the back face. */
     @Nullable
     private IEnergyStorage getEnergySource() {
         if (level == null) return null;
@@ -138,7 +135,6 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                 backPos, back);
     }
 
-    /** Find and return a fuel IFluidHandler from the back face (non-nozzle side) */
     private IFluidHandler getFuelSource() {
         if (level == null) return null;
         Direction back = getBlockState().getValue(RcsThrusterBlock.FACING).getOpposite();
@@ -148,7 +144,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                 backPos, back);
     }
 
-    /** Returns available accepted fuel in mB from connected container */
+    /** Returns available gasoline in mB from connected container */
     public int getFuelAmount() {
         IFluidHandler source = getFuelSource();
         if (source == null) return 0;
@@ -181,6 +177,13 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             }
         }
         return 0;
+    }
+
+    @Override
+    public void writeSafe(CompoundTag tag, HolderLookup.Provider registries) {
+        super.writeSafe(tag, registries);
+        tag.putBoolean("FuelAvailable", fuelAvailable);
+        tag.putBoolean("ElectricMode", electricMode);
     }
 
     @Override
@@ -230,48 +233,75 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                     worldPosition.getZ() + nPos.z / 16.0);
             dev.ryanhcode.sable.Sable.HELPER.projectOutOfSubLevel(level, nozzleWorld);
 
+            // Check energy source for visual/sound mode
+            boolean hasElectric = getEnergySource() != null;
+
             // Activation sound
             if ((prevActiveMask & (1 << nozzleIdx)) == 0) {
                 level.playLocalSound(nozzleWorld.x, nozzleWorld.y, nozzleWorld.z,
-                        SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS,
-                        0.3f, 0.8f + rand.nextFloat() * 0.4f, false);
+                        hasElectric ? SoundEvents.BEACON_POWER_SELECT : SoundEvents.FIRECHARGE_USE,
+                        SoundSource.BLOCKS,
+                        0.3f, hasElectric ? 1.5f : 0.8f + rand.nextFloat() * 0.4f, false);
             }
-            // Continuous crackle
-            if (level.getGameTime() % 3 == nozzleIdx % 3) {
+            // Continuous sound
+            if (level.getGameTime() % (hasElectric ? 4 : 3) == nozzleIdx % (hasElectric ? 4 : 3)) {
                 level.playLocalSound(nozzleWorld.x, nozzleWorld.y, nozzleWorld.z,
-                        SoundEvents.CAMPFIRE_CRACKLE, SoundSource.BLOCKS,
-                        0.50f, 0.9f + rand.nextFloat() * 0.3f, false);
+                        hasElectric ? SoundEvents.BEACON_AMBIENT : SoundEvents.CAMPFIRE_CRACKLE,
+                        SoundSource.BLOCKS,
+                        hasElectric ? 0.30f : 0.50f,
+                        hasElectric ? 1.8f + rand.nextFloat() * 0.4f : 0.9f + rand.nextFloat() * 0.3f, false);
             }
         }
         prevActiveMask = newMask;
 
-        // Particles: forward nozzle only, exhaust opposite to facing (goes out the front)
+        // Particles: forward nozzle only
         if ((newMask & 1) == 0) return;
 
-        // Exhaust direction = facing direction (comes out the nozzle front)
         Vector3d particleDir = new Vector3d(
                 rcsFacing.getStepX(), rcsFacing.getStepY(), rcsFacing.getStepZ());
 
-        // Rotate direction by sublevel's world orientation
         var sl = dev.ryanhcode.sable.Sable.HELPER.getContaining(level, worldPosition);
         if (sl != null) {
             sl.logicalPose().orientation().transform(particleDir);
         }
 
-        // Position: block center + 0.4 toward front (facing direction)
         Vector3d particleWorld = new Vector3d(
                 worldPosition.getX() + 0.5 + rcsFacing.getStepX() * 0.4,
                 worldPosition.getY() + 0.5 + rcsFacing.getStepY() * 0.4,
                 worldPosition.getZ() + 0.5 + rcsFacing.getStepZ() * 0.4);
         dev.ryanhcode.sable.Sable.HELPER.projectOutOfSubLevel(level, particleWorld);
 
-        for (int i = 0; i < 3; i++) {
-            double ox = particleDir.x * 0.2 + (rand.nextDouble() - 0.5) * 0.15;
-            double oy = particleDir.y * 0.2 + (rand.nextDouble() - 0.5) * 0.15;
-            double oz = particleDir.z * 0.2 + (rand.nextDouble() - 0.5) * 0.15;
-            level.addParticle(ParticleTypes.FLAME,
-                    particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
-                    particleDir.x * 0.1, particleDir.y * 0.1, particleDir.z * 0.1);
+        // Thrust particles: blue for electric, yellow for fuel
+        boolean hasElectric = getEnergySource() != null;
+        if (hasElectric) {
+            // Blue ion beam
+            for (int i = 0; i < 5; i++) {
+                double spread = 0.08;
+                double ox = particleDir.x * 0.25 + (rand.nextDouble() - 0.5) * spread;
+                double oy = particleDir.y * 0.25 + (rand.nextDouble() - 0.5) * spread;
+                double oz = particleDir.z * 0.25 + (rand.nextDouble() - 0.5) * spread;
+                level.addParticle(ParticleTypes.SOUL_FIRE_FLAME,
+                        particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
+                        particleDir.x * 0.12, particleDir.y * 0.12, particleDir.z * 0.12);
+            }
+            for (int i = 0; i < 3; i++) {
+                double ox = particleDir.x * 0.35 + (rand.nextDouble() - 0.5) * 0.10;
+                double oy = particleDir.y * 0.35 + (rand.nextDouble() - 0.5) * 0.10;
+                double oz = particleDir.z * 0.35 + (rand.nextDouble() - 0.5) * 0.10;
+                level.addParticle(ParticleTypes.ELECTRIC_SPARK,
+                        particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
+                        particleDir.x * 0.2, particleDir.y * 0.2, particleDir.z * 0.2);
+            }
+        } else {
+            // Yellow fuel flame
+            for (int i = 0; i < 4; i++) {
+                double ox = particleDir.x * 0.2 + (rand.nextDouble() - 0.5) * 0.15;
+                double oy = particleDir.y * 0.2 + (rand.nextDouble() - 0.5) * 0.15;
+                double oz = particleDir.z * 0.2 + (rand.nextDouble() - 0.5) * 0.15;
+                level.addParticle(ParticleTypes.FLAME,
+                        particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
+                        particleDir.x * 0.1, particleDir.y * 0.1, particleDir.z * 0.1);
+            }
         }
     }
 
@@ -322,15 +352,15 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         if (creativeMode) {
             fuelAvailable = true;
         } else if (totalThrustPN > 0) {
-            // Try electricity first (same back face as fluid)
             var energySource = getEnergySource();
             int energyNeeded = (int) Math.ceil(totalThrustPN / ENERGY_EFFICIENCY);
             int energyDrained = energySource != null ? energySource.extractEnergy(energyNeeded, false) : 0;
             double energyCovered = energyDrained * ENERGY_EFFICIENCY;
             if (energyCovered >= totalThrustPN) {
-                fuelAvailable = false; // fully powered by electricity
+                fuelAvailable = true;
+                electricMode = true;
             } else {
-                // Fall back to fluid fuel for the remaining thrust
+                electricMode = false;
                 double remainingPN = totalThrustPN - energyCovered;
                 int fuelNeeded = (int) Math.ceil(remainingPN / getFuelConsumption());
                 int drained = drainFuel(fuelNeeded);
@@ -342,6 +372,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             }
         } else {
             fuelAvailable = false;
+            electricMode = false;
         }
         if (fuelAvailable != prevFuel) {
             sendData();
