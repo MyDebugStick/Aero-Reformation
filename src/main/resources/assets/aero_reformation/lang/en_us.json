@@ -66,9 +66,10 @@
   "key.category.aero_reformation.power": "Aero Reformation: Power",
   "key.aero_reformation.power.view_sync": "Switch Mode",
   "block.aero_reformation.rcs_thruster": "RCS Thruster",
-  "aero_reformation.rcs_thruster.desc1": "Requires gasoline in adjacent container, or use Creative Blaze Cake",
+  "aero_reformation.rcs_thruster.desc1": "Uses gasoline/ethanol as fuel, or power via adjacent energy source; right-click with Creative Blaze Cake to ignore fuel cost",
   "aero_reformation.rcs_thruster.desc2": "Bind to Master Synchronizer to control output",
   "aero_reformation.rcs_thruster.desc3": "Fuel consumption: %spN/mB/tick",
+  "aero_reformation.rcs_thruster.desc4": "Electric efficiency: %spN/FE/tick",
 
   "aero_reformation.synchronizer.bound": "§aBound to master position",
   "aero_reformation.rcs_thruster.bound": "§aEntered RCS Sync Mode",

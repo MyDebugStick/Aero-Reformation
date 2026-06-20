@@ -9,6 +9,7 @@ public class AeroReformationConfig {
     public static final ModConfigSpec.DoubleValue REDSTONE_SPRING_STRESS_CAPACITY;
 
     public static final ModConfigSpec.DoubleValue RCS_FUEL_CONSUMPTION;
+    public static final ModConfigSpec.DoubleValue RCS_ELECTRIC_EFFICIENCY;
     public static final ModConfigSpec.IntValue MAX_ANCHOR_RADIUS;
     public static final ModConfigSpec.DoubleValue ANCHOR_TRACKING_RANGE;
 
@@ -30,6 +31,9 @@ public class AeroReformationConfig {
         RCS_FUEL_CONSUMPTION = BUILDER
                 .comment("Fuel consumption of RCS Thruster in pN per mB per tick. Higher = more efficient. Default 5000.")
                 .defineInRange("rcsFuelConsumption", 5000.0, 1.0, 1000000.0);
+        RCS_ELECTRIC_EFFICIENCY = BUILDER
+                .comment("Electric efficiency of RCS Thruster in pN per FE per tick. Higher = more efficient. Default 25.")
+                .defineInRange("rcsElectricEfficiency", 25.0, 1.0, 1000000.0);
         BUILDER.pop();
 
         BUILDER.push("Physics Anchor");
@@ -50,6 +54,7 @@ public class AeroReformationConfig {
     public static boolean levititeGoldPickaxeOnly = true;
     public static double redstoneSpringStressCapacity = 8.0;
     public static double rcsFuelConsumption = 5000.0;
+    public static double rcsElectricEfficiency = 25.0;
     public static int maxAnchorRadius = 5;
     public static double anchorTrackingRange = 1024.0;
 
@@ -57,6 +62,7 @@ public class AeroReformationConfig {
         levititeGoldPickaxeOnly = LEVITITE_GOLD_PICKAXE.get();
         redstoneSpringStressCapacity = REDSTONE_SPRING_STRESS_CAPACITY.get();
         rcsFuelConsumption = RCS_FUEL_CONSUMPTION.get();
+        rcsElectricEfficiency = RCS_ELECTRIC_EFFICIENCY.get();
         maxAnchorRadius = MAX_ANCHOR_RADIUS.get();
         anchorTrackingRange = ANCHOR_TRACKING_RANGE.get();
     }

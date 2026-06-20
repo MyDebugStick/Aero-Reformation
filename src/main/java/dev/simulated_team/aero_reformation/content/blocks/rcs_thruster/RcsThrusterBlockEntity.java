@@ -82,10 +82,11 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     private static final double[] ANGLED_REDUCTION = {1.0, 0.5, 0.25, 0.1, 0.05, 0.02};
     private int angledMode = 0;
 
-    // Forge Energy extraction ratio (pN per FE, higher = more efficient)
-    private static final double ENERGY_EFFICIENCY = 25.0;
     private double getFuelConsumption() {
         return dev.simulated_team.aero_reformation.config.AeroReformationConfig.rcsFuelConsumption;
+    }
+    private double getElectricEfficiency() {
+        return dev.simulated_team.aero_reformation.config.AeroReformationConfig.rcsElectricEfficiency;
     }
     private boolean creativeMode = false;
     private boolean fuelAvailable = false; // synced for client VFX
@@ -225,33 +226,17 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         boolean hasElectric = electricMode;
         var subLevel = dev.ryanhcode.sable.Sable.HELPER.getContaining(level, worldPosition);
 
+        // Continuous sound: plays at block center as long as any nozzle is active
+        if (activeNozzleMask != 0 && level.getGameTime() % 10 == 0) {
+            level.playLocalSound(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5,
+                    hasElectric ? SoundEvents.BEACON_AMBIENT : SoundEvents.CAMPFIRE_CRACKLE,
+                    SoundSource.BLOCKS,
+                    1.00f,
+                    hasElectric ? 1.8f + rand.nextFloat() * 0.4f : 0.9f + rand.nextFloat() * 0.3f, false);
+        }
+
         for (int nozzleIdx = 0; nozzleIdx < 5; nozzleIdx++) {
             if ((activeNozzleMask & (1 << nozzleIdx)) == 0) continue;
-
-            // Nozzle position for sound
-            Vector3d nPos = new Vector3d(NOZZLE_POS[nozzleIdx]);
-            transformByFacing(nPos, rcsFacing, nPos);
-            Vector3d nozzleWorld = new Vector3d(
-                    worldPosition.getX() + nPos.x / 16.0,
-                    worldPosition.getY() + nPos.y / 16.0,
-                    worldPosition.getZ() + nPos.z / 16.0);
-            dev.ryanhcode.sable.Sable.HELPER.projectOutOfSubLevel(level, nozzleWorld);
-
-            // Activation sound
-            if ((prevActiveMask & (1 << nozzleIdx)) == 0) {
-                level.playLocalSound(nozzleWorld.x, nozzleWorld.y, nozzleWorld.z,
-                        hasElectric ? SoundEvents.BEACON_POWER_SELECT : SoundEvents.FIRECHARGE_USE,
-                        SoundSource.BLOCKS,
-                        0.3f, hasElectric ? 1.5f : 0.8f + rand.nextFloat() * 0.4f, false);
-            }
-            // Continuous sound
-            if (level.getGameTime() % (hasElectric ? 4 : 3) == nozzleIdx % (hasElectric ? 4 : 3)) {
-                level.playLocalSound(nozzleWorld.x, nozzleWorld.y, nozzleWorld.z,
-                        hasElectric ? SoundEvents.BEACON_AMBIENT : SoundEvents.CAMPFIRE_CRACKLE,
-                        SoundSource.BLOCKS,
-                        hasElectric ? 0.30f : 0.50f,
-                        hasElectric ? 1.8f + rand.nextFloat() * 0.4f : 0.9f + rand.nextFloat() * 0.3f, false);
-            }
 
             // Particles: block center + nozzle surface offset + forward along exhaust
             Vector3d localDir = new Vector3d(NOZZLE_LOCAL[nozzleIdx]);
@@ -277,8 +262,15 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             dev.ryanhcode.sable.Sable.HELPER.projectOutOfSubLevel(level, localPos);
             Vec3 particleWorld = new Vec3(localPos.x, localPos.y, localPos.z);
 
-            // Use full throttle for VFX (actual throttle strength not synced to client)
+            // Read redstone signal for throttle (available client-side via boundSyncPos)
             float throttle = 1.0f;
+            if (boundSyncPos != null) {
+                Direction inputFace = getSyncFaceForNozzle(syncFacing, nozzleIdx);
+                if (inputFace != null) {
+                    int signal = level.getSignal(boundSyncPos.relative(inputFace), inputFace.getOpposite());
+                    throttle = Math.max(0.1f, signal / 15.0f);
+                }
+            }
             float t = 0.5f + throttle * 0.5f;
 
             if (hasElectric) {
@@ -296,7 +288,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                             worldDir.x * vel + subLevelVelocity.x, worldDir.y * vel + subLevelVelocity.y, worldDir.z * vel + subLevelVelocity.z);
                 }
                 int baseSpark = nozzleIdx == 0 ? 3 : 1;
-                int sparkCount = Math.max(1, Math.round(baseSpark * throttle));
+                int sparkCount = Math.max(0, Math.round(baseSpark * throttle));
                 for (int i = 0; i < sparkCount; i++) {
                     double s = (nozzleIdx == 0 ? 0.16 : 0.11) * t;
                     double ox = worldDir.x * 0.35 + (rand.nextDouble() - 0.5) * s;
@@ -322,7 +314,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                             worldDir.x * vel + subLevelVelocity.x, worldDir.y * vel + subLevelVelocity.y, worldDir.z * vel + subLevelVelocity.z);
                 }
                 int baseSpark = nozzleIdx == 0 ? 3 : 1;
-                int sparkCount = Math.max(1, Math.round(baseSpark * throttle));
+                int sparkCount = Math.max(0, Math.round(baseSpark * throttle));
                 for (int i = 0; i < sparkCount; i++) {
                     double s = (nozzleIdx == 0 ? 0.16 : 0.11) * t;
                     double ox = worldDir.x * 0.35 + (rand.nextDouble() - 0.5) * s;
@@ -334,6 +326,13 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                             worldDir.x * vel * 0.5 + subLevelVelocity.x, worldDir.y * vel * 0.5 + subLevelVelocity.y, worldDir.z * vel * 0.5 + subLevelVelocity.z);
                 }
             }
+        }
+        // Activation sound: only when all nozzles were off and at least one starts
+        if (prevActiveMask == 0 && activeNozzleMask != 0) {
+            level.playLocalSound(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5,
+                    hasElectric ? SoundEvents.BEACON_POWER_SELECT : SoundEvents.FIRECHARGE_USE,
+                    SoundSource.BLOCKS,
+                    0.6f, hasElectric ? 1.5f : 0.8f + rand.nextFloat() * 0.4f, false);
         }
         prevActiveMask = activeNozzleMask;
     }
@@ -388,9 +387,10 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             fuelAvailable = true;
         } else if (totalThrustPN > 0) {
             var energySource = getEnergySource();
-            int energyNeeded = (int) Math.ceil(totalThrustPN / ENERGY_EFFICIENCY);
+            double eff = getElectricEfficiency();
+            int energyNeeded = (int) Math.ceil(totalThrustPN / eff);
             int energyDrained = energySource != null ? energySource.extractEnergy(energyNeeded, false) : 0;
-            double energyCovered = energyDrained * ENERGY_EFFICIENCY;
+            double energyCovered = energyDrained * eff;
             if (energyCovered >= totalThrustPN) {
                 fuelAvailable = true;
                 electricMode = true;
@@ -454,6 +454,19 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         if (inputFace == right) return 2; // LEFT-ANGLED
 
         return 0;
+    }
+
+    /** Reverse of getNozzleForSyncFace: returns the sync input face for a given nozzle index. */
+    @javax.annotation.Nullable
+    private static Direction getSyncFaceForNozzle(Direction syncFacing, int nozzleIdx) {
+        return switch (nozzleIdx) {
+            case 0 -> syncFacing.getOpposite();
+            case 1 -> getRelativeLeft(syncFacing, getRelativeUp(syncFacing));
+            case 2 -> getRelativeLeft(syncFacing, getRelativeUp(syncFacing)).getOpposite();
+            case 3 -> getRelativeUp(syncFacing);
+            case 4 -> getRelativeUp(syncFacing).getOpposite();
+            default -> null;
+        };
     }
 
     private static Direction getRelativeUp(Direction facing) {

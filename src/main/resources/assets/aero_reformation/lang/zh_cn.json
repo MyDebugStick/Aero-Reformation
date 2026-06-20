@@ -71,9 +71,10 @@
 
   "key.category.aero_reformation.power": "Aero Reformation: 视角辅助",
   "key.aero_reformation.power.view_sync": "切换模式",
-  "aero_reformation.rcs_thruster.desc1": "需要相邻容器内有柴油动力的汽油才能使用，或使用创造烈焰蛋糕",
+  "aero_reformation.rcs_thruster.desc1": "使用汽油/乙醇作为燃料，或通过相邻能量源供电；使用创造烈焰蛋糕右击以无视燃料消耗",
   "aero_reformation.rcs_thruster.desc2": "绑定至母同步器以控制输出",
-  "aero_reformation.rcs_thruster.desc3": "汽油消耗量：%spN/mB/tick",
+  "aero_reformation.rcs_thruster.desc3": "燃料消耗：%spN/mB/tick",
+  "aero_reformation.rcs_thruster.desc4": "电力效率：%spN/FE/tick",
 
   "aero_reformation.synchronizer.bound": "§a已绑定母方块位置",
   "aero_reformation.rcs_thruster.bound": "§a已进入RCS同步模式",
