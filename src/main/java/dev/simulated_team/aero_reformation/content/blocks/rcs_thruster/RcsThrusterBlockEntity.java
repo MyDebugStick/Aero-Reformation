@@ -83,19 +83,23 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     private int angledMode = 0;
 
     // Forge Energy extraction ratio (pN per FE, higher = more efficient)
-    private static final double ENERGY_EFFICIENCY = 20.0;
+    private static final double ENERGY_EFFICIENCY = 25.0;
     private double getFuelConsumption() {
         return dev.simulated_team.aero_reformation.config.AeroReformationConfig.rcsFuelConsumption;
     }
     private boolean creativeMode = false;
     private boolean fuelAvailable = false; // synced for client VFX
     private boolean electricMode = false;  // true = using electricity, false = fluid fuel
+    private Direction syncFacingCache = Direction.NORTH; // cached for client VFX
+    private int activeNozzleMask = 0; // cached for client VFX
 
     // Fuel: configurable via AeroReformationConfig, default 5000pN/mB/tick
     private final Vector3d thrustWorld = new Vector3d();
     private final Vector3d blockCenter = new Vector3d();
     private final Vector3d force = new Vector3d();
     private final Vector3d totalForce = new Vector3d();
+    private final Vector3d subLevelVelocity = new Vector3d(); // synced for client VFX
+
 
     public RcsThrusterBlockEntity(BlockPos pos, BlockState state) {
         super(AeroBlocks.RCS_THRUSTER_BE.get(), pos, state);
@@ -208,21 +212,21 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             prevActiveMask = 0;
             return;
         }
-        BlockEntity be = level.getBlockEntity(boundSyncPos);
-        if (!(be instanceof DirectionalSynchronizerMasterBlockEntity sync)) return;
+        if (activeNozzleMask == 0) {
+            prevActiveMask = 0;
+            return;
+        }
 
-        Direction syncFacing = sync.getBlockState().getValue(DirectionalBlock.FACING);
+        Direction syncFacing = syncFacingCache;
         Direction rcsFacing = getBlockState().getValue(RcsThrusterBlock.FACING);
         RandomSource rand = level.random;
-        int newMask = 0;
 
-        for (Direction inputFace : Direction.values()) {
-            if (inputFace == syncFacing) continue;
-            int signal = level.getSignal(boundSyncPos.relative(inputFace), inputFace.getOpposite());
-            if (signal == 0) continue;
+        // Use synced electric mode (getEnergySource() may not work client-side when chunks unloaded)
+        boolean hasElectric = electricMode;
+        var subLevel = dev.ryanhcode.sable.Sable.HELPER.getContaining(level, worldPosition);
 
-            int nozzleIdx = getNozzleForSyncFace(syncFacing, inputFace);
-            newMask |= (1 << nozzleIdx);
+        for (int nozzleIdx = 0; nozzleIdx < 5; nozzleIdx++) {
+            if ((activeNozzleMask & (1 << nozzleIdx)) == 0) continue;
 
             // Nozzle position for sound
             Vector3d nPos = new Vector3d(NOZZLE_POS[nozzleIdx]);
@@ -232,9 +236,6 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                     worldPosition.getY() + nPos.y / 16.0,
                     worldPosition.getZ() + nPos.z / 16.0);
             dev.ryanhcode.sable.Sable.HELPER.projectOutOfSubLevel(level, nozzleWorld);
-
-            // Check energy source for visual/sound mode
-            boolean hasElectric = getEnergySource() != null;
 
             // Activation sound
             if ((prevActiveMask & (1 << nozzleIdx)) == 0) {
@@ -251,58 +252,90 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                         hasElectric ? 0.30f : 0.50f,
                         hasElectric ? 1.8f + rand.nextFloat() * 0.4f : 0.9f + rand.nextFloat() * 0.3f, false);
             }
-        }
-        prevActiveMask = newMask;
 
-        // Particles: forward nozzle only
-        if ((newMask & 1) == 0) return;
+            // Particles: block center + nozzle surface offset + forward along exhaust
+            Vector3d localDir = new Vector3d(NOZZLE_LOCAL[nozzleIdx]);
+            transformByFacing(localDir, rcsFacing, localDir);
+            // Exhaust world direction (negate thrust, then rotate by sublevel)
+            Vector3d worldDir = new Vector3d(-localDir.x, -localDir.y, -localDir.z);
+            if (subLevel != null) subLevel.logicalPose().orientation().transform(worldDir);
 
-        Vector3d particleDir = new Vector3d(
-                rcsFacing.getStepX(), rcsFacing.getStepY(), rcsFacing.getStepZ());
+            // Nozzle offset from block center (in 0-16 local space), transformed by facing
+            Vector3d centerOffset = new Vector3d(
+                    (NOZZLE_POS[nozzleIdx].x - 8) / 16.0,
+                    (NOZZLE_POS[nozzleIdx].y - 8) / 16.0,
+                    (NOZZLE_POS[nozzleIdx].z - 8) / 16.0);
+            transformByFacing(centerOffset, rcsFacing, centerOffset);
 
-        var sl = dev.ryanhcode.sable.Sable.HELPER.getContaining(level, worldPosition);
-        if (sl != null) {
-            sl.logicalPose().orientation().transform(particleDir);
-        }
+            // Block center + nozzle offset + forward along exhaust
+            // Forward offset: 0.0 for main, -0.1 for side nozzles
+            double fwd = nozzleIdx == 0 ? 0.0 : -0.1;
+            Vector3d localPos = new Vector3d(
+                    worldPosition.getX() + 0.5 + centerOffset.x + localDir.x * fwd,
+                    worldPosition.getY() + 0.5 + centerOffset.y + localDir.y * fwd,
+                    worldPosition.getZ() + 0.5 + centerOffset.z + localDir.z * fwd);
+            dev.ryanhcode.sable.Sable.HELPER.projectOutOfSubLevel(level, localPos);
+            Vec3 particleWorld = new Vec3(localPos.x, localPos.y, localPos.z);
 
-        Vector3d particleWorld = new Vector3d(
-                worldPosition.getX() + 0.5 + rcsFacing.getStepX() * 0.4,
-                worldPosition.getY() + 0.5 + rcsFacing.getStepY() * 0.4,
-                worldPosition.getZ() + 0.5 + rcsFacing.getStepZ() * 0.4);
-        dev.ryanhcode.sable.Sable.HELPER.projectOutOfSubLevel(level, particleWorld);
+            // Use full throttle for VFX (actual throttle strength not synced to client)
+            float throttle = 1.0f;
+            float t = 0.5f + throttle * 0.5f;
 
-        // Thrust particles: blue for electric, yellow for fuel
-        boolean hasElectric = getEnergySource() != null;
-        if (hasElectric) {
-            // Blue ion beam
-            for (int i = 0; i < 5; i++) {
-                double spread = 0.08;
-                double ox = particleDir.x * 0.25 + (rand.nextDouble() - 0.5) * spread;
-                double oy = particleDir.y * 0.25 + (rand.nextDouble() - 0.5) * spread;
-                double oz = particleDir.z * 0.25 + (rand.nextDouble() - 0.5) * spread;
-                level.addParticle(ParticleTypes.SOUL_FIRE_FLAME,
-                        particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
-                        particleDir.x * 0.12, particleDir.y * 0.12, particleDir.z * 0.12);
+            if (hasElectric) {
+                // Blue ion beam
+                int baseFlame = nozzleIdx == 0 ? 5 : 3;
+                int flameCount = Math.max(1, Math.round(baseFlame * throttle));
+                for (int i = 0; i < flameCount; i++) {
+                    double spread = (nozzleIdx == 0 ? 0.14 : 0.10) * t;
+                    double ox = worldDir.x * 0.25 + (rand.nextDouble() - 0.5) * spread;
+                    double oy = worldDir.y * 0.25 + (rand.nextDouble() - 0.5) * spread;
+                    double oz = worldDir.z * 0.25 + (rand.nextDouble() - 0.5) * spread;
+                    double vel = (nozzleIdx == 0 ? 0.12 : 0.078) * t;
+                    level.addParticle(ParticleTypes.SOUL_FIRE_FLAME,
+                            particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
+                            worldDir.x * vel + subLevelVelocity.x, worldDir.y * vel + subLevelVelocity.y, worldDir.z * vel + subLevelVelocity.z);
+                }
+                int baseSpark = nozzleIdx == 0 ? 3 : 1;
+                int sparkCount = Math.max(1, Math.round(baseSpark * throttle));
+                for (int i = 0; i < sparkCount; i++) {
+                    double s = (nozzleIdx == 0 ? 0.16 : 0.11) * t;
+                    double ox = worldDir.x * 0.35 + (rand.nextDouble() - 0.5) * s;
+                    double oy = worldDir.y * 0.35 + (rand.nextDouble() - 0.5) * s;
+                    double oz = worldDir.z * 0.35 + (rand.nextDouble() - 0.5) * s;
+                    double vel = (nozzleIdx == 0 ? 0.2 : 0.13) * t;
+                    level.addParticle(ParticleTypes.ELECTRIC_SPARK,
+                            particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
+                            worldDir.x * vel + subLevelVelocity.x, worldDir.y * vel + subLevelVelocity.y, worldDir.z * vel + subLevelVelocity.z);
+                }
+            } else {
+                // Yellow fuel flame (same count/velocity/spread as electric, different particle)
+                int baseFlame = nozzleIdx == 0 ? 5 : 3;
+                int flameCount = Math.max(1, Math.round(baseFlame * throttle));
+                for (int i = 0; i < flameCount; i++) {
+                    double spread = (nozzleIdx == 0 ? 0.14 : 0.10) * t;
+                    double ox = worldDir.x * 0.25 + (rand.nextDouble() - 0.5) * spread;
+                    double oy = worldDir.y * 0.25 + (rand.nextDouble() - 0.5) * spread;
+                    double oz = worldDir.z * 0.25 + (rand.nextDouble() - 0.5) * spread;
+                    double vel = (nozzleIdx == 0 ? 0.12 : 0.078) * t;
+                    level.addParticle(ParticleTypes.FLAME,
+                            particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
+                            worldDir.x * vel + subLevelVelocity.x, worldDir.y * vel + subLevelVelocity.y, worldDir.z * vel + subLevelVelocity.z);
+                }
+                int baseSpark = nozzleIdx == 0 ? 3 : 1;
+                int sparkCount = Math.max(1, Math.round(baseSpark * throttle));
+                for (int i = 0; i < sparkCount; i++) {
+                    double s = (nozzleIdx == 0 ? 0.16 : 0.11) * t;
+                    double ox = worldDir.x * 0.35 + (rand.nextDouble() - 0.5) * s;
+                    double oy = worldDir.y * 0.35 + (rand.nextDouble() - 0.5) * s;
+                    double oz = worldDir.z * 0.35 + (rand.nextDouble() - 0.5) * s;
+                    double vel = (nozzleIdx == 0 ? 0.2 : 0.13) * t;
+                    level.addParticle(ParticleTypes.FLAME,
+                            particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
+                            worldDir.x * vel * 0.5 + subLevelVelocity.x, worldDir.y * vel * 0.5 + subLevelVelocity.y, worldDir.z * vel * 0.5 + subLevelVelocity.z);
+                }
             }
-            for (int i = 0; i < 3; i++) {
-                double ox = particleDir.x * 0.35 + (rand.nextDouble() - 0.5) * 0.10;
-                double oy = particleDir.y * 0.35 + (rand.nextDouble() - 0.5) * 0.10;
-                double oz = particleDir.z * 0.35 + (rand.nextDouble() - 0.5) * 0.10;
-                level.addParticle(ParticleTypes.ELECTRIC_SPARK,
-                        particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
-                        particleDir.x * 0.2, particleDir.y * 0.2, particleDir.z * 0.2);
-            }
-        } else {
-            // Yellow fuel flame
-            for (int i = 0; i < 4; i++) {
-                double ox = particleDir.x * 0.2 + (rand.nextDouble() - 0.5) * 0.15;
-                double oy = particleDir.y * 0.2 + (rand.nextDouble() - 0.5) * 0.15;
-                double oz = particleDir.z * 0.2 + (rand.nextDouble() - 0.5) * 0.15;
-                level.addParticle(ParticleTypes.FLAME,
-                        particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
-                        particleDir.x * 0.1, particleDir.y * 0.1, particleDir.z * 0.1);
-            }
         }
+        prevActiveMask = activeNozzleMask;
     }
 
     @Override
@@ -327,6 +360,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         // Accumulate active thrust (in pN, before /40) and fuel cost
         totalForce.set(0, 0, 0);
         double totalThrustPN = 0;
+        int physMask = 0;
         QueuedForceGroup liftGroup = subLevel.getOrCreateQueuedForceGroup(ForceGroups.LIFT.get());
 
         for (Direction inputFace : Direction.values()) {
@@ -336,6 +370,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             if (signal == 0) continue;
 
             int nozzleIdx = getNozzleForSyncFace(syncFacing, inputFace);
+            physMask |= (1 << nozzleIdx);
             Vector3d localDir = NOZZLE_LOCAL[nozzleIdx];
 
             transformByFacing(localDir, rcsFacing, thrustWorld);
@@ -379,9 +414,27 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             setChanged();
         }
 
+        // Cache sync facing and active nozzle mask for client VFX
+        syncFacingCache = syncFacing;
+        if (activeNozzleMask != physMask) {
+            activeNozzleMask = physMask;
+            sendData();
+            setChanged();
+        }
+
         // Apply force directly (burst output)
         if (totalForce.lengthSquared() > 1e-6) {
             liftGroup.applyAndRecordPointForce(blockCenter, totalForce);
+        }
+
+        // Cache sub-level linear velocity for client VFX (prevents particle scatter at high speed)
+        // Rapier velocity is in m/s; convert to blocks/tick (/20)
+        bodyHandle.getLinearVelocity(subLevelVelocity);
+        subLevelVelocity.mul(1.0 / 20.0);
+        // Sync velocity to client periodically when thruster is active
+        if (fuelAvailable && level != null && level.getGameTime() % 5 == 0) {
+            sendData();
+            setChanged();
         }
     }
 
@@ -459,6 +512,12 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         tag.putInt("AngledMode", angledMode);
         tag.putBoolean("CreativeMode", creativeMode);
         tag.putBoolean("FuelAvailable", fuelAvailable);
+        tag.putBoolean("ElectricMode", electricMode);
+        tag.putInt("SyncFacing", syncFacingCache.get3DDataValue());
+        tag.putInt("ActiveNozzleMask", activeNozzleMask);
+        tag.putDouble("SubVelX", subLevelVelocity.x);
+        tag.putDouble("SubVelY", subLevelVelocity.y);
+        tag.putDouble("SubVelZ", subLevelVelocity.z);
     }
 
     @Override
@@ -470,6 +529,10 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         angledMode = tag.getInt("AngledMode");
         creativeMode = tag.getBoolean("CreativeMode");
         fuelAvailable = tag.getBoolean("FuelAvailable");
+        electricMode = tag.getBoolean("ElectricMode");
+        syncFacingCache = Direction.from3DDataValue(tag.getInt("SyncFacing"));
+        activeNozzleMask = tag.getInt("ActiveNozzleMask");
+        subLevelVelocity.set(tag.getDouble("SubVelX"), tag.getDouble("SubVelY"), tag.getDouble("SubVelZ"));
     }
 
     // ==================== Thrust Scroll Behaviour ====================

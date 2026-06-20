@@ -142,6 +142,7 @@ public class AnchorChunkLoader {
                 ANCHORED_SUBLEVELS.remove(id);
                 WARMUP.remove(id);
                 LAST_POS.remove(id);
+                RUNAWAY_STRIKE.remove(id);
                 EtherealKeyItem.HIDDEN_SUBLEVELS.remove(id);
                 AnchorSavedData.get(sl).remove(id);
             } else if (data.marker != null) {
@@ -190,6 +191,8 @@ public class AnchorChunkLoader {
         WARMUP.clear();
         ANCHORED_SUBLEVELS.clear();
         AUTO_PROTECTED.clear();
+        LAST_POS.clear();
+        RUNAWAY_STRIKE.clear();
     }
 
     /** Discard all AnchorMarkerEntity instances in the level (called on server start). */
@@ -230,6 +233,8 @@ public class AnchorChunkLoader {
         WARMUP.clear();
         ANCHORED_SUBLEVELS.clear();
         AUTO_PROTECTED.clear();
+        LAST_POS.clear();
+        RUNAWAY_STRIKE.clear();
         // Also clear SavedData so warmup doesn't recreate markers
         AnchorSavedData.get(serverLevel).clearAll();
         // Immediately tell clients there are no markers
@@ -260,6 +265,7 @@ public class AnchorChunkLoader {
         ANCHORED_SUBLEVELS.remove(id);
         AUTO_PROTECTED.remove(id);
         LAST_POS.remove(id);
+        RUNAWAY_STRIKE.remove(id);
         WARMUP.remove(id);
         EtherealKeyItem.HIDDEN_SUBLEVELS.remove(id);
     }
@@ -354,6 +360,7 @@ public class AnchorChunkLoader {
                 ANCHORED_SUBLEVELS.remove(sid);
                 WARMUP.remove(sid);
                 LAST_POS.remove(sid);
+                RUNAWAY_STRIKE.remove(sid);
                 EtherealKeyItem.HIDDEN_SUBLEVELS.remove(sid);
                 AnchorSavedData.get(serverLevel).remove(sid);
                 it.remove();
@@ -426,6 +433,7 @@ public class AnchorChunkLoader {
 
     // === Runaway protection: last known position per anchored SubLevel (for velocity calc) ===
     private static final Map<UUID, Vector3d> LAST_POS = new ConcurrentHashMap<>();
+    private static final Set<UUID> RUNAWAY_STRIKE = new HashSet<>(); // first strike: possible teleport, second: confirmed runaway
     private static final double MAX_COORD = 29_999_984.0;  // just inside world border
     private static final double MAX_SPEED = 500.0;          // blocks per tick (10k blocks/sec)
 
@@ -449,25 +457,42 @@ public class AnchorChunkLoader {
                 continue;
             }
 
-            // Check extreme velocity
+            // Check extreme velocity (teleport vs genuine physics runaway)
+            // Teleport: one-time large position jump, velocity normal next tick → first strike only
+            // Runaway: persistent high speed across consecutive ticks → second strike self-destructs
             Vector3d last = LAST_POS.get(id);
             if (last != null) {
                 double dx = x - last.x, dy = y - last.y, dz = z - last.z;
                 double speed = Math.sqrt(dx * dx + dy * dy + dz * dz);
                 if (speed > MAX_SPEED) {
-                    AeroReformation.LOGGER.warn("[PhysicsAnchor] RUNAWAY: sub={} speed {} blocks/tick, self-destructing",
-                            id, (int) speed);
-                    destroySubLevelAnchors(serverLevel, dimMap, id, sl);
+                    if (RUNAWAY_STRIKE.contains(id)) {
+                        // Second consecutive strike — confirmed runaway
+                        AeroReformation.LOGGER.warn("[PhysicsAnchor] RUNAWAY: sub={} speed {} blocks/tick, self-destructing",
+                                id, (int) speed);
+                        destroySubLevelAnchors(serverLevel, dimMap, id, sl);
+                        RUNAWAY_STRIKE.remove(id);
+                    } else {
+                        // First strike — could be teleport, give one tick grace
+                        AeroReformation.LOGGER.warn("[PhysicsAnchor] Large position jump: sub={} jump {} blocks, may be teleport",
+                                id, (int) speed);
+                        RUNAWAY_STRIKE.add(id);
+                    }
+                    LAST_POS.put(id, new Vector3d(x, y, z));
                     continue;
                 }
+                // Normal speed — clear any pending strike
+                RUNAWAY_STRIKE.remove(id);
             }
             LAST_POS.computeIfAbsent(id, k -> new Vector3d()).set(x, y, z);
         }
 
         // Purge stale entries every 100 ticks
-        if (serverLevel.getServer().getTickCount() % 100 == 0)
+        if (serverLevel.getServer().getTickCount() % 100 == 0) {
             LAST_POS.keySet().removeIf(uid -> !ANCHORED_SUBLEVELS.contains(uid)
                     || dimMap.values().stream().noneMatch(a -> a.subLevel != null && a.subLevel.getUniqueId().equals(uid)));
+            RUNAWAY_STRIKE.removeIf(uid -> !ANCHORED_SUBLEVELS.contains(uid)
+                    || dimMap.values().stream().noneMatch(a -> a.subLevel != null && a.subLevel.getUniqueId().equals(uid)));
+        }
     }
 
     /** Remove all anchors for a runaway SubLevel, discarding marker and cleaning up tickets. */
@@ -489,6 +514,7 @@ public class AnchorChunkLoader {
         }
         ANCHORED_SUBLEVELS.remove(id);
         LAST_POS.remove(id);
+        RUNAWAY_STRIKE.remove(id);
         // Remove from warmup too
         WARMUP.remove(id);
         AnchorSavedData.get(serverLevel).remove(id);
