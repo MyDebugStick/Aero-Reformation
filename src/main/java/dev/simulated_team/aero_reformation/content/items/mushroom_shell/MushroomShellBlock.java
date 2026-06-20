@@ -28,7 +28,7 @@ public class MushroomShellBlock extends SimpleShellBlock<MushroomShellProjectile
     @Override
     @SuppressWarnings("unchecked")
     public BlockEntityType<? extends FuzedBlockEntity> getBlockEntityType() {
-        return (BlockEntityType<? extends FuzedBlockEntity>) dev.simulated_team.aero_reformation.registrate.AeroBlocks.MUSHROOM_SHELL_BE.get();
+        return (BlockEntityType<? extends FuzedBlockEntity>) (Object) dev.simulated_team.aero_reformation.registrate.AeroBlocks.MUSHROOM_SHELL_BE.get();
     }
 
     @Override
@@ -38,8 +38,7 @@ public class MushroomShellBlock extends SimpleShellBlock<MushroomShellProjectile
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public EntityType<? extends MushroomShellProjectile> getAssociatedEntityType() {
-        return (EntityType<? extends MushroomShellProjectile>) dev.simulated_team.aero_reformation.registrate.AeroBlocks.MUSHROOM_SHELL_ENTITY.get();
+        return dev.simulated_team.aero_reformation.registrate.AeroBlocks.MUSHROOM_SHELL_ENTITY.get();
     }
 }

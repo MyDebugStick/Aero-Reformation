@@ -109,7 +109,7 @@ public class MushroomShellProjectile extends FuzedBigCannonProjectile {
 
     @Override
     public BlockState getRenderedBlockState() {
-        return ((dev.simulated_team.aero_reformation.content.items.mushroom_shell.MushroomShellBlock) dev.simulated_team.aero_reformation.registrate.AeroBlocks.MUSHROOM_SHELL.get()).defaultBlockState()
+        return dev.simulated_team.aero_reformation.registrate.AeroBlocks.MUSHROOM_SHELL.get().defaultBlockState()
                 .setValue(BlockStateProperties.FACING, Direction.NORTH);
     }
 

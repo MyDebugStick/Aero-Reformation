@@ -31,6 +31,8 @@ import dev.simulated_team.aero_reformation.content.blocks.high_friction.HighFric
 import dev.simulated_team.aero_reformation.content.blocks.high_friction.HighFrictionVerticalSlabBlock;
 import dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem;
 import dev.simulated_team.aero_reformation.content.items.high_friction.HighFrictionBlockItem;
+import dev.simulated_team.aero_reformation.content.items.mushroom_shell.MushroomShellBlock;
+import dev.simulated_team.aero_reformation.content.items.mushroom_shell.MushroomShellProjectile;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -46,7 +48,6 @@ import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -423,31 +424,20 @@ public class AeroBlocks {
             ));
 
     // ==================== Mushroom Shell ====================
-    // Only registered when Create Big Cannons is present.
-    // Actual registration is in AeroCBCBlocks to avoid classloading CBC types.
+    // Registered via AeroCBCBlocks
 
-    @SuppressWarnings("rawtypes")
-    public static final Supplier MUSHROOM_SHELL_ENTITY;
-    @SuppressWarnings("rawtypes")
-    public static final Supplier MUSHROOM_SHELL;
-    @SuppressWarnings("rawtypes")
-    public static final Supplier MUSHROOM_SHELL_ITEM;
+    public static final Supplier<EntityType<MushroomShellProjectile>> MUSHROOM_SHELL_ENTITY;
+    public static final Supplier<MushroomShellBlock> MUSHROOM_SHELL;
+    public static final Supplier<BlockItem> MUSHROOM_SHELL_ITEM;
     @SuppressWarnings("rawtypes")
     public static final Supplier MUSHROOM_SHELL_BE;
 
     static {
-        if (ModList.get().isLoaded("createbigcannons")) {
-            AeroCBCBlocks.init();
-            MUSHROOM_SHELL_ENTITY = AeroCBCBlocks.MUSHROOM_SHELL_ENTITY;
-            MUSHROOM_SHELL       = AeroCBCBlocks.MUSHROOM_SHELL;
-            MUSHROOM_SHELL_ITEM  = AeroCBCBlocks.MUSHROOM_SHELL_ITEM;
-            MUSHROOM_SHELL_BE    = AeroCBCBlocks.MUSHROOM_SHELL_BE;
-        } else {
-            MUSHROOM_SHELL_ENTITY = () -> null;
-            MUSHROOM_SHELL       = () -> null;
-            MUSHROOM_SHELL_ITEM  = () -> null;
-            MUSHROOM_SHELL_BE    = () -> null;
-        }
+        AeroCBCBlocks.init();
+        MUSHROOM_SHELL_ENTITY = AeroCBCBlocks.MUSHROOM_SHELL_ENTITY;
+        MUSHROOM_SHELL       = AeroCBCBlocks.MUSHROOM_SHELL;
+        MUSHROOM_SHELL_ITEM  = AeroCBCBlocks.MUSHROOM_SHELL_ITEM;
+        MUSHROOM_SHELL_BE    = AeroCBCBlocks.MUSHROOM_SHELL_BE;
     }
 
     // ==================== Creative Tab ====================
@@ -477,9 +467,7 @@ public class AeroBlocks {
                         output.accept(HIGH_FRICTION_STAIRS_ITEM.get());
                         output.accept(HIGH_FRICTION_VERTICAL_SLAB_ITEM.get());
                         output.accept(ETHEREAL_KEY.get());
-                        if (ModList.get().isLoaded("createbigcannons") && MUSHROOM_SHELL_ITEM.get() != null) {
-                            output.accept((net.minecraft.world.level.ItemLike) MUSHROOM_SHELL_ITEM.get());
-                        }
+                        output.accept(MUSHROOM_SHELL_ITEM.get());
                     })
                     .build()
     );

@@ -50,3 +50,10 @@ type="required"
 versionRange="[6.0.10,)"
 ordering="AFTER"
 side="BOTH"
+
+[[dependencies.${mod_id}]]
+modId="createbigcannons"
+type="required"
+versionRange="[5.11.3,)"
+ordering="AFTER"
+side="BOTH"

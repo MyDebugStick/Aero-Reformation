@@ -30,7 +30,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -68,10 +67,8 @@ public class AeroReformation {
         AeroBlocks.ENTITY_TYPES.register(modEventBus);
         AeroDataComponents.REGISTER.register(modEventBus);
 
-        // Register CBC-dependent projectile handler and renderers
-        if (ModList.get().isLoaded("createbigcannons")) {
-            AeroCBCBlocks.registerHandlers(modEventBus);
-        }
+        // Register CBC projectile handler
+        AeroCBCBlocks.registerHandlers(modEventBus);
 
         // Key bindings
         modEventBus.addListener(PowerKeyBindings::register);
@@ -146,10 +143,8 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalRenderer::new);
             e.registerBlockEntityRenderer(AeroBlocks.COM_OFFSET_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetRenderer::new);
-            // Register CBC-dependent renderers when Create Big Cannons is present
-            if (ModList.get().isLoaded("createbigcannons")) {
-                AeroCBCBlocks.registerRenderers(e);
-            }
+            // Register CBC projectile renderers
+            AeroCBCBlocks.registerRenderers(e);
         });
 
         // Set block render type for cutout transparency

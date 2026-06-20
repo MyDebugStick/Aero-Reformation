@@ -1,11 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:mod_loaded",
-      "modid": "createbigcannons"
-    }
-  ],
   "pattern": [
     "MBM",
     "BHB",
