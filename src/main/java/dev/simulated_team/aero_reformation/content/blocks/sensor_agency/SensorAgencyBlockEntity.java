@@ -5,14 +5,17 @@
  */
 package dev.simulated_team.aero_reformation.content.blocks.sensor_agency;
 
+import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.simulated.content.blocks.nav_table.NavTableBlockEntity;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.sublevel.SubLevel;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -26,8 +29,9 @@ import org.joml.Quaterniond;
 import org.joml.Vector3d;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
-public class SensorAgencyBlockEntity extends BlockEntity {
+public class SensorAgencyBlockEntity extends BlockEntity implements IHaveGoggleInformation {
 
     private SensorBinding binding = SensorBinding.EMPTY;
     private Vec3 lastWorldPos = Vec3.ZERO;
@@ -187,6 +191,57 @@ public class SensorAgencyBlockEntity extends BlockEntity {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        String indent = "\u00A0\u00A0\u00A0";
+        String sub = "  ";
+
+        // Altitude sensor
+        tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.sensor_agency.goggle.altitude",
+                config.altitudeLowWorld, config.altitudeHighWorld))
+                .withStyle(ChatFormatting.GREEN));
+        if (config.altitudeInverted) {
+            tooltip.add(Component.literal(indent + sub).append(Component.translatable("aero_reformation.sensor_agency.goggle.inverted"))
+                    .withStyle(ChatFormatting.GOLD));
+        }
+
+        // Gimbal sensor
+        tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.sensor_agency.goggle.gimbal",
+                config.gimbalPrimaryLimit, config.gimbalSecondaryLimit))
+                .withStyle(ChatFormatting.GREEN));
+        if (config.gimbalInverted) {
+            tooltip.add(Component.literal(indent + sub).append(Component.translatable("aero_reformation.sensor_agency.goggle.inverted"))
+                    .withStyle(ChatFormatting.GOLD));
+        }
+
+        // Velocity sensor
+        tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.sensor_agency.goggle.velocity",
+                config.velocityMaxSpeed))
+                .withStyle(ChatFormatting.GREEN));
+
+        // Navigation sensor
+        var compassStack = config.compassSlot.getItem(0);
+        var compassData = compassStack.getOrDefault(dev.simulated_team.aero_reformation.registrate.AeroDataComponents.ENDER_COMPASS.get(),
+                dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassData.EMPTY);
+        if (compassData.target().isPresent()) {
+            var target = compassData.target().get();
+            Vec3 agencyPos = Sable.HELPER.projectOutOfSubLevel(level, Vec3.atCenterOf(worldPosition));
+            double dist = agencyPos.distanceTo(target.pos().getCenter());
+            tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.sensor_agency.goggle.nav_target",
+                    target.pos().getX(), target.pos().getY(), target.pos().getZ(), String.format("%.0f", dist)))
+                    .withStyle(ChatFormatting.AQUA));
+        } else {
+            tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.sensor_agency.goggle.nav_empty"))
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        if (config.navInverted) {
+            tooltip.add(Component.literal(indent + sub).append(Component.translatable("aero_reformation.sensor_agency.goggle.inverted"))
+                    .withStyle(ChatFormatting.GOLD));
+        }
+
+        return true;
     }
 
     /** Compute per-direction nav signal using asin formula from NavigationTarget.calculateSideStrength. */

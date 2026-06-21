@@ -8,14 +8,19 @@
 
 package dev.simulated_team.aero_reformation.content.blocks.gravity_crystal;
 
+import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-public class GravityCrystalBlockEntity extends BlockEntity {
+import java.util.List;
+
+public class GravityCrystalBlockEntity extends BlockEntity implements IHaveGoggleInformation {
     private static final String LIFT_KEY = "gc_lift";
     private static final String DRAG_KEY = "gc_drag";
     private static final String ANG_KEY = "gc_ang";
@@ -32,21 +37,60 @@ public class GravityCrystalBlockEntity extends BlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
-        if (level != null && !level.isClientSide()) {
+        if (level != null) {
             var sl = dev.ryanhcode.sable.Sable.HELPER.getContaining(level, worldPosition);
             if (sl != null) {
-                GravityCrystalSettings.CRYSTAL_SUBLEVELS.add(sl.getUniqueId());
-                // Apply pending settings loaded from NBT before sublevel was available
-                if (!Float.isNaN(pendingLift)) {
-                    GravityCrystalSettings s = GravityCrystalSettings.get(sl.getUniqueId());
-                    s.liftMultiplier = pendingLift;
-                    s.dragMultiplier = pendingDrag;
-                    s.angularDragMultiplier = pendingAng;
-                    pendingLift = Float.NaN;
-                    setChanged();
+                GravityCrystalSettings s = GravityCrystalSettings.get(sl.getUniqueId());
+                if (!level.isClientSide()) {
+                    GravityCrystalSettings.CRYSTAL_SUBLEVELS.add(sl.getUniqueId());
+                    s.crystalCount++;
+                    // Apply pending settings loaded from NBT before sublevel was available
+                    if (!Float.isNaN(pendingLift)) {
+                        s.liftMultiplier = pendingLift;
+                        s.dragMultiplier = pendingDrag;
+                        s.angularDragMultiplier = pendingAng;
+                        pendingLift = Float.NaN;
+                        setChanged();
+                    }
                 }
             }
         }
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+        if (level != null) {
+            var sl = dev.ryanhcode.sable.Sable.HELPER.getContaining(level, worldPosition);
+            if (sl != null) {
+                GravityCrystalSettings s = GravityCrystalSettings.get(sl.getUniqueId());
+                if (s.crystalCount > 0) s.crystalCount--;
+                if (s.crystalCount <= 0) {
+                    GravityCrystalSettings.CRYSTAL_SUBLEVELS.remove(sl.getUniqueId());
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        if (level == null) return false;
+        var sl = dev.ryanhcode.sable.Sable.HELPER.getContaining(level, worldPosition);
+        if (sl == null) return false;
+        GravityCrystalSettings s = GravityCrystalSettings.get(sl.getUniqueId());
+        String indent = "\u00A0\u00A0\u00A0";
+        tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.gravity_crystal.goggle.count", s.crystalCount))
+                .withStyle(ChatFormatting.AQUA));
+        tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.gravity_crystal.goggle.lift",
+                String.format("%.2f", s.liftMultiplier)))
+                .withStyle(ChatFormatting.GREEN));
+        tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.gravity_crystal.goggle.drag",
+                String.format("%.2f", s.dragMultiplier)))
+                .withStyle(ChatFormatting.GREEN));
+        tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.gravity_crystal.goggle.ang",
+                String.format("%.2f", s.angularDragMultiplier)))
+                .withStyle(ChatFormatting.GREEN));
+        return true;
     }
 
     @Override

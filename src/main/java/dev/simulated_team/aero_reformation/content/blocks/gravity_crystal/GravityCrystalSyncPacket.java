@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 /** Server→Client: syncs current gravity crystal settings and opens GUI. */
-public record GravityCrystalSyncPacket(UUID subLevelId, float liftMul, float dragMul, float angularDragMul)
+public record GravityCrystalSyncPacket(UUID subLevelId, float liftMul, float dragMul, float angularDragMul, int count)
         implements CustomPacketPayload {
 
     public static final Type<GravityCrystalSyncPacket> TYPE =
@@ -24,10 +24,11 @@ public record GravityCrystalSyncPacket(UUID subLevelId, float liftMul, float dra
         buf.writeFloat(p.liftMul);
         buf.writeFloat(p.dragMul);
         buf.writeFloat(p.angularDragMul);
+        buf.writeVarInt(p.count);
     }
 
     private static GravityCrystalSyncPacket decode(RegistryFriendlyByteBuf buf) {
-        return new GravityCrystalSyncPacket(buf.readUUID(), buf.readFloat(), buf.readFloat(), buf.readFloat());
+        return new GravityCrystalSyncPacket(buf.readUUID(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readVarInt());
     }
 
     @Override
@@ -39,6 +40,7 @@ public record GravityCrystalSyncPacket(UUID subLevelId, float liftMul, float dra
             s.liftMultiplier = liftMul;
             s.dragMultiplier = dragMul;
             s.angularDragMultiplier = angularDragMul;
+            s.crystalCount = count;
             GravityCrystalScreenOpener.open(subLevelId, s);
         });
     }

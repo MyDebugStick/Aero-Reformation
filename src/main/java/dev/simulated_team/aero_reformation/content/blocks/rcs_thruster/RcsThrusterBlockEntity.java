@@ -1,5 +1,6 @@
 package dev.simulated_team.aero_reformation.content.blocks.rcs_thruster;
 
+import com.simibubi.create.api.equipment.goggles.IHaveGoggleInformation;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform;
@@ -38,7 +39,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.List;
 
-public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEntitySubLevelActor {
+public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEntitySubLevelActor, IHaveGoggleInformation {
 
     // 5 nozzle exhaust positions in RCS block-local space (scaled 0-16)
     private static final Vector3d[] NOZZLE_POS = {
@@ -93,6 +94,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     private boolean electricMode = false;  // true = using electricity, false = fluid fuel
     private Direction syncFacingCache = Direction.NORTH; // cached for client VFX
     private int activeNozzleMask = 0; // cached for client VFX
+    private double currentThrustPN = 0; // synced for goggle HUD
 
     // Fuel: configurable via AeroReformationConfig, default 5000pN/mB/tick
     private final Vector3d thrustWorld = new Vector3d();
@@ -135,9 +137,54 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         if (level == null) return null;
         Direction back = getBlockState().getValue(RcsThrusterBlock.FACING).getOpposite();
         BlockPos backPos = worldPosition.relative(back);
-        return level.getCapability(
+        // Try standard NeoForge FE capability first
+        IEnergyStorage storage = level.getCapability(
                 net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
                 backPos, back);
+        if (storage != null) return storage;
+        // Mekanism compatibility: try its own energy handler via capability
+        return getMekanismEnergy(backPos, back);
+    }
+
+    /** Try Mekanism's energy API via its own BlockCapability (side-aware, no compile-time dependency). */
+    @Nullable
+    private IEnergyStorage getMekanismEnergy(BlockPos pos, Direction side) {
+        try {
+            // Mekanism registers its capability as:
+            //   BlockCapability<IStrictEnergyHandler, @Nullable Direction>
+            // with capability token at mekanism.common.capabilities.Capabilities.ENERGY
+            Class<?> capClass = Class.forName("mekanism.common.capabilities.Capabilities");
+            Object capToken = capClass.getField("ENERGY").get(null);
+            // capToken is a BlockCapability<IStrictEnergyHandler, @Nullable Direction>
+            // Query it: level.getCapability(capToken, pos, side)
+            Object handler = net.minecraft.world.level.Level.class
+                    .getMethod("getCapability",
+                            Class.forName("net.neoforged.neoforge.capabilities.BlockCapability"),
+                            BlockPos.class, Object.class)
+                    .invoke(level, capToken, pos, side);
+            if (handler == null) return null;
+
+            // handler implements IStrictEnergyHandler, wrap as IEnergyStorage
+            return new IEnergyStorage() {
+                public int receiveEnergy(int maxReceive, boolean simulate) { return 0; }
+                public int extractEnergy(int maxExtract, boolean simulate) {
+                    try {
+                        Class<?> actionClass = Class.forName("mekanism.api.Action");
+                        Object action = simulate ?
+                                actionClass.getField("SIMULATE").get(null) :
+                                actionClass.getField("EXECUTE").get(null);
+                        long extracted = (long) handler.getClass()
+                                .getMethod("extractEnergy", long.class, actionClass)
+                                .invoke(handler, (long) maxExtract, action);
+                        return (int) Math.min(extracted, Integer.MAX_VALUE);
+                    } catch (Exception e) { return 0; }
+                }
+                public int getEnergyStored() { return 0; }
+                public int getMaxEnergyStored() { return 0; }
+                public boolean canExtract() { return true; }
+                public boolean canReceive() { return false; }
+            };
+        } catch (Exception ignored) { return null; }
     }
 
     private IFluidHandler getFuelSource() {
@@ -416,8 +463,9 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
 
         // Cache sync facing and active nozzle mask for client VFX
         syncFacingCache = syncFacing;
-        if (activeNozzleMask != physMask) {
+        if (activeNozzleMask != physMask || Math.abs(currentThrustPN - totalThrustPN) > 0.5) {
             activeNozzleMask = physMask;
+            currentThrustPN = totalThrustPN;
             sendData();
             setChanged();
         }
@@ -438,6 +486,49 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         }
     }
 
+    // ==================== Goggle HUD ====================
+
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        String indent = "\u00A0\u00A0\u00A0"; // non-breaking spaces to offset past goggle icon
+        if (creativeMode) {
+            tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.rcs_thruster.creative_mode"))
+                    .withStyle(net.minecraft.ChatFormatting.LIGHT_PURPLE));
+            return true;
+        }
+        if (fuelAvailable) {
+            if (electricMode) {
+                tooltip.add(Component.literal(indent + "⚡ ").append(Component.translatable("aero_reformation.rcs_thruster.goggle.electric"))
+                        .withStyle(net.minecraft.ChatFormatting.AQUA));
+            } else {
+                tooltip.add(Component.literal(indent + "🛢 ").append(Component.translatable("aero_reformation.rcs_thruster.goggle.fuel"))
+                        .withStyle(net.minecraft.ChatFormatting.GOLD));
+                if (level != null) {
+                    int fuelMb = getFuelAmount();
+                    tooltip.add(Component.literal(indent + "  ").append(Component.translatable("aero_reformation.rcs_thruster.goggle.fuel_stored", fuelMb))
+                            .withStyle(net.minecraft.ChatFormatting.GRAY));
+                }
+            }
+        } else if (activeNozzleMask != 0) {
+            tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.rcs_thruster.goggle.no_fuel"))
+                    .withStyle(net.minecraft.ChatFormatting.RED));
+        }
+        if (currentThrustPN > 0) {
+            tooltip.add(Component.literal(indent + "→ ").append(Component.translatable("aero_reformation.rcs_thruster.goggle.thrust",
+                    String.format("%.0f", currentThrustPN)))
+                    .withStyle(net.minecraft.ChatFormatting.GREEN));
+            if (electricMode) {
+                int fePerTick = (int) Math.ceil(currentThrustPN / getElectricEfficiency());
+                tooltip.add(Component.literal(indent + "  ").append(Component.translatable("aero_reformation.rcs_thruster.goggle.fe_usage", fePerTick))
+                        .withStyle(net.minecraft.ChatFormatting.GRAY));
+            } else {
+                int mbPerTick = (int) Math.ceil(currentThrustPN / getFuelConsumption());
+                tooltip.add(Component.literal(indent + "  ").append(Component.translatable("aero_reformation.rcs_thruster.goggle.fuel_usage", mbPerTick))
+                        .withStyle(net.minecraft.ChatFormatting.GRAY));
+            }
+        }
+        return true;
+    }
 
 
     private static int getNozzleForSyncFace(Direction syncFacing, Direction inputFace) {
@@ -528,6 +619,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         tag.putBoolean("ElectricMode", electricMode);
         tag.putInt("SyncFacing", syncFacingCache.get3DDataValue());
         tag.putInt("ActiveNozzleMask", activeNozzleMask);
+        tag.putDouble("CurrentThrustPN", currentThrustPN);
         tag.putDouble("SubVelX", subLevelVelocity.x);
         tag.putDouble("SubVelY", subLevelVelocity.y);
         tag.putDouble("SubVelZ", subLevelVelocity.z);
@@ -545,6 +637,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         electricMode = tag.getBoolean("ElectricMode");
         syncFacingCache = Direction.from3DDataValue(tag.getInt("SyncFacing"));
         activeNozzleMask = tag.getInt("ActiveNozzleMask");
+        currentThrustPN = tag.getDouble("CurrentThrustPN");
         subLevelVelocity.set(tag.getDouble("SubVelX"), tag.getDouble("SubVelY"), tag.getDouble("SubVelZ"));
     }
 

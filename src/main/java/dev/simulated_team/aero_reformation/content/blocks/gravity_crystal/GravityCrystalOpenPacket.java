@@ -37,7 +37,7 @@ public record GravityCrystalOpenPacket(UUID subLevelId) implements CustomPacketP
             s.active = true;
             GravityCrystalSettings.CRYSTAL_SUBLEVELS.add(subLevelId);
             PacketDistributor.sendToPlayer((ServerPlayer) ctx.player(),
-                    new GravityCrystalSyncPacket(subLevelId, s.liftMultiplier, s.dragMultiplier, s.angularDragMultiplier));
+                    new GravityCrystalSyncPacket(subLevelId, s.liftMultiplier, s.dragMultiplier, s.angularDragMultiplier, s.crystalCount));
         });
     }
 }

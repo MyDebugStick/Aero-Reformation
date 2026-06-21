@@ -8,6 +8,7 @@ public class GravityCrystalSettings {
     public float dragMultiplier = 1.0f;     // 0.0 ~ 2.0
     public float angularDragMultiplier = 1.0f; // 0.0 ~ 2.0
     public transient boolean active;        // set by Mixin when this sublevel has gravity crystals
+    public transient int crystalCount = 0;  // number of gravity crystal blocks on this sublevel
 
     /** SubLevel UUIDs known to contain gravity crystals. */
     public static final Set<UUID> CRYSTAL_SUBLEVELS = new HashSet<>();
