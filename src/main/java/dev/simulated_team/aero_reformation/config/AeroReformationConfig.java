@@ -11,6 +11,7 @@ public class AeroReformationConfig {
     public static final ModConfigSpec.DoubleValue RCS_FUEL_CONSUMPTION;
     public static final ModConfigSpec.DoubleValue RCS_ELECTRIC_EFFICIENCY;
     public static final ModConfigSpec.IntValue MAX_ANCHOR_RADIUS;
+    public static final ModConfigSpec.BooleanValue FILTER_PATCH_ENABLED;
     public static final ModConfigSpec.DoubleValue ANCHOR_TRACKING_RANGE;
 
     static {
@@ -36,6 +37,12 @@ public class AeroReformationConfig {
                 .defineInRange("rcsElectricEfficiency", 25.0, 1.0, 1000000.0);
         BUILDER.pop();
 
+        BUILDER.push("Filter Patch");
+        FILTER_PATCH_ENABLED = BUILDER
+                .comment("If false, all filter patch mixins are disabled for compatibility.")
+                .define("filterPatchEnabled", true);
+        BUILDER.pop();
+
         BUILDER.push("Physics Anchor");
         MAX_ANCHOR_RADIUS = BUILDER
                 .comment("Maximum chunk loading radius for the Physics Anchor (2 to this value). Default 5.")
@@ -55,6 +62,7 @@ public class AeroReformationConfig {
     public static double redstoneSpringStressCapacity = 8.0;
     public static double rcsFuelConsumption = 5000.0;
     public static double rcsElectricEfficiency = 25.0;
+    public static boolean filterPatchEnabled = true;
     public static int maxAnchorRadius = 5;
     public static double anchorTrackingRange = 1024.0;
 
@@ -63,6 +71,7 @@ public class AeroReformationConfig {
         redstoneSpringStressCapacity = REDSTONE_SPRING_STRESS_CAPACITY.get();
         rcsFuelConsumption = RCS_FUEL_CONSUMPTION.get();
         rcsElectricEfficiency = RCS_ELECTRIC_EFFICIENCY.get();
+        filterPatchEnabled = FILTER_PATCH_ENABLED.get();
         maxAnchorRadius = MAX_ANCHOR_RADIUS.get();
         anchorTrackingRange = ANCHOR_TRACKING_RANGE.get();
     }

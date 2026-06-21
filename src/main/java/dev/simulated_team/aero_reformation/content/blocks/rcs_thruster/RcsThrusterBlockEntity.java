@@ -137,13 +137,15 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         if (level == null) return null;
         Direction back = getBlockState().getValue(RcsThrusterBlock.FACING).getOpposite();
         BlockPos backPos = worldPosition.relative(back);
+        // Query the face of the energy source that touches the thruster (opposite of "back")
+        Direction sourceFace = back.getOpposite();
         // Try standard NeoForge FE capability first
         IEnergyStorage storage = level.getCapability(
                 net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
-                backPos, back);
+                backPos, sourceFace);
         if (storage != null) return storage;
         // Mekanism compatibility: try its own energy handler via capability
-        return getMekanismEnergy(backPos, back);
+        return getMekanismEnergy(backPos, sourceFace);
     }
 
     /** Try Mekanism's energy API via its own BlockCapability (side-aware, no compile-time dependency). */

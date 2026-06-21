@@ -143,6 +143,8 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalRenderer::new);
             e.registerBlockEntityRenderer(AeroBlocks.COM_OFFSET_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetRenderer::new);
+            e.registerBlockEntityRenderer(AeroBlocks.FILTER_PATCH_BE.get(),
+                    dev.simulated_team.aero_reformation.content.blocks.filter_patch.FilterPatchRenderer::new);
             // Register CBC projectile renderers
             AeroCBCBlocks.registerRenderers(e);
         });
@@ -156,6 +158,9 @@ public class AeroReformation {
                         net.minecraft.client.renderer.RenderType.cutout());
                 net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
                         AeroBlocks.COM_OFFSET.get(),
+                        net.minecraft.client.renderer.RenderType.cutout());
+                net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                        AeroBlocks.FILTER_PATCH.get(),
                         net.minecraft.client.renderer.RenderType.cutout());
             });
         };

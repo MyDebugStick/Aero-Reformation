@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=down":  { "model": "aero_reformation:block/filter_patch_floor", "x": 180 },
+    "facing=up":    { "model": "aero_reformation:block/filter_patch_floor" },
+    "facing=north": { "model": "aero_reformation:block/filter_patch_wall" },
+    "facing=south": { "model": "aero_reformation:block/filter_patch_wall", "y": 180 },
+    "facing=west":  { "model": "aero_reformation:block/filter_patch_wall", "y": 270 },
+    "facing=east":  { "model": "aero_reformation:block/filter_patch_wall", "y": 90 }
+  }
+}

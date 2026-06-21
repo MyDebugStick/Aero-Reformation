@@ -29,6 +29,9 @@ import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBl
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlockItem;
 import dev.simulated_team.aero_reformation.content.blocks.high_friction.HighFrictionBlock;
 import dev.simulated_team.aero_reformation.content.blocks.high_friction.HighFrictionVerticalSlabBlock;
+import dev.simulated_team.aero_reformation.content.blocks.filter_patch.FilterPatchBlock;
+import dev.simulated_team.aero_reformation.content.blocks.filter_patch.FilterPatchBlockEntity;
+import dev.simulated_team.aero_reformation.content.blocks.filter_patch.FilterPatchBlockItem;
 import dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem;
 import dev.simulated_team.aero_reformation.content.items.high_friction.HighFrictionBlockItem;
 import dev.simulated_team.aero_reformation.content.items.mushroom_shell.MushroomShellBlock;
@@ -328,6 +331,27 @@ public class AeroBlocks {
                     PHYSICS_ANCHOR.get(), new Item.Properties()
             ));
 
+    // ==================== Filter Patch (过滤贴片) ====================
+
+    public static final Supplier<FilterPatchBlock> FILTER_PATCH =
+            BLOCKS.register("filter_patch", () -> new FilterPatchBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(0.5f)
+                            .sound(net.minecraft.world.level.block.SoundType.METAL)
+                            .noOcclusion()
+                            .noCollission()
+            ));
+
+    public static final Supplier<BlockEntityType<FilterPatchBlockEntity>> FILTER_PATCH_BE =
+            BLOCK_ENTITY_TYPES.register("filter_patch",
+                    () -> BlockEntityType.Builder.of(FilterPatchBlockEntity::new, FILTER_PATCH.get())
+                            .build(null));
+
+    public static final Supplier<BlockItem> FILTER_PATCH_ITEM =
+            ITEMS.register("filter_patch", () -> new FilterPatchBlockItem(
+                    FILTER_PATCH.get(), new Item.Properties()
+            ));
+
     // ==================== Gravity Crystal (重力水晶) ====================
 
     public static final Supplier<GravityCrystalBlock> GRAVITY_CRYSTAL =
@@ -460,6 +484,7 @@ public class AeroBlocks {
                         output.accept(CREATE_SEAT_ITEM.get());
                         output.accept(END_ROD_SEAT_ITEM.get());
                         output.accept(PHYSICS_ANCHOR_ITEM.get());
+                        output.accept(FILTER_PATCH_ITEM.get());
                         output.accept(GRAVITY_CRYSTAL_ITEM.get());
                         output.accept(COM_OFFSET_ITEM.get());
                         output.accept(HIGH_FRICTION_BLOCK_ITEM.get());

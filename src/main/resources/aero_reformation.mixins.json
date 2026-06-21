@@ -23,6 +23,10 @@
     "feature.physics_anchor.XaeroMapMixin",
     "feature.physics_anchor.XaeroMapAccessor",
     "feature.physics_anchor.SubLevelTrackingSystemMixin",
+    "feature.filter_patch.HopperFilterMixin",
+    "feature.filter_patch.ChuteFilterMixin",
+    "feature.filter_patch.FunnelFilterMixin",
+    "feature.filter_patch.BlockCapabilityCacheMixin",
     "FloatingBlockControllerMixin",
     "ServerSubLevelMixin"
   ],
