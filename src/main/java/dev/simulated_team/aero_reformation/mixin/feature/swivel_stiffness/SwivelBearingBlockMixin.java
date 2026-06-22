@@ -24,10 +24,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Handles iron ingot right-click on SwivelBearingBlock to cycle stiffness levels.
  * Kept separate from the NavTable mixin for clean feature management.
  */
-@Mixin(value = SwivelBearingBlock.class, remap = false)
+@Mixin(value = SwivelBearingBlock.class, remap = false, priority = 500)
 public class SwivelBearingBlockMixin {
 
-    @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true, remap = false)
     private void aero_reformation$onUseItemOn(ItemStack itemStack, BlockState blockState, Level level,
                                                BlockPos blockPos, Player player, InteractionHand interactionHand,
                                                BlockHitResult blockHitResult,

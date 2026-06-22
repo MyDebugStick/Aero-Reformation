@@ -22,10 +22,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(value = SwivelBearingBlock.class, remap = false)
+@Mixin(value = SwivelBearingBlock.class, remap = false, priority = 500)
 public class SwivelBearingBlockMixin {
 
-    @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true, remap = false)
     private void aero_reformation$onUseItemOn(ItemStack stack, BlockState state, Level level,
                                                BlockPos pos, Player player, InteractionHand hand,
                                                BlockHitResult hit, CallbackInfoReturnable<ItemInteractionResult> cir) {
