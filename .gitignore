@@ -34,9 +34,9 @@ cbcat_extract/
 backup_*/
 lib/
 libs/
-dev/
-top/
-simulated_team/
+/dev/
+/top/
+/simulated_team/
 defaultconfigs/
 crash-reports/
 ldlib2/
