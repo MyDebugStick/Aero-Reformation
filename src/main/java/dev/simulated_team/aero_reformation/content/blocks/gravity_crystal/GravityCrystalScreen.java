@@ -52,7 +52,7 @@ public class GravityCrystalScreen extends Screen {
         y += 25;
 
         addRenderableWidget(Button.builder(Component.translatable("aero_reformation.gravity_crystal.reset"), b -> {
-            liftMul = DEFAULT;
+            liftMul = DEFAULT;  // reset to 1.0 (neutral)
             dragMul = DEFAULT;
             angularDragMul = DEFAULT;
             liftBtn.setMessage(txt("lift", liftMul));
@@ -84,7 +84,7 @@ public class GravityCrystalScreen extends Screen {
     @Override
     public boolean isPauseScreen() { return false; }
 
-    private static float clamp(float v) { return Math.clamp(v, 0f, 2f); }
+    private static float clamp(float v) { return Math.clamp(v, -2f, 2f); }
 
     private static Component txt(String key, float v) {
         return Component.translatable("aero_reformation.gravity_crystal." + key, String.format("%.1f", v));

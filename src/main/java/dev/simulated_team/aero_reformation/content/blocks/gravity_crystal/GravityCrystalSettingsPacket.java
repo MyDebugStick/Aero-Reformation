@@ -36,7 +36,7 @@ public record GravityCrystalSettingsPacket(UUID subLevelId, float liftMul, float
     public void handle(IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             GravityCrystalSettings s = GravityCrystalSettings.get(subLevelId);
-            s.liftMultiplier = Math.clamp(liftMul, 0f, 2f);
+            s.liftMultiplier = Math.clamp(liftMul, -2f, 2f);
             s.dragMultiplier = Math.clamp(dragMul, 0f, 2f);
             s.angularDragMultiplier = Math.clamp(angularDragMul, 0f, 2f);
         });

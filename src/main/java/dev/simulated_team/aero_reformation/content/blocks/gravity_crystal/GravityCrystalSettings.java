@@ -4,7 +4,7 @@ import java.util.*;
 
 /** Per-sublevel settings shared by all gravity crystals on the same physics body. */
 public class GravityCrystalSettings {
-    public float liftMultiplier = 1.0f;     // 0.0 ~ 2.0
+    public float liftMultiplier = 1.0f;     // -2.0 ~ 2.0, negative = downward force
     public float dragMultiplier = 1.0f;     // 0.0 ~ 2.0
     public float angularDragMultiplier = 1.0f; // 0.0 ~ 2.0
     public transient boolean active;        // set by Mixin when this sublevel has gravity crystals
