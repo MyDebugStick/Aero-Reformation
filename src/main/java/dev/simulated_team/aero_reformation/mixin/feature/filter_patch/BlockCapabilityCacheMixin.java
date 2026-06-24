@@ -37,6 +37,11 @@ public class BlockCapabilityCacheMixin {
         if (!(cap instanceof IItemHandler handler)) return;
         if (handler instanceof FilteredHandler) return;
 
+        // Quick bail-out: only wrap if there's an adjacent filter patch with a non-empty filter.
+        // This avoids wrapping every IItemHandler in the game (e.g., Tom's Simple Storage,
+        // Mekanism, etc.) and only affects containers that actually have filter patches nearby.
+        if (!FilterPatchHandler.hasActiveFilterNearby(level, pos)) return;
+
         @SuppressWarnings("unchecked")
         T wrapped = (T) new FilteredHandler(level, pos, handler);
         cir.setReturnValue(wrapped);

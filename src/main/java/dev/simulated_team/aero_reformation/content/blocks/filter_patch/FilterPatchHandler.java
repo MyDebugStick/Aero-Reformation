@@ -47,4 +47,22 @@ public class FilterPatchHandler {
         // If no filters are configured, allow everything. Otherwise, require at least one match.
         return !hasFilter || anyMatch;
     }
+
+    /**
+     * Lightweight check: does the block at {@code pos} have any adjacent filter patches
+     * with non-empty filters? Used to avoid unnecessary IItemHandler wrapping.
+     */
+    public static boolean hasActiveFilterNearby(Level level, BlockPos pos) {
+        for (Direction face : Direction.values()) {
+            BlockPos neighborPos = pos.relative(face);
+            BlockEntity be = level.getBlockEntity(neighborPos);
+            if (!(be instanceof FilterPatchBlockEntity patch)) continue;
+            if (patch.getBlockState().getValue(net.minecraft.world.level.block.DirectionalBlock.FACING) != face.getOpposite())
+                continue;
+
+            FilteringBehaviour fb = BlockEntityBehaviour.get(patch, FilteringBehaviour.TYPE);
+            if (fb != null && !fb.getFilter().isEmpty()) return true;
+        }
+        return false;
+    }
 }
