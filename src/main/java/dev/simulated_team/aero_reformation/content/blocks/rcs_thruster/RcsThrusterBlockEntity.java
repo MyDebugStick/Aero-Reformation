@@ -94,7 +94,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     );
 
     // Angled nozzle reduction mode: 0=100%, 1=50%, 2=25%, 3=10%
-    private static final double[] ANGLED_REDUCTION = {1.0, 0.5, 0.25, 0.1, 0.05, 0.02};
+    public static final double[] ANGLED_REDUCTION = {1.0, 0.5, 0.25, 0.1, 0.05, 0.02};
     private int angledMode = 0;
 
     private double getFuelConsumption() {

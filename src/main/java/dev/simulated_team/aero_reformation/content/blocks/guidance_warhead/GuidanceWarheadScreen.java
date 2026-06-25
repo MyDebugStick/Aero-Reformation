@@ -6,12 +6,15 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@OnlyIn(Dist.CLIENT)
 public class GuidanceWarheadScreen extends Screen {
     private final BlockPos pos;
 
@@ -30,7 +33,6 @@ public class GuidanceWarheadScreen extends Screen {
     private static final double MANUAL_X_DEF = 0.0, MANUAL_Y_DEF = 64.0, MANUAL_Z_DEF = 0.0;
 
     private int currentPage = 0;
-    private static final int PAGE_COUNT = 3;
 
     private final List<Button> pageButtons = new ArrayList<>();
     private Button tabPid, tabTarget, tabInfo;
@@ -118,7 +120,7 @@ public class GuidanceWarheadScreen extends Screen {
         switch (currentPage) {
             case 0 -> buildPidPage(cx, y, bw, bh);
             case 1 -> buildTargetPage(cx, y, bw, bh);
-            case 2 -> buildInfoPage(cx, y);
+            case 2 -> {} // Info page: text only, rendered in render()
         }
     }
 
@@ -237,10 +239,6 @@ public class GuidanceWarheadScreen extends Screen {
         inputZ.setValue(formatCoord(manualZ));
         inputZ.setResponder(s -> { try { manualZ = Double.parseDouble(s); } catch (NumberFormatException ignored) {} });
         addRenderableWidget(inputZ);
-    }
-
-    private void buildInfoPage(int cx, int y) {
-        // Summary text only, rendered in render()
     }
 
     private void updateTabStyles() {

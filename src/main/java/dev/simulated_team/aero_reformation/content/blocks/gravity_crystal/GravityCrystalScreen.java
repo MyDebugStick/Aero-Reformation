@@ -4,11 +4,14 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
+@OnlyIn(Dist.CLIENT)
 public class GravityCrystalScreen extends Screen {
     private final UUID subLevelId;
     private final GravityCrystalSettings settings;

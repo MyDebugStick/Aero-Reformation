@@ -33,8 +33,6 @@ public class RcsThrusterBlock extends Block implements IBE<RcsThrusterBlockEntit
     public static final DirectionProperty FACING = DirectionProperty.create("facing");
     public static final MapCodec<RcsThrusterBlock> CODEC = simpleCodec(RcsThrusterBlock::new);
 
-    private static final double[] ANGLED_MODES = {1.0, 0.5, 0.25, 0.1, 0.05, 0.02};
-
     public RcsThrusterBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, net.minecraft.core.Direction.NORTH));
@@ -65,7 +63,7 @@ public class RcsThrusterBlock extends Block implements IBE<RcsThrusterBlockEntit
             if (level.isClientSide()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
             if (level.getBlockEntity(pos) instanceof RcsThrusterBlockEntity rcs) {
                 rcs.cycleAngledMode();
-                double val = ANGLED_MODES[rcs.getAngledMode() % ANGLED_MODES.length];
+                double val = RcsThrusterBlockEntity.ANGLED_REDUCTION[rcs.getAngledMode() % RcsThrusterBlockEntity.ANGLED_REDUCTION.length];
                 level.playSound(null, pos, SoundEvents.NOTE_BLOCK_HAT.value(), SoundSource.BLOCKS, 0.6f,
                         (float)(0.5 + val * 0.5));
                 player.displayClientMessage(

@@ -2,8 +2,10 @@ package dev.simulated_team.aero_reformation.content.blocks.guidance_warhead;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
-/** Client-side only. Opens the guidance warhead settings screen. */
+@OnlyIn(Dist.CLIENT)
 public class GuidanceWarheadScreenOpener {
     public static void open(BlockPos pos, float kp, float ki, float kd, float maxSpeed, float sidePower, float maxThrustPN,
                             float brakeCoeff, float proximityRange, float cruiseAltitude, float redstoneRange, float altitudeOffset,
