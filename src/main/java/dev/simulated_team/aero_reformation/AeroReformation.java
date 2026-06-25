@@ -20,6 +20,8 @@ import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorM
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalSettingsPacket;
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalOpenPacket;
 import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.GravityCrystalSyncPacket;
+import dev.simulated_team.aero_reformation.content.blocks.guidance_warhead.GuidanceWarheadSettingsPacket;
+import dev.simulated_team.aero_reformation.content.blocks.guidance_warhead.GuidanceWarheadOpenPacket;
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComConfigPayload;
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComSyncPayload;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
@@ -116,6 +118,10 @@ public class AeroReformation {
                     PowerConfigPayload::handle);
             registrar.playToServer(SyncSignalPayload.TYPE, SyncSignalPayload.STREAM_CODEC,
                     SyncSignalPayload::handle);
+            registrar.playToServer(GuidanceWarheadSettingsPacket.TYPE, GuidanceWarheadSettingsPacket.STREAM_CODEC,
+                    GuidanceWarheadSettingsPacket::handle);
+            registrar.playToClient(GuidanceWarheadOpenPacket.TYPE, GuidanceWarheadOpenPacket.STREAM_CODEC,
+                    GuidanceWarheadOpenPacket::handle);
         });
 
         // Register NavigationTarget into Simulated's existing registry

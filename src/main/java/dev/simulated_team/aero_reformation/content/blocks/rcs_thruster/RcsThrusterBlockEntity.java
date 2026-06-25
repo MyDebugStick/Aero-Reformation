@@ -71,7 +71,21 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     private static final int DEFAULT_THRUST_IDX = 3; // 2000 pN
 
     private BlockPos boundSyncPos = null;
+    private BlockPos boundWarheadPos = null;
+    private boolean guidanceActive = false; // one-shot: true once PID starts
     public ScrollValueBehaviour thrustScroll;
+
+    // PID state for guidance attitude control
+    private double yawIntegral = 0;
+    private double yawPrevError = 0;
+    private double pitchIntegral = 0;
+    private double pitchPrevError = 0;
+
+    // PID gains (tunable)
+    private static final double PID_KP = 0.8;
+    private static final double PID_KI = 0.02;
+    private static final double PID_KD = 0.15;
+    private static final double PID_INTEGRAL_MAX = 2.0;
 
     // Accepted fuel fluid IDs
     private static final Set<String> ACCEPTED_FUELS = Set.of(
@@ -110,11 +124,26 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
 
     public void setBoundSync(BlockPos pos) {
         this.boundSyncPos = pos;
+        this.boundWarheadPos = null; // cannot bind both
         this.setChanged();
     }
 
     public BlockPos getBoundSync() {
         return boundSyncPos;
+    }
+
+    public void setBoundWarhead(BlockPos pos) {
+        this.boundWarheadPos = pos;
+        this.boundSyncPos = null; // cannot bind both
+        this.setChanged();
+    }
+
+    public BlockPos getBoundWarhead() {
+        return boundWarheadPos;
+    }
+
+    public boolean isGuidanceMode() {
+        return boundWarheadPos != null;
     }
 
     public double getConfiguredThrust() {
@@ -257,7 +286,9 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     }
 
     private void spawnNozzleParticles() {
-        if (boundSyncPos == null || level == null) return;
+        if (level == null) return;
+        // Need either sync or warhead binding for active VFX
+        if (boundSyncPos == null && boundWarheadPos == null) return;
         if (!creativeMode && !fuelAvailable) {
             prevActiveMask = 0;
             return;
@@ -320,6 +351,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                     throttle = Math.max(0.1f, signal / 15.0f);
                 }
             }
+            // In guidance mode, throttle is determined server-side; use full for VFX
             float t = 0.5f + throttle * 0.5f;
 
             if (hasElectric) {
@@ -388,8 +420,16 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
 
     @Override
     public void sable$physicsTick(ServerSubLevel subLevel, RigidBodyHandle bodyHandle, double dt) {
-        if (boundSyncPos == null) return;
         if (level == null) return;
+
+        // Guidance mode: bound to warhead, no sync
+        if (boundWarheadPos != null) {
+            sable$guidanceTick(subLevel, bodyHandle, dt);
+            return;
+        }
+
+        // Sync mode: bound to DirectionalSynchronizer
+        if (boundSyncPos == null) return;
 
         BlockEntity be = level.getBlockEntity(boundSyncPos);
         if (!(be instanceof DirectionalSynchronizerMasterBlockEntity sync)) return;
@@ -431,6 +471,191 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         }
 
         // Fuel / Energy consumption (electricity first, then fluid fuel)
+        applyFuelAndEnergy(totalThrustPN);
+
+        // Cache sync facing and active nozzle mask for client VFX
+        syncFacingCache = syncFacing;
+        if (activeNozzleMask != physMask || Math.abs(currentThrustPN - totalThrustPN) > 0.5) {
+            activeNozzleMask = physMask;
+            currentThrustPN = totalThrustPN;
+            sendData();
+            setChanged();
+        }
+
+        // Apply force directly (burst output)
+        if (totalForce.lengthSquared() > 1e-6) {
+            liftGroup.applyAndRecordPointForce(blockCenter, totalForce);
+        }
+
+        // Cache sub-level linear velocity for client VFX
+        cacheSubLevelVelocity(bodyHandle);
+    }
+
+    /** Guidance mode: seek nearest physics body, orient and thrust toward it. */
+    private void sable$guidanceTick(ServerSubLevel subLevel, RigidBodyHandle bodyHandle, double dt) {
+        BlockEntity warheadBe = level.getBlockEntity(boundWarheadPos);
+        if (!(warheadBe instanceof dev.simulated_team.aero_reformation.content.blocks.guidance_warhead.GuidanceWarheadBlockEntity warhead)) {
+            // Warhead removed — shut down nozzles and reset state
+            if (activeNozzleMask != 0) {
+                activeNozzleMask = 0; currentThrustPN = 0;
+                fuelAvailable = false; electricMode = false;
+                sendData(); setChanged();
+            }
+            return;
+        }
+        var mySub = dev.ryanhcode.sable.Sable.HELPER.getContaining(this);
+        var warheadSub = dev.ryanhcode.sable.Sable.HELPER.getContaining(warheadBe);
+        if (mySub == null || warheadSub == null || mySub != warheadSub) return;
+
+        Direction facing = getBlockState().getValue(RcsThrusterBlock.FACING);
+        BlockPos backPos = worldPosition.relative(facing.getOpposite());
+        if (!level.hasNeighborSignal(backPos)) {
+            yawIntegral = 0; yawPrevError = 0;
+            pitchIntegral = 0; pitchPrevError = 0;
+            guidanceActive = false;
+            if (activeNozzleMask != 0) {
+                activeNozzleMask = 0; currentThrustPN = 0;
+                fuelAvailable = false; electricMode = false;
+                sendData(); setChanged();
+            }
+            warhead.markGuidanceInactive();
+            return;
+        }
+
+        // Mark warhead that guidance is active (for drag application once per body)
+        warhead.markGuidanceActive();
+
+        Direction rcsFacing = getBlockState().getValue(RcsThrusterBlock.FACING);
+        double maxThrust = warhead.maxThrustPN;
+        totalForce.set(0, 0, 0);
+        double totalThrustPN = 0;
+        int physMask = 0;
+
+        var target = warhead.getTargetPos();
+        if (target == null) return;
+
+        var currentPos = subLevel.logicalPose().position();
+        double dist = currentPos.distance(target); // original distance for redstone
+        if (dist < 0.5) return;
+
+        // Apply altitude offset: aim above target until within proximity range
+        boolean useOffset = warhead.proximityRange <= 0 || dist > warhead.proximityRange;
+        var guidanceTarget = useOffset ? new Vector3d(target).add(0, warhead.altitudeOffset, 0) : new Vector3d(target);
+        var toTarget = new Vector3d(guidanceTarget).sub(currentPos);
+        toTarget.div(toTarget.length());
+
+        var warheadState = warhead.getBlockState();
+        var warheadFacing = warheadState.getValue(dev.simulated_team.aero_reformation.content.blocks.guidance_warhead.GuidanceWarheadBlock.FACING);
+        var warheadWorldDir = new Vector3d(warheadFacing.getStepX(), warheadFacing.getStepY(), warheadFacing.getStepZ());
+        subLevel.logicalPose().orientation().transform(warheadWorldDir);
+
+        // ===== Phase 1: Climb to guidance altitude (one-time) =====
+        double currentAlt = currentPos.y();
+        if (!guidanceActive && warhead.cruiseAltitude > 0 && currentAlt < warhead.cruiseAltitude) {
+            physMask |= 1;
+            Vector3d localDir = NOZZLE_LOCAL[0];
+            transformByFacing(localDir, rcsFacing, thrustWorld);
+            double thrustPN = maxThrust;
+            totalThrustPN += thrustPN;
+            totalForce.add(thrustWorld.mul(thrustPN / 40.0, force));
+            finishGuidanceFrame(subLevel, bodyHandle, totalThrustPN, physMask, totalForce);
+            return;
+        }
+        guidanceActive = true;
+
+        // ===== Phase 2: PID guidance =====
+
+        // RCS-local axes in world space
+        var rcsUpLocal = new Vector3d(0, 1, 0);
+        transformByFacing(rcsUpLocal, rcsFacing, rcsUpLocal);
+        subLevel.logicalPose().orientation().transform(rcsUpLocal);
+        var rcsRightLocal = new Vector3d(1, 0, 0);
+        transformByFacing(rcsRightLocal, rcsFacing, rcsRightLocal);
+        subLevel.logicalPose().orientation().transform(rcsRightLocal);
+
+        // PID errors from cross product (warphead direction vs target)
+        var cross = new Vector3d(warheadWorldDir).cross(toTarget);
+        double yawError = cross.dot(rcsUpLocal);
+        double pitchError = cross.dot(rcsRightLocal);
+
+        // Forward alignment
+        double forwardAlign = warheadWorldDir.dot(toTarget);
+        double forwardScale = 0.1 + 0.9 * Math.pow(Math.max(0.0, forwardAlign), 2.34);
+
+        // Angular velocity
+        var angVel = new Vector3d();
+        bodyHandle.getAngularVelocity(angVel);
+        double yawAngVel = angVel.dot(rcsUpLocal);
+        double pitchAngVel = angVel.dot(rcsRightLocal);
+
+        // PID
+        double yawOutput = pidStep(yawError, yawPrevError, yawIntegral, warhead.kp, warhead.ki, warhead.kd);
+        yawPrevError = yawError;
+        yawIntegral = clamp(yawIntegral + yawError, -PID_INTEGRAL_MAX, PID_INTEGRAL_MAX);
+        if (yawError * yawPrevError < 0) yawIntegral *= 0.5;
+        yawOutput -= yawAngVel * warhead.brakeCoeff;
+
+        double pitchOutput = pidStep(pitchError, pitchPrevError, pitchIntegral, warhead.kp, warhead.ki, warhead.kd);
+        pitchPrevError = pitchError;
+        pitchIntegral = clamp(pitchIntegral + pitchError, -PID_INTEGRAL_MAX, PID_INTEGRAL_MAX);
+        if (pitchError * pitchPrevError < 0) pitchIntegral *= 0.5;
+        pitchOutput -= pitchAngVel * warhead.brakeCoeff;
+
+        // Forward thrust
+        physMask |= 1;
+        Vector3d localDir = NOZZLE_LOCAL[0];
+        transformByFacing(localDir, rcsFacing, thrustWorld);
+        double thrustPN = maxThrust * forwardScale;
+        totalThrustPN += thrustPN;
+        totalForce.add(thrustWorld.mul(thrustPN / 40.0, force));
+
+        // Side nozzles (PID-driven)
+        double sidePower = maxThrust * warhead.sidePower;
+        if (Math.abs(yawOutput) > 0.005) {
+            int idx = yawOutput > 0 ? 1 : 2;
+            physMask |= (1 << idx);
+            var nozzleDir = new Vector3d(NOZZLE_LOCAL[idx]);
+            transformByFacing(nozzleDir, rcsFacing, nozzleDir);
+            double pn = sidePower * Math.abs(yawOutput);
+            totalThrustPN += pn;
+            totalForce.add(nozzleDir.mul(pn / 40.0, force));
+        }
+        if (Math.abs(pitchOutput) > 0.005) {
+            int idx = pitchOutput > 0 ? 4 : 3;
+            physMask |= (1 << idx);
+            var nozzleDir = new Vector3d(NOZZLE_LOCAL[idx]);
+            transformByFacing(nozzleDir, rcsFacing, nozzleDir);
+            double pn = sidePower * Math.abs(pitchOutput);
+            totalThrustPN += pn;
+            totalForce.add(nozzleDir.mul(pn / 40.0, force));
+        }
+
+        finishGuidanceFrame(subLevel, bodyHandle, totalThrustPN, physMask, totalForce);
+    }
+
+    /** Apply fuel, sync state, apply forces, and update velocity cache. */
+    private void finishGuidanceFrame(ServerSubLevel subLevel, RigidBodyHandle bodyHandle,
+                                      double totalThrustPN, int physMask, Vector3d totalForce) {
+        applyFuelAndEnergy(totalThrustPN);
+
+        if (activeNozzleMask != physMask || Math.abs(currentThrustPN - totalThrustPN) > 0.5) {
+            activeNozzleMask = physMask;
+            currentThrustPN = totalThrustPN;
+            sendData();
+            setChanged();
+        }
+
+        if (totalForce.lengthSquared() > 1e-6) {
+            blockCenter.set(worldPosition.getX() + 0.5, worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5);
+            QueuedForceGroup liftGroup = subLevel.getOrCreateQueuedForceGroup(ForceGroups.LIFT.get());
+            liftGroup.applyAndRecordPointForce(blockCenter, totalForce);
+        }
+
+        cacheSubLevelVelocity(bodyHandle);
+    }
+
+    /** Consume fuel/energy for accumulated thrust. Returns true if enough fuel available. */
+    private void applyFuelAndEnergy(double totalThrustPN) {
         boolean prevFuel = fuelAvailable;
         if (creativeMode) {
             fuelAvailable = true;
@@ -462,26 +687,11 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             sendData();
             setChanged();
         }
+    }
 
-        // Cache sync facing and active nozzle mask for client VFX
-        syncFacingCache = syncFacing;
-        if (activeNozzleMask != physMask || Math.abs(currentThrustPN - totalThrustPN) > 0.5) {
-            activeNozzleMask = physMask;
-            currentThrustPN = totalThrustPN;
-            sendData();
-            setChanged();
-        }
-
-        // Apply force directly (burst output)
-        if (totalForce.lengthSquared() > 1e-6) {
-            liftGroup.applyAndRecordPointForce(blockCenter, totalForce);
-        }
-
-        // Cache sub-level linear velocity for client VFX (prevents particle scatter at high speed)
-        // Rapier velocity is in m/s; convert to blocks/tick (/20)
+    private void cacheSubLevelVelocity(RigidBodyHandle bodyHandle) {
         bodyHandle.getLinearVelocity(subLevelVelocity);
         subLevelVelocity.mul(1.0 / 20.0);
-        // Sync velocity to client periodically when thruster is active
         if (fuelAvailable && level != null && level.getGameTime() % 5 == 0) {
             sendData();
             setChanged();
@@ -607,6 +817,15 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         v.z = z;
     }
 
+    private static double pidStep(double error, double prevError, double integral,
+                                   double kp, double ki, double kd) {
+        return kp * error + ki * integral + kd * (error - prevError);
+    }
+
+    private static double clamp(double value, double min, double max) {
+        return value < min ? min : (value > max ? max : value);
+    }
+
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
@@ -614,6 +833,11 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             tag.putInt("SyncX", boundSyncPos.getX());
             tag.putInt("SyncY", boundSyncPos.getY());
             tag.putInt("SyncZ", boundSyncPos.getZ());
+        }
+        if (boundWarheadPos != null) {
+            tag.putInt("WarheadX", boundWarheadPos.getX());
+            tag.putInt("WarheadY", boundWarheadPos.getY());
+            tag.putInt("WarheadZ", boundWarheadPos.getZ());
         }
         tag.putInt("AngledMode", angledMode);
         tag.putBoolean("CreativeMode", creativeMode);
@@ -632,6 +856,13 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         super.read(tag, registries, clientPacket);
         if (tag.contains("SyncX")) {
             boundSyncPos = new BlockPos(tag.getInt("SyncX"), tag.getInt("SyncY"), tag.getInt("SyncZ"));
+        } else {
+            boundSyncPos = null;
+        }
+        if (tag.contains("WarheadX")) {
+            boundWarheadPos = new BlockPos(tag.getInt("WarheadX"), tag.getInt("WarheadY"), tag.getInt("WarheadZ"));
+        } else {
+            boundWarheadPos = null;
         }
         angledMode = tag.getInt("AngledMode");
         creativeMode = tag.getBoolean("CreativeMode");

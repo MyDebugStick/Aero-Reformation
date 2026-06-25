@@ -36,6 +36,8 @@ import dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKe
 import dev.simulated_team.aero_reformation.content.items.high_friction.HighFrictionBlockItem;
 import dev.simulated_team.aero_reformation.content.items.mushroom_shell.MushroomShellBlock;
 import dev.simulated_team.aero_reformation.content.items.mushroom_shell.MushroomShellProjectile;
+import dev.simulated_team.aero_reformation.content.blocks.guidance_warhead.GuidanceWarheadBlock;
+import dev.simulated_team.aero_reformation.content.blocks.guidance_warhead.GuidanceWarheadBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -464,6 +466,30 @@ public class AeroBlocks {
         MUSHROOM_SHELL_BE    = AeroCBCBlocks.MUSHROOM_SHELL_BE;
     }
 
+    // ==================== Guidance Warhead (制导弹头) ====================
+
+    public static final Supplier<GuidanceWarheadBlock> GUIDANCE_WARHEAD =
+            BLOCKS.register("guidance_warhead", () -> new GuidanceWarheadBlock(
+                    BlockBehaviour.Properties.of()
+                            .strength(2.0f)
+                            .noOcclusion()
+            ));
+
+    public static final Supplier<BlockEntityType<GuidanceWarheadBlockEntity>> GUIDANCE_WARHEAD_BE =
+            BLOCK_ENTITY_TYPES.register("guidance_warhead",
+                    () -> BlockEntityType.Builder.of(GuidanceWarheadBlockEntity::new, GUIDANCE_WARHEAD.get())
+                            .build(null));
+
+    public static final Supplier<BlockItem> GUIDANCE_WARHEAD_ITEM =
+            ITEMS.register("guidance_warhead", () -> new dev.simulated_team.aero_reformation.content.blocks.guidance_warhead.GuidanceWarheadBlockItem(
+                    GUIDANCE_WARHEAD.get(), new Item.Properties()
+            ));
+
+    public static final Supplier<Item> INCOMPLETE_GUIDANCE_WARHEAD =
+            ITEMS.register("incomplete_guidance_warhead", () -> new Item(
+                    new Item.Properties().stacksTo(1)
+            ));
+
     // ==================== Creative Tab ====================
 
     public static final Supplier<CreativeModeTab> AERO_REFORMATION_TAB = CREATIVE_TAB.register(
@@ -493,6 +519,7 @@ public class AeroBlocks {
                         output.accept(HIGH_FRICTION_VERTICAL_SLAB_ITEM.get());
                         output.accept(ETHEREAL_KEY.get());
                         output.accept(MUSHROOM_SHELL_ITEM.get());
+                        output.accept(GUIDANCE_WARHEAD_ITEM.get());
                     })
                     .build()
     );

@@ -35,4 +35,11 @@ public class AeroDataComponents {
                             .persistent(SensorBinding.CODEC)
                             .networkSynchronized(SensorBinding.STREAM_CODEC)
                             .build());
+
+    public static final Supplier<DataComponentType<BlockPos>> BOUND_WARHEAD =
+            REGISTER.register("bound_warhead", () ->
+                    DataComponentType.<BlockPos>builder()
+                            .persistent(BlockPos.CODEC)
+                            .networkSynchronized(BlockPos.STREAM_CODEC)
+                            .build());
 }

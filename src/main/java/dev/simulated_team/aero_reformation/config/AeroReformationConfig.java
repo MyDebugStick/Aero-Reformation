@@ -10,6 +10,7 @@ public class AeroReformationConfig {
 
     public static final ModConfigSpec.DoubleValue RCS_FUEL_CONSUMPTION;
     public static final ModConfigSpec.DoubleValue RCS_ELECTRIC_EFFICIENCY;
+    public static final ModConfigSpec.DoubleValue GUIDANCE_MAX_SPEED;
     public static final ModConfigSpec.IntValue MAX_ANCHOR_RADIUS;
     public static final ModConfigSpec.BooleanValue FILTER_PATCH_ENABLED;
     public static final ModConfigSpec.DoubleValue ANCHOR_TRACKING_RANGE;
@@ -35,6 +36,9 @@ public class AeroReformationConfig {
         RCS_ELECTRIC_EFFICIENCY = BUILDER
                 .comment("Electric efficiency of RCS Thruster in pN per FE per tick. Higher = more efficient. Default 25.")
                 .defineInRange("rcsElectricEfficiency", 25.0, 1.0, 1000000.0);
+        GUIDANCE_MAX_SPEED = BUILDER
+                .comment("Maximum speed (m/s) for guidance warhead. RCS will throttle forward thrust above this speed. Default 20.")
+                .defineInRange("guidanceMaxSpeed", 20.0, 1.0, 1000.0);
         BUILDER.pop();
 
         BUILDER.push("Filter Patch");
@@ -62,6 +66,7 @@ public class AeroReformationConfig {
     public static double redstoneSpringStressCapacity = 8.0;
     public static double rcsFuelConsumption = 5000.0;
     public static double rcsElectricEfficiency = 25.0;
+    public static double guidanceMaxSpeed = 20.0;
     public static boolean filterPatchEnabled = true;
     public static int maxAnchorRadius = 5;
     public static double anchorTrackingRange = 1024.0;
@@ -71,6 +76,7 @@ public class AeroReformationConfig {
         redstoneSpringStressCapacity = REDSTONE_SPRING_STRESS_CAPACITY.get();
         rcsFuelConsumption = RCS_FUEL_CONSUMPTION.get();
         rcsElectricEfficiency = RCS_ELECTRIC_EFFICIENCY.get();
+        guidanceMaxSpeed = GUIDANCE_MAX_SPEED.get();
         filterPatchEnabled = FILTER_PATCH_ENABLED.get();
         maxAnchorRadius = MAX_ANCHOR_RADIUS.get();
         anchorTrackingRange = ANCHOR_TRACKING_RANGE.get();

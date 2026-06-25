@@ -15,6 +15,7 @@ import net.minecraft.world.level.Level;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 
 public class AnchorChunkLoader {
@@ -39,7 +40,9 @@ public class AnchorChunkLoader {
         UUID id = subLevel.getUniqueId();
         var pose = subLevel.logicalPose();
 
-        // Protect the new SubLevel FIRST, then clear old ones (prevents gap)
+        // Protect the new SubLevel FIRST, then clear auto-protected ones (prevents gap)
+        // Only AUTO_PROTECTED SubLevels (from bearing splits) are displaced;
+        // manually anchored SubLevels keep their anchors intact.
         ANCHORED_SUBLEVELS.add(id);
         AUTO_PROTECTED.remove(id);
 
@@ -47,9 +50,11 @@ public class AnchorChunkLoader {
         if (container != null) {
             for (var other : container.getAllSubLevels()) {
                 UUID otherId = other.getUniqueId();
-                if (!otherId.equals(id) && ANCHORED_SUBLEVELS.contains(otherId)) {
+                if (!otherId.equals(id) && AUTO_PROTECTED.contains(otherId)) {
                     ANCHORED_SUBLEVELS.remove(otherId);
                     AUTO_PROTECTED.remove(otherId);
+                    WARMUP.remove(otherId);
+                    AeroReformation.LOGGER.debug("[PhysicsAnchor] Displaced auto-protected sub={} for new anchor sub={}", otherId, id);
                 }
             }
         }
@@ -272,7 +277,37 @@ public class AnchorChunkLoader {
 
     public static AnchorMarkerEntity getMarker(Level level, BlockPos pos) {
         AnchorData data = anchorsFor(level.dimension()).get(pos);
-        return data != null ? data.marker : null;
+        if (data != null && data.marker != null && !data.marker.isRemoved()) {
+            return data.marker;
+        }
+        // Marker entry lost but entity may still exist — attempt recovery
+        return recoverMarker(level, pos);
+    }
+
+    /** Attempt to recover a marker entity that exists in the world but lost its map entry. */
+    @Nullable
+    private static AnchorMarkerEntity recoverMarker(Level level, BlockPos pos) {
+        if (!(level instanceof ServerLevel sl)) return null;
+        var be = sl.getBlockEntity(pos);
+        if (be == null) return null;
+        var subLevel = dev.ryanhcode.sable.Sable.HELPER.getContaining(be);
+        if (subLevel == null) return null;
+        UUID id = subLevel.getUniqueId();
+
+        // Scan all entities for a marker with matching SubLevel UUID
+        for (var e : sl.getEntities().getAll()) {
+            if (e instanceof AnchorMarkerEntity m
+                    && id.equals(m.getSubLevelUUID())
+                    && !m.isRemoved()) {
+                // Re-link: register in dimMap under this anchor position
+                int r = getSavedRadius(sl, id);
+                anchorsFor(sl.dimension()).put(pos, new AnchorData(subLevel, m, null, r));
+                ANCHORED_SUBLEVELS.add(id);
+                AeroReformation.LOGGER.warn("[PhysicsAnchor] Recovered lost marker for sub={} at anchor={}", id, pos);
+                return m;
+            }
+        }
+        return null;
     }
 
     public static int getRadius(Level level, BlockPos pos) {

@@ -25,9 +25,21 @@ public class RcsThrusterBlockItem extends BlockItem {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        boolean cleared = false;
         if (stack.has(AeroDataComponents.BOUND_MASTER.get())) {
             if (!level.isClientSide()) {
                 stack.remove(AeroDataComponents.BOUND_MASTER.get());
+                cleared = true;
+            }
+        }
+        if (stack.has(AeroDataComponents.BOUND_WARHEAD.get())) {
+            if (!level.isClientSide()) {
+                stack.remove(AeroDataComponents.BOUND_WARHEAD.get());
+                cleared = true;
+            }
+        }
+        if (cleared) {
+            if (!level.isClientSide()) {
                 level.playSound(null, player.getX(), player.getY(), player.getZ(),
                         SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.3f, 0.5f);
                 player.displayClientMessage(
@@ -40,7 +52,7 @@ public class RcsThrusterBlockItem extends BlockItem {
 
     @Override
     public boolean isFoil(ItemStack stack) {
-        return stack.has(AeroDataComponents.BOUND_MASTER.get());
+        return stack.has(AeroDataComponents.BOUND_MASTER.get()) || stack.has(AeroDataComponents.BOUND_WARHEAD.get());
     }
 
     @Override
@@ -62,10 +74,16 @@ public class RcsThrusterBlockItem extends BlockItem {
                     boundSync.getX(), boundSync.getY(), boundSync.getZ())
                     .withStyle(net.minecraft.ChatFormatting.YELLOW));
         }
+        BlockPos boundWarhead = stack.get(AeroDataComponents.BOUND_WARHEAD.get());
+        if (boundWarhead != null) {
+            tooltip.add(Component.translatable("aero_reformation.rcs_thruster.bound_warhead_pos",
+                    boundWarhead.getX(), boundWarhead.getY(), boundWarhead.getZ())
+                    .withStyle(net.minecraft.ChatFormatting.AQUA));
+        }
     }
 
     /**
-     * Transfer bound sync position from item data component to block entity on placement.
+     * Transfer bound sync/warhead position from item data component to block entity on placement.
      */
     @Override
     protected boolean updateCustomBlockEntityTag(BlockPos pos, net.minecraft.world.level.Level level,
@@ -75,6 +93,12 @@ public class RcsThrusterBlockItem extends BlockItem {
         if (boundSync != null) {
             if (level.getBlockEntity(pos) instanceof RcsThrusterBlockEntity rcs) {
                 rcs.setBoundSync(boundSync);
+            }
+        }
+        BlockPos boundWarhead = stack.get(AeroDataComponents.BOUND_WARHEAD.get());
+        if (boundWarhead != null) {
+            if (level.getBlockEntity(pos) instanceof RcsThrusterBlockEntity rcs) {
+                rcs.setBoundWarhead(boundWarhead);
             }
         }
         return super.updateCustomBlockEntityTag(pos, level, player, stack, state);

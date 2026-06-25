@@ -1,0 +1,65 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "aero_reformation:directional_synchronizer_master"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "chance": 100.0,
+      "id": "aero_reformation:guidance_warhead"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_guidance_warhead"},
+        {"item": "create:precision_mechanism"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_guidance_warhead"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_guidance_warhead"},
+        {"item": "create:electron_tube"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_guidance_warhead"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_guidance_warhead"},
+        {"item": "simulated:navigation_table"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_guidance_warhead"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_guidance_warhead"},
+        {"item": "simulated:gyroscopic_mechanism"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_guidance_warhead"}]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_guidance_warhead"},
+        {"item": "aero_reformation:ender_compass"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_guidance_warhead"}]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {"item": "aero_reformation:incomplete_guidance_warhead"}
+      ],
+      "results": [{"id": "aero_reformation:incomplete_guidance_warhead"}]
+    }
+  ],
+  "transitional_item": {
+    "id": "aero_reformation:incomplete_guidance_warhead"
+  }
+}

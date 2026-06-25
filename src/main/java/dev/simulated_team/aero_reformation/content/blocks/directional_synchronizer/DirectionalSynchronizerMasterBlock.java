@@ -84,6 +84,8 @@ public class DirectionalSynchronizerMasterBlock extends DirectionalBlock
             return ItemInteractionResult.SUCCESS;
         }
         if (stack.is(AeroBlocks.RCS_THRUSTER_ITEM.get())) {
+            // Cannot bind if already bound to a warhead
+            if (stack.has(AeroDataComponents.BOUND_WARHEAD.get())) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
             if (!level.isClientSide()) {
                 stack.set(AeroDataComponents.BOUND_MASTER.get(), pos);
                 if (be != null) be.setRcsMode(true);
