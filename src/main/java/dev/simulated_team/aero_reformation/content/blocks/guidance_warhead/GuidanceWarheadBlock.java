@@ -134,6 +134,11 @@ public class GuidanceWarheadBlock extends DirectionalBlock implements EntityBloc
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                                Player player, InteractionHand hand, BlockHitResult hit) {
+        // Warhead Configurator: let the item handle copy/paste, consume click
+        if (stack.is(AeroBlocks.WARHEAD_CONFIGURATOR.get())) {
+            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+        }
+
         // RCS Thruster item: bind this warhead to the RCS
         if (stack.is(AeroBlocks.RCS_THRUSTER_ITEM.get())) {
             // Cannot bind if already bound to a synchronizer
@@ -155,15 +160,18 @@ public class GuidanceWarheadBlock extends DirectionalBlock implements EntityBloc
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                 Player player, BlockHitResult hit) {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
-        if (level.getBlockEntity(pos) instanceof GuidanceWarheadBlockEntity warhead) {
-            PacketDistributor.sendToPlayer((net.minecraft.server.level.ServerPlayer) player,
-                    new GuidanceWarheadOpenPacket(pos, warhead.kp, warhead.ki, warhead.kd,
-                            warhead.maxSpeed, warhead.sidePower, warhead.maxThrustPN,
-                            warhead.brakeCoeff, warhead.proximityRange,
-                            warhead.cruiseAltitude, warhead.redstoneRange, warhead.altitudeOffset,
-                            warhead.searchMode, warhead.minSearchRange, warhead.maxSearchRange,
-                            warhead.manualTargetX, warhead.manualTargetY, warhead.manualTargetZ));
-        }
+        if (!(level.getBlockEntity(pos) instanceof GuidanceWarheadBlockEntity warhead))
+            return InteractionResult.PASS;
+
+        // Open GUI
+        PacketDistributor.sendToPlayer((net.minecraft.server.level.ServerPlayer) player,
+                new GuidanceWarheadOpenPacket(pos, warhead.kp, warhead.ki, warhead.kd,
+                        warhead.maxSpeed, warhead.sidePower, warhead.maxThrustPN,
+                        warhead.brakeCoeff, warhead.proximityRange,
+                        warhead.cruiseAltitude, warhead.redstoneRange, warhead.altitudeOffset,
+                        warhead.searchMode, warhead.minSearchRange, warhead.maxSearchRange,
+                        warhead.manualTargetX, warhead.manualTargetY, warhead.manualTargetZ,
+                        warhead.boundMonitorPos));
         return InteractionResult.SUCCESS;
     }
 }

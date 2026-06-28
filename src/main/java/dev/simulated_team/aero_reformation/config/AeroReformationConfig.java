@@ -14,6 +14,10 @@ public class AeroReformationConfig {
     public static final ModConfigSpec.IntValue MAX_ANCHOR_RADIUS;
     public static final ModConfigSpec.BooleanValue FILTER_PATCH_ENABLED;
     public static final ModConfigSpec.DoubleValue ANCHOR_TRACKING_RANGE;
+    public static final ModConfigSpec.BooleanValue RADAR_ENABLED;
+    public static final ModConfigSpec.IntValue RADAR_SCAN_SPLIT_SIZE;
+    public static final ModConfigSpec.IntValue RADAR_SYNC_INTERVAL;
+    public static final ModConfigSpec.IntValue RADAR_MAX_SYNCED_TRACKS;
 
     static {
         BUILDER.push("Levitite Mining");
@@ -56,6 +60,22 @@ public class AeroReformationConfig {
                 .defineInRange("anchorTrackingRange", 1024.0, 64.0, Double.MAX_VALUE);
         BUILDER.pop();
 
+        BUILDER.push("Create Radar Fix");
+        RADAR_ENABLED = BUILDER
+                .comment("Master switch for Create Radar performance optimizations (default false).",
+                        "When enabled: improves AABB scan splitting, throttles monitor sync, caps track count.")
+                .define("radarFixEnabled", false);
+        RADAR_SCAN_SPLIT_SIZE = BUILDER
+                .comment("Sub-AABB chunk size for radar entity scanning. Larger = fewer queries. Default 512 (range 256-1024).")
+                .defineInRange("radarScanSplitSize", 512, 256, 1024);
+        RADAR_SYNC_INTERVAL = BUILDER
+                .comment("Ticks between radar monitor syncs to clients. Default 10 (original 5).")
+                .defineInRange("radarSyncInterval", 10, 5, 40);
+        RADAR_MAX_SYNCED_TRACKS = BUILDER
+                .comment("Maximum number of radar tracks synced per monitor per update. Default 50.")
+                .defineInRange("radarMaxSyncedTracks", 50, 10, 500);
+        BUILDER.pop();
+
         CONFIG_SPEC = BUILDER.build();
     }
 
@@ -70,6 +90,10 @@ public class AeroReformationConfig {
     public static boolean filterPatchEnabled = true;
     public static int maxAnchorRadius = 5;
     public static double anchorTrackingRange = 1024.0;
+    public static boolean radarEnabled = false;
+    public static int radarScanSplitSize = 512;
+    public static int radarSyncInterval = 10;
+    public static int radarMaxSyncedTracks = 50;
 
     public static void refresh() {
         levititeGoldPickaxeOnly = LEVITITE_GOLD_PICKAXE.get();
@@ -80,5 +104,9 @@ public class AeroReformationConfig {
         filterPatchEnabled = FILTER_PATCH_ENABLED.get();
         maxAnchorRadius = MAX_ANCHOR_RADIUS.get();
         anchorTrackingRange = ANCHOR_TRACKING_RANGE.get();
+        radarEnabled = RADAR_ENABLED.get();
+        radarScanSplitSize = RADAR_SCAN_SPLIT_SIZE.get();
+        radarSyncInterval = RADAR_SYNC_INTERVAL.get();
+        radarMaxSyncedTracks = RADAR_MAX_SYNCED_TRACKS.get();
     }
 }

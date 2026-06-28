@@ -6,6 +6,7 @@ import dev.ryanhcode.sable.api.physics.handle.RigidBodyHandle;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
+import dev.simulated_team.aero_reformation.compat.RadarCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -24,6 +25,7 @@ public class GuidanceWarheadBlockEntity extends BlockEntity implements BlockEnti
     public static final int SEARCH_MASS = 0;
     public static final int SEARCH_NEAREST = 1;
     public static final int SEARCH_MANUAL = 2;
+    public static final int SEARCH_RADAR = 3; // binds to radar monitor selected target
 
     @Nullable
     private Vector3d targetPos = null;
@@ -49,6 +51,10 @@ public class GuidanceWarheadBlockEntity extends BlockEntity implements BlockEnti
     public double manualTargetX = 0.0;
     public double manualTargetY = 64.0;
     public double manualTargetZ = 0.0;
+
+    // Radar binding: position of the Create Radar monitor to read selected target from
+    @Nullable
+    public BlockPos boundMonitorPos = null;
 
     public GuidanceWarheadBlockEntity(BlockPos pos, BlockState state) {
         super(AeroBlocks.GUIDANCE_WARHEAD_BE.get(), pos, state);
@@ -76,15 +82,13 @@ public class GuidanceWarheadBlockEntity extends BlockEntity implements BlockEnti
         // Only active when RCS has redstone signal
         if (!guidanceFrameActive) return;
 
-        // Apply linear drag every tick when guidance is active (once per body, no RCS compounding)
-        if (lockedTargetId >= 0) {
-            var vel = new Vector3d();
-            bodyHandle.getLinearVelocity(vel);
-            if (vel.length() > 0.01) {
-                double dragCoeff = maxThrustPN / (40.0 * maxSpeed * 20.0);
-                vel.mul(-dragCoeff);
-                bodyHandle.addLinearAndAngularVelocity(vel, new Vector3d());
-            }
+        // Apply drag every tick to limit top speed (maxSpeed). Always applied when RCS has redstone.
+        var vel = new Vector3d();
+        bodyHandle.getLinearVelocity(vel);
+        if (vel.length() > 0.01) {
+            double dragCoeff = maxThrustPN / (40.0 * maxSpeed * 20.0);
+            vel.mul(-dragCoeff);
+            bodyHandle.addLinearAndAngularVelocity(vel, new Vector3d());
         }
 
         if (--cooldown > 0) return;
@@ -113,7 +117,38 @@ public class GuidanceWarheadBlockEntity extends BlockEntity implements BlockEnti
         // Manual coordinate mode: use fixed coordinates
         if (searchMode == SEARCH_MANUAL) {
             targetPos = new Vector3d(manualTargetX, manualTargetY, manualTargetZ);
-            lockedTargetId = -1; // no physics body to track
+            lockedTargetId = -1;
+            updateRedstone(currentPos, targetPos);
+            return;
+        }
+
+        // Radar mode: read selected target from bound radar monitor
+        if (searchMode == SEARCH_RADAR) {
+            if (boundMonitorPos != null && RadarCompat.RADAR_LOADED) {
+                var be = level.getBlockEntity(boundMonitorPos);
+                var pos3 = RadarCompat.getActiveTrackPosition(be);
+                if (pos3 != null) {
+                    targetPos = new Vector3d(pos3.x, pos3.y, pos3.z);
+                    // Try UUID-based SubLevel lock for continuous tracking
+                    lockedTargetId = -1;
+                    String trackId = RadarCompat.getActiveTrackId(be);
+                    if (trackId != null && !trackId.isEmpty()) {
+                        for (SubLevel sl : container.getAllSubLevels()) {
+                            if (sl instanceof PhysicsPipelineBody body && !sl.isRemoved()
+                                    && sl.getUniqueId().toString().equals(trackId)) {
+                                lockedTargetId = body.getRuntimeId();
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    targetPos = null;
+                    lockedTargetId = -1;
+                }
+            } else {
+                targetPos = null;
+                lockedTargetId = -1;
+            }
             updateRedstone(currentPos, targetPos);
             return;
         }
@@ -225,6 +260,8 @@ public class GuidanceWarheadBlockEntity extends BlockEntity implements BlockEnti
         tag.putDouble("ManualX", manualTargetX);
         tag.putDouble("ManualY", manualTargetY);
         tag.putDouble("ManualZ", manualTargetZ);
+        if (boundMonitorPos != null)
+            tag.putLong("BoundMonitor", boundMonitorPos.asLong());
     }
 
     @Override
@@ -247,6 +284,8 @@ public class GuidanceWarheadBlockEntity extends BlockEntity implements BlockEnti
         if (tag.contains("ManualX")) manualTargetX = tag.getDouble("ManualX");
         if (tag.contains("ManualY")) manualTargetY = tag.getDouble("ManualY");
         if (tag.contains("ManualZ")) manualTargetZ = tag.getDouble("ManualZ");
+        if (tag.contains("BoundMonitor"))
+            boundMonitorPos = BlockPos.of(tag.getLong("BoundMonitor"));
     }
 
     @Nullable

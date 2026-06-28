@@ -490,6 +490,13 @@ public class AeroBlocks {
                     new Item.Properties().stacksTo(1)
             ));
 
+    // ==================== Warhead Configurator ====================
+
+    public static final Supplier<Item> WARHEAD_CONFIGURATOR =
+            ITEMS.register("warhead_configurator", () -> new dev.simulated_team.aero_reformation.content.items.warhead_configurator.WarheadConfiguratorItem(
+                    new Item.Properties().stacksTo(1)
+            ));
+
     // ==================== Creative Tab ====================
 
     public static final Supplier<CreativeModeTab> AERO_REFORMATION_TAB = CREATIVE_TAB.register(
@@ -520,6 +527,7 @@ public class AeroBlocks {
                         output.accept(ETHEREAL_KEY.get());
                         output.accept(MUSHROOM_SHELL_ITEM.get());
                         output.accept(GUIDANCE_WARHEAD_ITEM.get());
+                        output.accept(WARHEAD_CONFIGURATOR.get());
                     })
                     .build()
     );

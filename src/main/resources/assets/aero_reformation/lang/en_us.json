@@ -96,6 +96,12 @@
   "aero_reformation.guidance_warhead.info_line9": "  3. Target altitude + offset prevents premature impact",
   "aero_reformation.guidance_warhead.info_line10": "  4. Offset removed within proximity range for precision",
   "aero_reformation.guidance_warhead.info_line11": "  5. Warhead outputs redstone when target is in range",
+  "aero_reformation.guidance_warhead.search_mode.0": "Mode: Mass Priority",
+  "aero_reformation.guidance_warhead.search_mode.1": "Mode: Nearest Target",
+  "aero_reformation.guidance_warhead.search_mode.2": "Mode: Manual Coordinates",
+  "aero_reformation.guidance_warhead.search_mode.3": "Mode: Radar Guidance",
+  "aero_reformation.guidance_warhead.bound_monitor": "Bound to radar monitor at %s",
+  "aero_reformation.guidance_warhead.unbound_monitor": "Radar monitor unbound",
   "aero_reformation.guidance_warhead.reset": "Reset Defaults",
   "aero_reformation.physics_anchor.goggle.radius": "Load radius: %s chunks (%sx%s)",
   "aero_reformation.physics_anchor.goggle.name": "Name: %s",
@@ -131,6 +137,9 @@
   "item.aero_reformation.incomplete_guidance_warhead": "Incomplete Guidance Warhead",
   "tooltip.aero_reformation.guidance_warhead.desc1": "Bind an RCS Thruster to this warhead",
   "tooltip.aero_reformation.guidance_warhead.desc2": "to enable configurable auto-guidance",
+  "tooltip.aero_reformation.guidance_warhead.desc3": "Right-click radar monitor to bind to radar",
+  "tooltip.aero_reformation.guidance_warhead.desc4": "Apply redstone to the block RCS is on to start guidance",
+  "tooltip.aero_reformation.guidance_warhead.bound": "§7Radar: §a%s",
   "aero_reformation.rcs_thruster.desc1": "Uses gasoline/ethanol as fuel, or power via adjacent energy source; right-click with Creative Blaze Cake to ignore fuel cost",
   "aero_reformation.rcs_thruster.desc2": "Bind to Master Synchronizer to control output",
   "aero_reformation.rcs_thruster.desc3": "Fuel consumption: %spN/mB/tick",
@@ -223,6 +232,15 @@
   "block.aero_reformation.high_friction_slab": "High Friction Slab",
   "block.aero_reformation.high_friction_stairs": "High Friction Stairs",
   "block.aero_reformation.high_friction_vertical_slab": "High Friction Vertical Slab",
+
+  "item.aero_reformation.warhead_configurator": "Warhead Configurator",
+  "tooltip.aero_reformation.warhead_configurator.desc1": "§7Shift+Right-click warhead: §acopy config",
+  "tooltip.aero_reformation.warhead_configurator.desc2": "§7Right-click warhead: §aapply config",
+  "tooltip.aero_reformation.warhead_configurator.has_config": "§aHolds a config (Right-click to apply)",
+  "tooltip.aero_reformation.warhead_configurator.empty": "§7No config stored",
+  "msg.aero_reformation.warhead_configurator.copied": "§aWarhead config copied!",
+  "msg.aero_reformation.warhead_configurator.applied": "§aWarhead config applied!",
+  "msg.aero_reformation.warhead_configurator.no_config": "§cNo config stored in this item",
 
   "itemGroup.aero_reformation": "Aero Reformation"
 }

@@ -25,11 +25,6 @@ public abstract class CameraPitchFixMixin {
         if (!seat.isCameraLocked()) return;
         if (entity instanceof net.minecraft.world.entity.player.Player player) {
             float targetPitch = -player.getXRot();
-            if (entity.level().getGameTime() % 20 == 0) {
-                dev.simulated_team.aero_reformation.AeroReformation.LOGGER.info(
-                    String.format("[PitchFix] sY=%.1f sP=%.1f sR=%.1f camP=%.1f tgtP=%.1f plP=%.1f plY=%.1f",
-                    yaw, pitch, roll, this.xRot, targetPitch, player.getXRot(), player.getYRot()));
-            }
             this.xRot = targetPitch;
         }
     }

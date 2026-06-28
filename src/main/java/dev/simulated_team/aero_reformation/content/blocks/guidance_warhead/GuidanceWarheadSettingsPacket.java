@@ -16,7 +16,8 @@ public record GuidanceWarheadSettingsPacket(BlockPos pos, float kp, float ki, fl
                                              float cruiseAltitude, float redstoneRange,
                                              float altitudeOffset,
                                              int searchMode, float minSearchRange, float maxSearchRange,
-                                             double manualX, double manualY, double manualZ)
+                                             double manualX, double manualY, double manualZ,
+                                             @javax.annotation.Nullable net.minecraft.core.BlockPos boundMonitor)
         implements CustomPacketPayload {
 
     public static final Type<GuidanceWarheadSettingsPacket> TYPE =
@@ -43,6 +44,8 @@ public record GuidanceWarheadSettingsPacket(BlockPos pos, float kp, float ki, fl
         buf.writeDouble(p.manualX);
         buf.writeDouble(p.manualY);
         buf.writeDouble(p.manualZ);
+        buf.writeOptional(java.util.Optional.ofNullable(p.boundMonitor),
+                net.minecraft.network.codec.ByteBufCodecs.fromCodec(net.minecraft.core.BlockPos.CODEC));
     }
 
     private static GuidanceWarheadSettingsPacket decode(RegistryFriendlyByteBuf buf) {
@@ -50,7 +53,9 @@ public record GuidanceWarheadSettingsPacket(BlockPos pos, float kp, float ki, fl
                 buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
                 buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
                 buf.readInt(), buf.readFloat(), buf.readFloat(),
-                buf.readDouble(), buf.readDouble(), buf.readDouble());
+                buf.readDouble(), buf.readDouble(), buf.readDouble(),
+                buf.readOptional(net.minecraft.network.codec.ByteBufCodecs.fromCodec(net.minecraft.core.BlockPos.CODEC))
+                        .orElse(null));
     }
 
     @Override
@@ -72,12 +77,13 @@ public record GuidanceWarheadSettingsPacket(BlockPos pos, float kp, float ki, fl
                 warhead.cruiseAltitude = Math.clamp(cruiseAltitude, 0.0f, 500.0f);
                 warhead.redstoneRange = Math.clamp(redstoneRange, 0.0f, 200.0f);
                 warhead.altitudeOffset = Math.clamp(altitudeOffset, 0.0f, 100.0f);
-                warhead.searchMode = Math.clamp(searchMode, 0, 2);
+                warhead.searchMode = Math.clamp(searchMode, 0, 3);
                 warhead.minSearchRange = Math.clamp(minSearchRange, 0.0f, 4000.0f);
                 warhead.maxSearchRange = Math.clamp(maxSearchRange, 0.0f, 4000.0f);
                 warhead.manualTargetX = manualX;
                 warhead.manualTargetY = manualY;
                 warhead.manualTargetZ = manualZ;
+                warhead.boundMonitorPos = boundMonitor;
                 // Unlock target so new settings take effect on next scan
                 warhead.unlockTarget();
                 warhead.setChanged();

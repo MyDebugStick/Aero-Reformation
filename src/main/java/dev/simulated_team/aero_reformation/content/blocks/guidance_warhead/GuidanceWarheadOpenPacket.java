@@ -3,20 +3,24 @@ package dev.simulated_team.aero_reformation.content.blocks.guidance_warhead;
 import dev.simulated_team.aero_reformation.AeroReformation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
-/** Server→Client: opens the guidance warhead settings screen with current values. */
+import javax.annotation.Nullable;
+import java.util.Optional;
+
 public record GuidanceWarheadOpenPacket(BlockPos pos, float kp, float ki, float kd, float maxSpeed,
                                          float sidePower, float maxThrustPN,
                                          float brakeCoeff, float proximityRange,
                                          float cruiseAltitude, float redstoneRange,
                                          float altitudeOffset,
                                          int searchMode, float minSearchRange, float maxSearchRange,
-                                         double manualX, double manualY, double manualZ)
+                                         double manualX, double manualY, double manualZ,
+                                         @Nullable BlockPos boundMonitor)
         implements CustomPacketPayload {
 
     public static final Type<GuidanceWarheadOpenPacket> TYPE =
@@ -43,6 +47,7 @@ public record GuidanceWarheadOpenPacket(BlockPos pos, float kp, float ki, float 
         buf.writeDouble(p.manualX);
         buf.writeDouble(p.manualY);
         buf.writeDouble(p.manualZ);
+        buf.writeOptional(Optional.ofNullable(p.boundMonitor), ByteBufCodecs.fromCodec(BlockPos.CODEC));
     }
 
     private static GuidanceWarheadOpenPacket decode(RegistryFriendlyByteBuf buf) {
@@ -50,7 +55,8 @@ public record GuidanceWarheadOpenPacket(BlockPos pos, float kp, float ki, float 
                 buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
                 buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
                 buf.readInt(), buf.readFloat(), buf.readFloat(),
-                buf.readDouble(), buf.readDouble(), buf.readDouble());
+                buf.readDouble(), buf.readDouble(), buf.readDouble(),
+                buf.readOptional(ByteBufCodecs.fromCodec(BlockPos.CODEC)).orElse(null));
     }
 
     @Override
@@ -59,6 +65,6 @@ public record GuidanceWarheadOpenPacket(BlockPos pos, float kp, float ki, float 
     public void handle(IPayloadContext ctx) {
         ctx.enqueueWork(() -> GuidanceWarheadScreenOpener.open(pos, kp, ki, kd, maxSpeed, sidePower, maxThrustPN,
                 brakeCoeff, proximityRange, cruiseAltitude, redstoneRange, altitudeOffset,
-                searchMode, minSearchRange, maxSearchRange, manualX, manualY, manualZ));
+                searchMode, minSearchRange, maxSearchRange, manualX, manualY, manualZ, boundMonitor));
     }
 }

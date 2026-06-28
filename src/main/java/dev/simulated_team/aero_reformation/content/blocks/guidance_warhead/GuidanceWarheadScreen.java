@@ -11,6 +11,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +24,9 @@ public class GuidanceWarheadScreen extends Screen {
     private int searchMode;
     private float minSearchRange, maxSearchRange;
     private double manualX, manualY, manualZ;
+    @Nullable
+    private BlockPos boundMonitor;
 
-    // Defaults
     private static final float KP_DEF = 0.8f, KI_DEF = 0.02f, KD_DEF = 0.15f;
     private static final float MAX_SPEED_DEF = 20.0f, SIDE_POWER_DEF = 0.04f, THRUST_DEF = 2000.0f;
     private static final float BRAKE_DEF = 0.15f, PROX_DEF = 50.0f, ALT_DEF = 10.0f, REDSTONE_DEF = 10.0f, OFFSET_DEF = 0.0f;
@@ -33,7 +35,6 @@ public class GuidanceWarheadScreen extends Screen {
     private static final double MANUAL_X_DEF = 0.0, MANUAL_Y_DEF = 64.0, MANUAL_Z_DEF = 0.0;
 
     private int currentPage = 0;
-
     private final List<Button> pageButtons = new ArrayList<>();
     private Button tabPid, tabTarget, tabInfo;
     private EditBox inputX, inputY, inputZ;
@@ -41,7 +42,8 @@ public class GuidanceWarheadScreen extends Screen {
     public GuidanceWarheadScreen(BlockPos pos, float kp, float ki, float kd, float maxSpeed, float sidePower, float maxThrustPN,
                                   float brakeCoeff, float proximityRange, float cruiseAltitude, float redstoneRange, float altitudeOffset,
                                   int searchMode, float minSearchRange, float maxSearchRange,
-                                  double manualX, double manualY, double manualZ) {
+                                  double manualX, double manualY, double manualZ,
+                                  @Nullable BlockPos boundMonitor) {
         super(Component.translatable("screen.aero_reformation.guidance_warhead"));
         this.pos = pos;
         this.kp = kp; this.ki = ki; this.kd = kd;
@@ -55,6 +57,7 @@ public class GuidanceWarheadScreen extends Screen {
         this.manualX = manualX;
         this.manualY = manualY;
         this.manualZ = manualZ;
+        this.boundMonitor = boundMonitor;
     }
 
     @Override
@@ -168,9 +171,9 @@ public class GuidanceWarheadScreen extends Screen {
     }
 
     private void buildTargetPage(int cx, int y, int bw, int bh) {
-        // Search mode toggle: 0=Mass, 1=Nearest, 2=Manual
+        // Search mode toggle: 0=Mass, 1=Nearest, 2=Manual, 3=Radar
         pageButtons.add(addRenderableWidget(Button.builder(txtMode(searchMode), b -> {
-            searchMode = (searchMode + 1) % 3;
+            searchMode = (searchMode + 1) % 4;
             rebuildCurrentPage(); // show/hide coord inputs vs range sliders
         }).pos(cx - bw/2, y).size(bw, bh).build()));
         y += 23;
@@ -256,7 +259,7 @@ public class GuidanceWarheadScreen extends Screen {
 
         PacketDistributor.sendToServer(new GuidanceWarheadSettingsPacket(pos, kp, ki, kd, maxSpeed, sidePower, maxThrustPN,
                 brakeCoeff, proximityRange, cruiseAltitude, redstoneRange, altitudeOffset,
-                searchMode, minSearchRange, maxSearchRange, manualX, manualY, manualZ));
+                searchMode, minSearchRange, maxSearchRange, manualX, manualY, manualZ, boundMonitor));
         super.onClose();
     }
 
@@ -273,6 +276,12 @@ public class GuidanceWarheadScreen extends Screen {
             g.drawCenteredString(font, "X", startX + ew / 2, labelY, 0xAAAAAA);
             g.drawCenteredString(font, "Y", startX + ew + gap + ew / 2, labelY, 0xAAAAAA);
             g.drawCenteredString(font, "Z", startX + (ew + gap) * 2 + ew / 2, labelY, 0xAAAAAA);
+        }
+        if (currentPage == 1 && searchMode == 3) {
+            String status = boundMonitor != null
+                    ? "§7Radar: §a" + boundMonitor.toShortString()
+                    : "§cNot bound - hold warhead item and right-click a radar monitor to bind";
+            g.drawCenteredString(font, status, width / 2, this.height - 75, 0xFFFFFF);
         }
 
         if (currentPage == 2) {
@@ -312,12 +321,6 @@ public class GuidanceWarheadScreen extends Screen {
     }
 
     private static Component txtMode(int mode) {
-        String key = switch (mode) {
-            case 0 -> "search_mass";
-            case 1 -> "search_nearest";
-            case 2 -> "search_manual";
-            default -> "search_mass";
-        };
-        return Component.translatable("aero_reformation.guidance_warhead." + key);
+        return Component.translatable("aero_reformation.guidance_warhead.search_mode." + mode);
     }
 }

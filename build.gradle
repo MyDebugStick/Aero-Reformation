@@ -135,7 +135,9 @@ dependencies {
         // Create
         "${projectDir}/create-1.21.1-6.0.10.jar",
         // Create Big Cannons
-        "${projectDir}/createbigcannons-5.11.3+mc.1.21.1.jar"
+        "${projectDir}/createbigcannons-5.11.3+mc.1.21.1.jar",
+        // Create Radars (for radar fix mixins)
+        "${projectDir}/create_radar-0.4.9.2-1.21.1.jar"
     )
     // Curios (optional, for goggle HUD support in curio slots)
     implementation files("${projectDir}/curios-neoforge-9.5.1+1.21.1.jar")

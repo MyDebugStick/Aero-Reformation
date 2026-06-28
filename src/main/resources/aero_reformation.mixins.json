@@ -1,5 +1,6 @@
 {
   "required": true,
+  "plugin": "dev.simulated_team.aero_reformation.mixin.RadarCompatPlugin",
   "package": "dev.simulated_team.aero_reformation.mixin",
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
@@ -27,6 +28,8 @@
     "feature.filter_patch.ChuteFilterMixin",
     "feature.filter_patch.FunnelFilterMixin",
     "feature.filter_patch.BlockCapabilityCacheMixin",
+    "radar_fix.RadarScanSplitMixin",
+    "radar_fix.RadarMonitorNetworkMixin",
     "FloatingBlockControllerMixin",
     "ServerSubLevelMixin"
   ],
