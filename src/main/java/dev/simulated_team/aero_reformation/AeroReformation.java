@@ -2,8 +2,6 @@ package dev.simulated_team.aero_reformation;
 
 import com.mojang.logging.LogUtils;
 import dev.simulated_team.aero_reformation.compat.CopycatCompat;
-import dev.simulated_team.aero_reformation.compat.ftb.CopycatRightClickHandler;
-import dev.simulated_team.aero_reformation.compat.ftb.CopycatSelectionHandler;
 import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassRecipe;
@@ -222,15 +220,36 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.command.RefCommands.register(e.getDispatcher());
                 });
 
-        // Register FTB Ultimine copycat handlers (optional)
+        // Register FTB Ultimine copycat handlers (optional, via reflection for safe class loading)
         if (AeroReformationConfig.copycatUltimineEnabled) {
             try {
-                dev.ftb.mods.ftbultimine.api.blockselection.RegisterBlockSelectionHandlerEvent.REGISTER.register(
-                        d -> d.registerHandler(new CopycatSelectionHandler()));
-                dev.ftb.mods.ftbultimine.api.rightclick.RegisterRightClickHandlerEvent.REGISTER.register(
-                        d -> d.registerHandler(new CopycatRightClickHandler()));
+                Class.forName("dev.ftb.mods.ftbultimine.api.FTBUltimineAPI");
+                Object selHandler = Class.forName("dev.simulated_team.aero_reformation.compat.ftb.CopycatSelectionHandler")
+                        .getConstructor().newInstance();
+                Object rcHandler = Class.forName("dev.simulated_team.aero_reformation.compat.ftb.CopycatRightClickHandler")
+                        .getConstructor().newInstance();
+                Class<?> selEvent = Class.forName("dev.ftb.mods.ftbultimine.api.blockselection.RegisterBlockSelectionHandlerEvent");
+                selEvent.getField("REGISTER").get(null).getClass()
+                        .getMethod("register", Class.forName("dev.ftb.mods.ftbultimine.api.blockselection.RegisterBlockSelectionHandlerEvent"))
+                        .invoke(selEvent.getField("REGISTER").get(null),
+                                (java.util.function.Consumer) d -> {
+                                    try { d.getClass().getMethod("registerHandler",
+                                            Class.forName("dev.ftb.mods.ftbultimine.api.blockselection.BlockSelectionHandler"))
+                                            .invoke(d, selHandler);
+                                    } catch (Exception ignored) {}
+                                });
+                Class<?> rcEvent = Class.forName("dev.ftb.mods.ftbultimine.api.rightclick.RegisterRightClickHandlerEvent");
+                rcEvent.getField("REGISTER").get(null).getClass()
+                        .getMethod("register", Class.forName("dev.ftb.mods.ftbultimine.api.rightclick.RegisterRightClickHandlerEvent"))
+                        .invoke(rcEvent.getField("REGISTER").get(null),
+                                (java.util.function.Consumer) d -> {
+                                    try { d.getClass().getMethod("registerHandler",
+                                            Class.forName("dev.ftb.mods.ftbultimine.api.rightclick.RightClickHandler"))
+                                            .invoke(d, rcHandler);
+                                    } catch (Exception ignored) {}
+                                });
                 LOGGER.info("[CopycatUltimine] Registered FTB Ultimine copycat handlers");
-            } catch (NoClassDefFoundError | Exception e) {
+            } catch (Exception e) {
                 LOGGER.info("[CopycatUltimine] FTB Ultimine not loaded, skipping");
             }
         }
