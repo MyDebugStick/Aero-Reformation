@@ -18,6 +18,7 @@ public class AeroReformationConfig {
     public static final ModConfigSpec.IntValue RADAR_SCAN_SPLIT_SIZE;
     public static final ModConfigSpec.IntValue RADAR_SYNC_INTERVAL;
     public static final ModConfigSpec.IntValue RADAR_MAX_SYNCED_TRACKS;
+    public static final ModConfigSpec.BooleanValue COPYCAT_ULTIMINE_ENABLED;
 
     static {
         BUILDER.push("Levitite Mining");
@@ -76,6 +77,14 @@ public class AeroReformationConfig {
                 .defineInRange("radarMaxSyncedTracks", 50, 10, 500);
         BUILDER.pop();
 
+        BUILDER.push("Copycat Ultimine");
+        COPYCAT_ULTIMINE_ENABLED = BUILDER
+                .comment("Master switch for FTB Ultimine copycat block chain right-click compatibility.",
+                        "When enabled: right-clicking a copycat block with a BlockItem or Wrench while holding",
+                        "the Ultimine key will apply the action to all adjacent copycat blocks with the same material.")
+                .define("copycatUltimineEnabled", true);
+        BUILDER.pop();
+
         CONFIG_SPEC = BUILDER.build();
     }
 
@@ -94,6 +103,7 @@ public class AeroReformationConfig {
     public static int radarScanSplitSize = 512;
     public static int radarSyncInterval = 10;
     public static int radarMaxSyncedTracks = 50;
+    public static boolean copycatUltimineEnabled = true;
 
     public static void refresh() {
         levititeGoldPickaxeOnly = LEVITITE_GOLD_PICKAXE.get();
@@ -108,5 +118,6 @@ public class AeroReformationConfig {
         radarScanSplitSize = RADAR_SCAN_SPLIT_SIZE.get();
         radarSyncInterval = RADAR_SYNC_INTERVAL.get();
         radarMaxSyncedTracks = RADAR_MAX_SYNCED_TRACKS.get();
+        copycatUltimineEnabled = COPYCAT_ULTIMINE_ENABLED.get();
     }
 }

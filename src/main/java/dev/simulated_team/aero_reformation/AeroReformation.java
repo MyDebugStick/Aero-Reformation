@@ -1,6 +1,9 @@
 package dev.simulated_team.aero_reformation;
 
 import com.mojang.logging.LogUtils;
+import dev.simulated_team.aero_reformation.compat.CopycatCompat;
+import dev.simulated_team.aero_reformation.compat.ftb.CopycatRightClickHandler;
+import dev.simulated_team.aero_reformation.compat.ftb.CopycatSelectionHandler;
 import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassRecipe;
@@ -218,6 +221,19 @@ public class AeroReformation {
                 (net.neoforged.neoforge.event.RegisterCommandsEvent e) -> {
                     dev.simulated_team.aero_reformation.command.RefCommands.register(e.getDispatcher());
                 });
+
+        // Register FTB Ultimine copycat handlers (optional)
+        if (AeroReformationConfig.copycatUltimineEnabled) {
+            try {
+                dev.ftb.mods.ftbultimine.api.blockselection.RegisterBlockSelectionHandlerEvent.REGISTER.register(
+                        d -> d.registerHandler(new CopycatSelectionHandler()));
+                dev.ftb.mods.ftbultimine.api.rightclick.RegisterRightClickHandlerEvent.REGISTER.register(
+                        d -> d.registerHandler(new CopycatRightClickHandler()));
+                LOGGER.info("[CopycatUltimine] Registered FTB Ultimine copycat handlers");
+            } catch (NoClassDefFoundError | Exception e) {
+                LOGGER.info("[CopycatUltimine] FTB Ultimine not loaded, skipping");
+            }
+        }
 
         LOGGER.info("Aero Reformation loaded! Features: nav_inverted, swivel_stiffness, swivel_swap, gimbal_inverted, levitite_mining, redstone_spring");
     }

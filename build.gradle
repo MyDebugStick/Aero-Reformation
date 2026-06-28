@@ -137,7 +137,11 @@ dependencies {
         // Create Big Cannons
         "${projectDir}/createbigcannons-5.11.3+mc.1.21.1.jar",
         // Create Radars (for radar fix mixins)
-        "${projectDir}/create_radar-0.4.9.2-1.21.1.jar"
+        "${projectDir}/create_radar-0.4.9.2-1.21.1.jar",
+        // FTB Ultimine (optional, for copycat chain right-click)
+        "${projectDir}/ftb-ultimine-neoforge-2101.1.15.jar",
+        // Copycats+ (optional, for copycat chain right-click)
+        "${projectDir}/copycats-3.0.4+mc.1.21.1-neoforge.jar"
     )
     // Curios (optional, for goggle HUD support in curio slots)
     implementation files("${projectDir}/curios-neoforge-9.5.1+1.21.1.jar")
@@ -148,6 +152,9 @@ dependencies {
     compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[Xaero的世界地图] xaeroworldmap-neoforge-1.21.1-1.40.11.jar")
     compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[Xaero的小地图] xaerominimap-neoforge-1.21.1-25.3.10.jar")
     compileOnly files("C:/Users/21656/AppData/Local/Temp/xaerolib.jar")
+
+    // Architectury (compileOnly for FTB Ultimine API events)
+    compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/architectury-13.0.8-neoforge.jar")
 
     // Mod Update Checker (compileOnly for auto-update API)
     compileOnly files("D:/Users/21656/Desktop/idea/hotfix/build/libs/modupdatechecker-1.0.0.jar")
