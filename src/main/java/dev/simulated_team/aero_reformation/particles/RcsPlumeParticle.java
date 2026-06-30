@@ -18,7 +18,7 @@ public class RcsPlumeParticle extends TextureSheetParticle {
         super(level, x, y, z, vx, vy, vz);
         this.sprites = sprites;
 
-        this.quadSize = 0.12f + random.nextFloat() * 0.02f;
+        this.quadSize = 0.12f + random.nextFloat() * 0.01f;
         this.lifetime = 15 + random.nextInt(6);
         this.gravity = 0.0f;
         this.hasPhysics = false;
@@ -59,7 +59,7 @@ public class RcsPlumeParticle extends TextureSheetParticle {
         // Alpha: solid in first half, then gradually becomes misty vapor
         if (age > 0.5f) {
             float fade = (age - 0.5f) / 0.5f;
-            alpha = 1.0f - fade * 0.85f; // fades to 0.15 (semi-transparent vapor)
+            alpha = 1.0f - fade * 0.6f; // fades to 0.15 (semi-transparent vapor)
         }
 
         // Keep sprite on white_flame; color comes from vertex color only

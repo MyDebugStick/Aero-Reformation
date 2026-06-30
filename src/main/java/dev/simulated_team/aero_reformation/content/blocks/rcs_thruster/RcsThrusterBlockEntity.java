@@ -368,9 +368,9 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                 int count = Math.max(1, Math.min(12, (int)Math.ceil(Math.abs(spd) / targetSpacing)));
                 for (int i = 0; i < count; i++) {
                     double frac = count <= 1 ? 0.0 : (double) i / count;
-                    double ox = (rand.nextDouble() - 0.5) * spr;
-                    double oy = (rand.nextDouble() - 0.5) * spr;
-                    double oz = (rand.nextDouble() - 0.5) * spr;
+                    double ox = (rand.nextDouble() - 0.5) * spr * 0.5;
+                    double oy = (rand.nextDouble() - 0.5) * spr * 0.5;
+                    double oz = (rand.nextDouble() - 0.5) * spr * 0.5;
                     level.addParticle(new RcsParticleData(true,
                                     worldDir.x, worldDir.y, worldDir.z, spd, spr),
                             particleWorld.x + worldDir.x * spd * frac + ox,
@@ -387,9 +387,9 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                 int count = Math.max(1, Math.min(12, (int)Math.ceil(Math.abs(spd) / targetSpacing)));
                 for (int i = 0; i < count; i++) {
                     double frac = count <= 1 ? 0.0 : (double) i / count;
-                    double ox = (rand.nextDouble() - 0.5) * spr;
-                    double oy = (rand.nextDouble() - 0.5) * spr;
-                    double oz = (rand.nextDouble() - 0.5) * spr;
+                    double ox = (rand.nextDouble() - 0.5) * spr * 0.5;
+                    double oy = (rand.nextDouble() - 0.5) * spr * 0.5;
+                    double oz = (rand.nextDouble() - 0.5) * spr * 0.5;
                     level.addParticle(new RcsParticleData(false,
                                     worldDir.x, worldDir.y, worldDir.z, spd, spr),
                             particleWorld.x + worldDir.x * spd * frac + ox,

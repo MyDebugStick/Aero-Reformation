@@ -20,7 +20,7 @@ public class RcsPlasmaParticle extends TextureSheetParticle {
         super(level, x, y, z, vx, vy, vz);
         this.sprites = sprites;
 
-        this.quadSize = 0.12f + random.nextFloat() * 0.02f;
+        this.quadSize = 0.12f + random.nextFloat() * 0.01f;
         this.lifetime = 15 + random.nextInt(6);
         this.gravity = 0.0f;
         this.friction = 0.97f;
