@@ -1,5 +1,8 @@
 {
   "variants": {
-    "": { "model": "aero_reformation:block/gravity_crystal" }
+    "powered=false,transition=false": { "model": "aero_reformation:block/gravity_crystal" },
+    "powered=false,transition=true":  { "model": "aero_reformation:block/gravity_crystal" },
+    "powered=true,transition=false":  { "model": "aero_reformation:block/gravity_crystal" },
+    "powered=true,transition=true":   { "model": "aero_reformation:block/gravity_crystal" }
   }
 }

@@ -54,21 +54,28 @@ public class GravityCrystalRenderer implements BlockEntityRenderer<GravityCrysta
         BlockPos pos = be.getBlockPos();
         if (level == null) return;
 
+        BlockState state = be.getBlockState();
+        boolean powered = state.getValue(GravityCrystalBlock.POWERED);
+        boolean transitioning = state.getValue(GravityCrystalBlock.TRANSITION);
+        if (!powered && !transitioning) return;
+
+        BakedModel model = blockRenderer.getBlockModel(state);
+
+        if (transitioning) {
+            // Render base model only (no overlay) — matches the MODEL that renders after transition
+            VertexConsumer solid = buffer.getBuffer(RenderType.solid());
+            renderModelQuads(pose, solid, model, state, 1f, 1f, 1f, 1f, packedLight);
+            return;
+        }
+
+        // Powered: minimum brightness so the color is clearly visible
+        int light = Math.max(packedLight, LightTexture.pack(8, 8));
         int signal = level.getBestNeighborSignal(pos);
         if (signal == 0) signal = level.getDirectSignalTo(pos);
-        int colorIndex = Mth.clamp(signal, 0, 15);
-        int tint = WOOL_COLORS[colorIndex];
-
+        int tint = WOOL_COLORS[Mth.clamp(signal, 0, 15)];
         float r = ((tint >> 16) & 0xFF) / 255f;
         float g = ((tint >> 8) & 0xFF) / 255f;
         float b = (tint & 0xFF) / 255f;
-        float alpha = 0.65f;
-
-        // Minimum brightness ≈ blockLight 8
-        int light = Math.max(packedLight, LightTexture.pack(8, 8));
-
-        BlockState state = be.getBlockState();
-        BakedModel model = blockRenderer.getBlockModel(state);
 
         // Pass 1: base opaque model
         VertexConsumer solid = buffer.getBuffer(RenderType.solid());
@@ -76,7 +83,7 @@ public class GravityCrystalRenderer implements BlockEntityRenderer<GravityCrysta
 
         // Pass 2: colored translucent overlay
         VertexConsumer vc = buffer.getBuffer(RenderType.translucent());
-        renderModelQuads(pose, vc, model, state, r, g, b, alpha, light);
+        renderModelQuads(pose, vc, model, state, r, g, b, 0.65f, light);
     }
 
     @SuppressWarnings("deprecation")
