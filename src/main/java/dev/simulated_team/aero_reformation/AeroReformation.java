@@ -24,6 +24,10 @@ import dev.simulated_team.aero_reformation.content.blocks.gravity_crystal.Gravit
 import dev.simulated_team.aero_reformation.content.blocks.guidance_warhead.GuidanceWarheadSettingsPacket;
 import dev.simulated_team.aero_reformation.content.blocks.guidance_warhead.GuidanceWarheadOpenPacket;
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComConfigPayload;
+import dev.simulated_team.aero_reformation.particles.RcsPlumeParticle;
+import dev.simulated_team.aero_reformation.particles.RcsPlasmaParticle;
+import dev.simulated_team.aero_reformation.particles.RcsSmokeTransitionParticle;
+import dev.simulated_team.aero_reformation.registrate.AeroParticleTypes;
 import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComSyncPayload;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import dev.simulated_team.aero_reformation.registrate.AeroCBCBlocks;
@@ -68,6 +72,7 @@ public class AeroReformation {
         AeroBlocks.MENU_TYPES.register(modEventBus);
         AeroBlocks.CREATIVE_TAB.register(modEventBus);
         AeroBlocks.ENTITY_TYPES.register(modEventBus);
+        AeroParticleTypes.PARTICLE_TYPES.register(modEventBus);
         AeroDataComponents.REGISTER.register(modEventBus);
 
         // Register CBC projectile handler
@@ -152,6 +157,8 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetRenderer::new);
             e.registerBlockEntityRenderer(AeroBlocks.FILTER_PATCH_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.filter_patch.FilterPatchRenderer::new);
+            e.registerBlockEntityRenderer(AeroBlocks.RCS_THRUSTER_BE.get(),
+                    dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterRenderer::new);
             // Register CBC projectile renderers
             AeroCBCBlocks.registerRenderers(e);
         });
@@ -172,6 +179,13 @@ public class AeroReformation {
             });
         };
         modEventBus.addListener(cutoutListener);
+
+        // Register particle factories
+        modEventBus.addListener((net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent e) -> {
+            e.registerSpriteSet(AeroParticleTypes.RCS_PLUME.get(), RcsPlumeParticle.Factory::new);
+            e.registerSpriteSet(AeroParticleTypes.RCS_PLASMA.get(), RcsPlasmaParticle.Factory::new);
+            e.registerSpriteSet(AeroParticleTypes.RCS_SMOKE_TRANSITION.get(), RcsSmokeTransitionParticle.Factory::new);
+        });
 
         // Register screen
         modEventBus.addListener((net.neoforged.neoforge.client.event.RegisterMenuScreensEvent e) -> {

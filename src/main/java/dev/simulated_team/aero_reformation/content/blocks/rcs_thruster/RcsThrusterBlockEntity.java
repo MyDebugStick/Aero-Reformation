@@ -13,6 +13,7 @@ import dev.ryanhcode.sable.api.physics.force.QueuedForceGroup;
 import dev.ryanhcode.sable.api.physics.handle.RigidBodyHandle;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.simulated_team.aero_reformation.content.blocks.directional_synchronizer.DirectionalSynchronizerMasterBlockEntity;
+import dev.simulated_team.aero_reformation.particles.RcsParticleData;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -109,6 +110,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     private Direction syncFacingCache = Direction.NORTH; // cached for client VFX
     private int activeNozzleMask = 0; // cached for client VFX
     private double currentThrustPN = 0; // synced for goggle HUD
+    private boolean syncWasValid = false; // tracks if sync block existed on last tick
 
     // Fuel: configurable via AeroReformationConfig, default 5000pN/mB/tick
     private final Vector3d thrustWorld = new Vector3d();
@@ -124,6 +126,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
 
     public void setBoundSync(BlockPos pos) {
         this.boundSyncPos = pos;
+        this.syncWasValid = false;
         this.boundWarheadPos = null; // cannot bind both
         this.setChanged();
     }
@@ -145,6 +148,12 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     public boolean isGuidanceMode() {
         return boundWarheadPos != null;
     }
+
+    /** Client VFX accessors */
+    public int getActiveMask() { return activeNozzleMask; }
+    public boolean isElectricMode() { return electricMode; }
+    public Direction getRcsFacing() { return getBlockState().getValue(RcsThrusterBlock.FACING); }
+    public float getThrustNorm() { return (float) Math.min(currentThrustPN / 20000.0, 1.0); }
 
     public double getConfiguredThrust() {
         if (thrustScroll == null) return THRUST_OPTIONS[DEFAULT_THRUST_IDX];
@@ -333,8 +342,9 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             transformByFacing(centerOffset, rcsFacing, centerOffset);
 
             // Block center + nozzle offset + forward along exhaust
-            // Forward offset: 0.0 for main, -0.1 for side nozzles
-            double fwd = nozzleIdx == 0 ? 0.0 : -0.1;
+            // Forward offset pushes spawn point outward along exhaust direction
+            // Must exceed block half-size (0.5) minus centerOffset magnitude to reach outside
+            double fwd = nozzleIdx == 0 ? -0.35 : -0.5;
             Vector3d localPos = new Vector3d(
                     worldPosition.getX() + 0.5 + centerOffset.x + localDir.x * fwd,
                     worldPosition.getY() + 0.5 + centerOffset.y + localDir.y * fwd,
@@ -354,57 +364,46 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             // In guidance mode, throttle is determined server-side; use full for VFX
             float t = 0.5f + throttle * 0.5f;
 
+            // Spacing-based particle count: more particles at higher speed for consistent visual density
+            double targetSpacing = 0.3;
+
             if (hasElectric) {
-                // Blue ion beam
-                int baseFlame = nozzleIdx == 0 ? 5 : 3;
-                int flameCount = Math.max(1, Math.round(baseFlame * throttle));
-                for (int i = 0; i < flameCount; i++) {
-                    double spread = (nozzleIdx == 0 ? 0.14 : 0.10) * t;
-                    double ox = worldDir.x * 0.25 + (rand.nextDouble() - 0.5) * spread;
-                    double oy = worldDir.y * 0.25 + (rand.nextDouble() - 0.5) * spread;
-                    double oz = worldDir.z * 0.25 + (rand.nextDouble() - 0.5) * spread;
-                    double vel = (nozzleIdx == 0 ? 0.12 : 0.078) * t;
-                    level.addParticle(ParticleTypes.SOUL_FIRE_FLAME,
-                            particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
-                            worldDir.x * vel + subLevelVelocity.x, worldDir.y * vel + subLevelVelocity.y, worldDir.z * vel + subLevelVelocity.z);
-                }
-                int baseSpark = nozzleIdx == 0 ? 3 : 1;
-                int sparkCount = Math.max(0, Math.round(baseSpark * throttle));
-                for (int i = 0; i < sparkCount; i++) {
-                    double s = (nozzleIdx == 0 ? 0.16 : 0.11) * t;
-                    double ox = worldDir.x * 0.35 + (rand.nextDouble() - 0.5) * s;
-                    double oy = worldDir.y * 0.35 + (rand.nextDouble() - 0.5) * s;
-                    double oz = worldDir.z * 0.35 + (rand.nextDouble() - 0.5) * s;
-                    double vel = (nozzleIdx == 0 ? 0.2 : 0.13) * t;
-                    level.addParticle(ParticleTypes.ELECTRIC_SPARK,
-                            particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
-                            worldDir.x * vel + subLevelVelocity.x, worldDir.y * vel + subLevelVelocity.y, worldDir.z * vel + subLevelVelocity.z);
+                // Electric: plasma beam
+                float spd = (nozzleIdx == 0 ? 0.15f : 0.10f) * t;
+                float spr = (nozzleIdx == 0 ? 0.04f : 0.03f) * t;
+                int count = Math.max(1, Math.min(12, (int)Math.ceil(Math.abs(spd) / targetSpacing)));
+                for (int i = 0; i < count; i++) {
+                    double frac = count <= 1 ? 0.0 : (double) i / count;
+                    double ox = (rand.nextDouble() - 0.5) * spr;
+                    double oy = (rand.nextDouble() - 0.5) * spr;
+                    double oz = (rand.nextDouble() - 0.5) * spr;
+                    level.addParticle(new RcsParticleData(true,
+                                    worldDir.x, worldDir.y, worldDir.z, spd, spr),
+                            particleWorld.x + worldDir.x * spd * frac + ox,
+                            particleWorld.y + worldDir.y * spd * frac + oy,
+                            particleWorld.z + worldDir.z * spd * frac + oz,
+                            worldDir.x * spd,
+                            worldDir.y * spd,
+                            worldDir.z * spd);
                 }
             } else {
-                // Yellow fuel flame (same count/velocity/spread as electric, different particle)
-                int baseFlame = nozzleIdx == 0 ? 5 : 3;
-                int flameCount = Math.max(1, Math.round(baseFlame * throttle));
-                for (int i = 0; i < flameCount; i++) {
-                    double spread = (nozzleIdx == 0 ? 0.14 : 0.10) * t;
-                    double ox = worldDir.x * 0.25 + (rand.nextDouble() - 0.5) * spread;
-                    double oy = worldDir.y * 0.25 + (rand.nextDouble() - 0.5) * spread;
-                    double oz = worldDir.z * 0.25 + (rand.nextDouble() - 0.5) * spread;
-                    double vel = (nozzleIdx == 0 ? 0.12 : 0.078) * t;
-                    level.addParticle(ParticleTypes.FLAME,
-                            particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
-                            worldDir.x * vel + subLevelVelocity.x, worldDir.y * vel + subLevelVelocity.y, worldDir.z * vel + subLevelVelocity.z);
-                }
-                int baseSpark = nozzleIdx == 0 ? 3 : 1;
-                int sparkCount = Math.max(0, Math.round(baseSpark * throttle));
-                for (int i = 0; i < sparkCount; i++) {
-                    double s = (nozzleIdx == 0 ? 0.16 : 0.11) * t;
-                    double ox = worldDir.x * 0.35 + (rand.nextDouble() - 0.5) * s;
-                    double oy = worldDir.y * 0.35 + (rand.nextDouble() - 0.5) * s;
-                    double oz = worldDir.z * 0.35 + (rand.nextDouble() - 0.5) * s;
-                    double vel = (nozzleIdx == 0 ? 0.2 : 0.13) * t;
-                    level.addParticle(ParticleTypes.FLAME,
-                            particleWorld.x + ox, particleWorld.y + oy, particleWorld.z + oz,
-                            worldDir.x * vel * 0.5 + subLevelVelocity.x, worldDir.y * vel * 0.5 + subLevelVelocity.y, worldDir.z * vel * 0.5 + subLevelVelocity.z);
+                // Fuel: plume
+                float spd = (nozzleIdx == 0 ? 0.18f : 0.12f) * t;
+                float spr = (nozzleIdx == 0 ? 0.03f : 0.02f) * t;
+                int count = Math.max(1, Math.min(12, (int)Math.ceil(Math.abs(spd) / targetSpacing)));
+                for (int i = 0; i < count; i++) {
+                    double frac = count <= 1 ? 0.0 : (double) i / count;
+                    double ox = (rand.nextDouble() - 0.5) * spr;
+                    double oy = (rand.nextDouble() - 0.5) * spr;
+                    double oz = (rand.nextDouble() - 0.5) * spr;
+                    level.addParticle(new RcsParticleData(false,
+                                    worldDir.x, worldDir.y, worldDir.z, spd, spr),
+                            particleWorld.x + worldDir.x * spd * frac + ox,
+                            particleWorld.y + worldDir.y * spd * frac + oy,
+                            particleWorld.z + worldDir.z * spd * frac + oz,
+                            worldDir.x * spd,
+                            worldDir.y * spd,
+                            worldDir.z * spd);
                 }
             }
         }
@@ -432,7 +431,19 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         if (boundSyncPos == null) return;
 
         BlockEntity be = level.getBlockEntity(boundSyncPos);
-        if (!(be instanceof DirectionalSynchronizerMasterBlockEntity sync)) return;
+        if (!(be instanceof DirectionalSynchronizerMasterBlockEntity sync)) {
+            if (syncWasValid) {
+                // Sync was valid before but now gone → destroyed, shut down
+                syncWasValid = false;
+                if (activeNozzleMask != 0) {
+                    activeNozzleMask = 0; currentThrustPN = 0;
+                    fuelAvailable = false; electricMode = false;
+                    sendData(); setChanged();
+                }
+            }
+            return;
+        }
+        syncWasValid = true;
 
         BlockState syncState = sync.getBlockState();
         Direction syncFacing = syncState.getValue(DirectionalBlock.FACING);
