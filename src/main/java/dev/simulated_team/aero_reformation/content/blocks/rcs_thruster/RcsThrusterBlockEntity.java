@@ -149,12 +149,6 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         return boundWarheadPos != null;
     }
 
-    /** Client VFX accessors */
-    public int getActiveMask() { return activeNozzleMask; }
-    public boolean isElectricMode() { return electricMode; }
-    public Direction getRcsFacing() { return getBlockState().getValue(RcsThrusterBlock.FACING); }
-    public float getThrustNorm() { return (float) Math.min(currentThrustPN / 20000.0, 1.0); }
-
     public double getConfiguredThrust() {
         if (thrustScroll == null) return THRUST_OPTIONS[DEFAULT_THRUST_IDX];
         return THRUST_OPTIONS[thrustScroll.getValue()];

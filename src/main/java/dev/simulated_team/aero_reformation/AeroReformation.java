@@ -157,8 +157,6 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetRenderer::new);
             e.registerBlockEntityRenderer(AeroBlocks.FILTER_PATCH_BE.get(),
                     dev.simulated_team.aero_reformation.content.blocks.filter_patch.FilterPatchRenderer::new);
-            e.registerBlockEntityRenderer(AeroBlocks.RCS_THRUSTER_BE.get(),
-                    dev.simulated_team.aero_reformation.content.blocks.rcs_thruster.RcsThrusterRenderer::new);
             // Register CBC projectile renderers
             AeroCBCBlocks.registerRenderers(e);
         });
