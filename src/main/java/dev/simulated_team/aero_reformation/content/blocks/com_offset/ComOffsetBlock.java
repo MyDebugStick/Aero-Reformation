@@ -2,6 +2,7 @@ package dev.simulated_team.aero_reformation.content.blocks.com_offset;
 
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.foundation.block.IBE;
+import dev.simulated_team.aero_reformation.feature.com_controller.ComShiftHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
@@ -25,6 +26,22 @@ public class ComOffsetBlock extends Block implements IBE<ComOffsetBlockEntity> {
 
     @Override public BlockEntityType<? extends ComOffsetBlockEntity> getBlockEntityType() {
         return dev.simulated_team.aero_reformation.registrate.AeroBlocks.COM_OFFSET_BE.get();
+    }
+
+    @Override
+    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        if (!level.isClientSide) {
+            ComShiftHelper.invalidateAt(level, pos);
+        }
+    }
+
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        super.onRemove(state, level, pos, newState, movedByPiston);
+        if (!level.isClientSide && !state.is(newState.getBlock())) {
+            ComShiftHelper.invalidateAt(level, pos);
+        }
     }
 
     @Override
