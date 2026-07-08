@@ -514,21 +514,42 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
 
         Direction facing = getBlockState().getValue(RcsThrusterBlock.FACING);
         BlockPos backPos = worldPosition.relative(facing.getOpposite());
-        if (!level.hasNeighborSignal(backPos)) {
-            yawIntegral = 0; yawPrevError = 0;
-            pitchIntegral = 0; pitchPrevError = 0;
-            guidanceActive = false;
-            if (activeNozzleMask != 0) {
-                activeNozzleMask = 0; currentThrustPN = 0;
-                fuelAvailable = false; electricMode = false;
-                sendData(); setChanged();
-            }
-            warhead.markGuidanceInactive();
-            return;
-        }
+        boolean hasSignal = level.hasNeighborSignal(backPos);
 
-        // Mark warhead that guidance is active (for drag application once per body)
-        warhead.markGuidanceActive();
+        // In toggle mode, keep running if warhead's guidanceEnabled is true even without redstone
+        if (!hasSignal) {
+            if (warhead.guidanceMode != 1 || !warhead.guidanceEnabled) {
+                // Direct mode or toggle mode with guidance off: shut down
+                yawIntegral = 0; yawPrevError = 0;
+                pitchIntegral = 0; pitchPrevError = 0;
+                guidanceActive = false;
+                if (activeNozzleMask != 0) {
+                    activeNozzleMask = 0; currentThrustPN = 0;
+                    fuelAvailable = false; electricMode = false;
+                    sendData(); setChanged();
+                }
+                warhead.markGuidanceInactive();
+                return;
+            }
+            // Toggle mode with guidance enabled: keep running (don't shut down)
+            // Reset prevRedstoneState so next rising edge can be detected
+            warhead.markGuidanceInactive();
+        } else {
+            // Mark warhead that guidance is active (handles toggle edge detection)
+            warhead.markGuidanceActive();
+            // In toggle mode, check if the toggle just switched guidance off
+            if (warhead.guidanceMode == 1 && !warhead.guidanceEnabled) {
+                yawIntegral = 0; yawPrevError = 0;
+                pitchIntegral = 0; pitchPrevError = 0;
+                guidanceActive = false;
+                if (activeNozzleMask != 0) {
+                    activeNozzleMask = 0; currentThrustPN = 0;
+                    fuelAvailable = false; electricMode = false;
+                    sendData(); setChanged();
+                }
+                return;
+            }
+        }
 
         Direction rcsFacing = getBlockState().getValue(RcsThrusterBlock.FACING);
         double maxThrust = warhead.maxThrustPN;

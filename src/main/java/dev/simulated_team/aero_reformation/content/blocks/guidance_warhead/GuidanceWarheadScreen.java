@@ -22,6 +22,7 @@ public class GuidanceWarheadScreen extends Screen {
     private float kp, ki, kd, maxSpeed, sidePower, maxThrustPN;
     private float brakeCoeff, proximityRange, cruiseAltitude, redstoneRange, altitudeOffset;
     private int searchMode;
+    private int guidanceMode;
     private float minSearchRange, maxSearchRange;
     private double manualX, manualY, manualZ;
     @Nullable
@@ -31,6 +32,7 @@ public class GuidanceWarheadScreen extends Screen {
     private static final float MAX_SPEED_DEF = 20.0f, SIDE_POWER_DEF = 0.04f, THRUST_DEF = 2000.0f;
     private static final float BRAKE_DEF = 0.15f, PROX_DEF = 50.0f, ALT_DEF = 10.0f, REDSTONE_DEF = 10.0f, OFFSET_DEF = 0.0f;
     private static final int SEARCH_MODE_DEF = 0;
+    private static final int GUIDANCE_MODE_DEF = 0;
     private static final float MIN_RANGE_DEF = 0.0f, MAX_RANGE_DEF = 1000.0f;
     private static final double MANUAL_X_DEF = 0.0, MANUAL_Y_DEF = 64.0, MANUAL_Z_DEF = 0.0;
 
@@ -43,7 +45,7 @@ public class GuidanceWarheadScreen extends Screen {
                                   float brakeCoeff, float proximityRange, float cruiseAltitude, float redstoneRange, float altitudeOffset,
                                   int searchMode, float minSearchRange, float maxSearchRange,
                                   double manualX, double manualY, double manualZ,
-                                  @Nullable BlockPos boundMonitor) {
+                                  @Nullable BlockPos boundMonitor, int guidanceMode) {
         super(Component.translatable("screen.aero_reformation.guidance_warhead"));
         this.pos = pos;
         this.kp = kp; this.ki = ki; this.kd = kd;
@@ -52,6 +54,7 @@ public class GuidanceWarheadScreen extends Screen {
         this.cruiseAltitude = cruiseAltitude; this.redstoneRange = redstoneRange;
         this.altitudeOffset = altitudeOffset;
         this.searchMode = searchMode;
+        this.guidanceMode = guidanceMode;
         this.minSearchRange = minSearchRange;
         this.maxSearchRange = maxSearchRange;
         this.manualX = manualX;
@@ -88,6 +91,7 @@ public class GuidanceWarheadScreen extends Screen {
             brakeCoeff = BRAKE_DEF; proximityRange = PROX_DEF;
             cruiseAltitude = ALT_DEF; redstoneRange = REDSTONE_DEF; altitudeOffset = OFFSET_DEF;
             searchMode = SEARCH_MODE_DEF; minSearchRange = MIN_RANGE_DEF; maxSearchRange = MAX_RANGE_DEF;
+            guidanceMode = GUIDANCE_MODE_DEF;
             manualX = MANUAL_X_DEF; manualY = MANUAL_Y_DEF; manualZ = MANUAL_Z_DEF;
             rebuildCurrentPage();
         }).pos(cx - 102, btnY).size(100, 20).build());
@@ -218,6 +222,13 @@ public class GuidanceWarheadScreen extends Screen {
             altitudeOffset = step(altitudeOffset, 5.0f, 0.0f, 100.0f);
             b.setMessage(txt("alt_offset", altitudeOffset));
         }).pos(cx - bw/2, y).size(bw, bh).build()));
+        y += 23;
+
+        // Guidance mode: 0=Direct, 1=Toggle
+        pageButtons.add(addRenderableWidget(Button.builder(txtGuidanceMode(guidanceMode), b -> {
+            guidanceMode = (guidanceMode + 1) % 2;
+            b.setMessage(txtGuidanceMode(guidanceMode));
+        }).pos(cx - bw/2, y).size(bw, bh).build()));
     }
 
     private void buildCoordInputs(int cx, int y) {
@@ -259,7 +270,7 @@ public class GuidanceWarheadScreen extends Screen {
 
         PacketDistributor.sendToServer(new GuidanceWarheadSettingsPacket(pos, kp, ki, kd, maxSpeed, sidePower, maxThrustPN,
                 brakeCoeff, proximityRange, cruiseAltitude, redstoneRange, altitudeOffset,
-                searchMode, minSearchRange, maxSearchRange, manualX, manualY, manualZ, boundMonitor));
+                searchMode, minSearchRange, maxSearchRange, manualX, manualY, manualZ, boundMonitor, guidanceMode));
         super.onClose();
     }
 
@@ -322,5 +333,9 @@ public class GuidanceWarheadScreen extends Screen {
 
     private static Component txtMode(int mode) {
         return Component.translatable("aero_reformation.guidance_warhead.search_mode." + mode);
+    }
+
+    private static Component txtGuidanceMode(int mode) {
+        return Component.translatable("aero_reformation.guidance_warhead.guidance_mode." + mode);
     }
 }

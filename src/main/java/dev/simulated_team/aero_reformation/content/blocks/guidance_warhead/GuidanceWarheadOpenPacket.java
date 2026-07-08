@@ -20,7 +20,8 @@ public record GuidanceWarheadOpenPacket(BlockPos pos, float kp, float ki, float 
                                          float altitudeOffset,
                                          int searchMode, float minSearchRange, float maxSearchRange,
                                          double manualX, double manualY, double manualZ,
-                                         @Nullable BlockPos boundMonitor)
+                                         @Nullable BlockPos boundMonitor,
+                                         int guidanceMode)
         implements CustomPacketPayload {
 
     public static final Type<GuidanceWarheadOpenPacket> TYPE =
@@ -48,6 +49,7 @@ public record GuidanceWarheadOpenPacket(BlockPos pos, float kp, float ki, float 
         buf.writeDouble(p.manualY);
         buf.writeDouble(p.manualZ);
         buf.writeOptional(Optional.ofNullable(p.boundMonitor), ByteBufCodecs.fromCodec(BlockPos.CODEC));
+        buf.writeInt(p.guidanceMode);
     }
 
     private static GuidanceWarheadOpenPacket decode(RegistryFriendlyByteBuf buf) {
@@ -56,7 +58,8 @@ public record GuidanceWarheadOpenPacket(BlockPos pos, float kp, float ki, float 
                 buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(),
                 buf.readInt(), buf.readFloat(), buf.readFloat(),
                 buf.readDouble(), buf.readDouble(), buf.readDouble(),
-                buf.readOptional(ByteBufCodecs.fromCodec(BlockPos.CODEC)).orElse(null));
+                buf.readOptional(ByteBufCodecs.fromCodec(BlockPos.CODEC)).orElse(null),
+                buf.readInt());
     }
 
     @Override
@@ -65,6 +68,6 @@ public record GuidanceWarheadOpenPacket(BlockPos pos, float kp, float ki, float 
     public void handle(IPayloadContext ctx) {
         ctx.enqueueWork(() -> GuidanceWarheadScreenOpener.open(pos, kp, ki, kd, maxSpeed, sidePower, maxThrustPN,
                 brakeCoeff, proximityRange, cruiseAltitude, redstoneRange, altitudeOffset,
-                searchMode, minSearchRange, maxSearchRange, manualX, manualY, manualZ, boundMonitor));
+                searchMode, minSearchRange, maxSearchRange, manualX, manualY, manualZ, boundMonitor, guidanceMode));
     }
 }

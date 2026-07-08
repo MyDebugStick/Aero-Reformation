@@ -112,6 +112,8 @@
   "aero_reformation.guidance_warhead.info_line9": "  3. 追踪时目标高度 + 偏移量，防止过早落地",
   "aero_reformation.guidance_warhead.info_line10": "  4. 进入接近范围后偏移消失，精准打击",
   "aero_reformation.guidance_warhead.info_line11": "  5. 目标进入红石范围时弹头输出红石信号",
+  "aero_reformation.guidance_warhead.guidance_mode.0": "收到红石信号时制导",
+  "aero_reformation.guidance_warhead.guidance_mode.1": "收到红石时开/关制导模式",
   "aero_reformation.guidance_warhead.reset": "重置默认",
   "aero_reformation.physics_anchor.goggle.radius": "加载半径: %s区块(%sx%s)",
   "aero_reformation.physics_anchor.goggle.name": "名称: %s",

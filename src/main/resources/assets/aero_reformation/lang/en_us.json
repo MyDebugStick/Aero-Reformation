@@ -102,6 +102,8 @@
   "aero_reformation.guidance_warhead.search_mode.3": "Mode: Radar Guidance",
   "aero_reformation.guidance_warhead.bound_monitor": "Bound to radar monitor at %s",
   "aero_reformation.guidance_warhead.unbound_monitor": "Radar monitor unbound",
+  "aero_reformation.guidance_warhead.guidance_mode.0": "Redstone: Guide while signal ON",
+  "aero_reformation.guidance_warhead.guidance_mode.1": "Redstone: Toggle ON/OFF",
   "aero_reformation.guidance_warhead.reset": "Reset Defaults",
   "aero_reformation.physics_anchor.goggle.radius": "Load radius: %s chunks (%sx%s)",
   "aero_reformation.physics_anchor.goggle.name": "Name: %s",

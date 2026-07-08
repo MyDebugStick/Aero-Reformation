@@ -17,7 +17,8 @@ public record GuidanceWarheadSettingsPacket(BlockPos pos, float kp, float ki, fl
                                              float altitudeOffset,
                                              int searchMode, float minSearchRange, float maxSearchRange,
                                              double manualX, double manualY, double manualZ,
-                                             @javax.annotation.Nullable net.minecraft.core.BlockPos boundMonitor)
+                                             @javax.annotation.Nullable net.minecraft.core.BlockPos boundMonitor,
+                                             int guidanceMode)
         implements CustomPacketPayload {
 
     public static final Type<GuidanceWarheadSettingsPacket> TYPE =
@@ -46,6 +47,7 @@ public record GuidanceWarheadSettingsPacket(BlockPos pos, float kp, float ki, fl
         buf.writeDouble(p.manualZ);
         buf.writeOptional(java.util.Optional.ofNullable(p.boundMonitor),
                 net.minecraft.network.codec.ByteBufCodecs.fromCodec(net.minecraft.core.BlockPos.CODEC));
+        buf.writeInt(p.guidanceMode);
     }
 
     private static GuidanceWarheadSettingsPacket decode(RegistryFriendlyByteBuf buf) {
@@ -55,7 +57,8 @@ public record GuidanceWarheadSettingsPacket(BlockPos pos, float kp, float ki, fl
                 buf.readInt(), buf.readFloat(), buf.readFloat(),
                 buf.readDouble(), buf.readDouble(), buf.readDouble(),
                 buf.readOptional(net.minecraft.network.codec.ByteBufCodecs.fromCodec(net.minecraft.core.BlockPos.CODEC))
-                        .orElse(null));
+                        .orElse(null),
+                buf.readInt());
     }
 
     @Override
@@ -84,6 +87,8 @@ public record GuidanceWarheadSettingsPacket(BlockPos pos, float kp, float ki, fl
                 warhead.manualTargetY = manualY;
                 warhead.manualTargetZ = manualZ;
                 warhead.boundMonitorPos = boundMonitor;
+                warhead.guidanceMode = Math.clamp(guidanceMode, 0, 1);
+                if (warhead.guidanceMode == 0) warhead.guidanceEnabled = false;
                 // Unlock target so new settings take effect on next scan
                 warhead.unlockTarget();
                 warhead.setChanged();

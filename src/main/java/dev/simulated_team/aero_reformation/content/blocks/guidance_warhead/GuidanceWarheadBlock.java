@@ -171,7 +171,7 @@ public class GuidanceWarheadBlock extends DirectionalBlock implements EntityBloc
                         warhead.cruiseAltitude, warhead.redstoneRange, warhead.altitudeOffset,
                         warhead.searchMode, warhead.minSearchRange, warhead.maxSearchRange,
                         warhead.manualTargetX, warhead.manualTargetY, warhead.manualTargetZ,
-                        warhead.boundMonitorPos));
+                        warhead.boundMonitorPos, warhead.guidanceMode));
         return InteractionResult.SUCCESS;
     }
 }

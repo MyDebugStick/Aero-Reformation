@@ -33,6 +33,13 @@ public class GuidanceWarheadBlockEntity extends BlockEntity implements BlockEnti
     int lockedTargetId = -1; // runtime ID of locked SubLevel, -1 = not locked
     boolean guidanceFrameActive = false; // set by RCS each tick guidance is running
 
+    /** 0 = Direct (guidance while redstone ON), 1 = Toggle (each rising edge toggles on/off) */
+    public int guidanceMode = 0;
+    /** In toggle mode, remembers whether guidance is currently enabled. */
+    public boolean guidanceEnabled = false;
+    /** Tracks previous redstone state for edge detection in toggle mode. */
+    private boolean prevRedstoneState = false;
+
     // Tunable PID / guidance settings (synced from GUI)
     public float kp = 0.8f;
     public float ki = 0.02f;
@@ -65,14 +72,30 @@ public class GuidanceWarheadBlockEntity extends BlockEntity implements BlockEnti
         return targetPos;
     }
 
-    /** Called by RCS thruster each physics tick when guidance is active (redstone ON). */
+    /** Called by RCS thruster each physics tick when redstone signal is present. */
     public void markGuidanceActive() {
-        this.guidanceFrameActive = true;
+        if (guidanceMode == 0) {
+            // Direct mode: active while redstone is ON
+            this.guidanceFrameActive = true;
+        } else {
+            // Toggle mode: detect rising edge to toggle guidanceEnabled
+            if (!prevRedstoneState) {
+                guidanceEnabled = !guidanceEnabled;
+            }
+            this.guidanceFrameActive = guidanceEnabled;
+            prevRedstoneState = true;
+        }
     }
 
-    /** Called by RCS thruster when redstone turns OFF. */
+    /** Called by RCS thruster when redstone turns OFF (or each tick when off). */
     public void markGuidanceInactive() {
-        this.guidanceFrameActive = false;
+        if (guidanceMode == 0) {
+            this.guidanceFrameActive = false;
+        } else {
+            // Toggle mode: reset edge detection, keep guidanceEnabled
+            prevRedstoneState = false;
+            this.guidanceFrameActive = guidanceEnabled;
+        }
     }
 
     @Override
@@ -262,6 +285,8 @@ public class GuidanceWarheadBlockEntity extends BlockEntity implements BlockEnti
         tag.putDouble("ManualZ", manualTargetZ);
         if (boundMonitorPos != null)
             tag.putLong("BoundMonitor", boundMonitorPos.asLong());
+        tag.putInt("GuidanceMode", guidanceMode);
+        tag.putBoolean("GuidanceEnabled", guidanceEnabled);
     }
 
     @Override
@@ -286,6 +311,8 @@ public class GuidanceWarheadBlockEntity extends BlockEntity implements BlockEnti
         if (tag.contains("ManualZ")) manualTargetZ = tag.getDouble("ManualZ");
         if (tag.contains("BoundMonitor"))
             boundMonitorPos = BlockPos.of(tag.getLong("BoundMonitor"));
+        if (tag.contains("GuidanceMode")) guidanceMode = tag.getInt("GuidanceMode");
+        if (tag.contains("GuidanceEnabled")) guidanceEnabled = tag.getBoolean("GuidanceEnabled");
     }
 
     @Nullable

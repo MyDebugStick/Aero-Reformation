@@ -13,9 +13,9 @@ public class GuidanceWarheadScreenOpener {
                             float brakeCoeff, float proximityRange, float cruiseAltitude, float redstoneRange, float altitudeOffset,
                             int searchMode, float minSearchRange, float maxSearchRange,
                             double manualX, double manualY, double manualZ,
-                            @Nullable BlockPos boundMonitor) {
+                            @Nullable BlockPos boundMonitor, int guidanceMode) {
         Minecraft.getInstance().setScreen(new GuidanceWarheadScreen(pos, kp, ki, kd, maxSpeed, sidePower, maxThrustPN,
                 brakeCoeff, proximityRange, cruiseAltitude, redstoneRange, altitudeOffset,
-                searchMode, minSearchRange, maxSearchRange, manualX, manualY, manualZ, boundMonitor));
+                searchMode, minSearchRange, maxSearchRange, manualX, manualY, manualZ, boundMonitor, guidanceMode));
     }
 }
