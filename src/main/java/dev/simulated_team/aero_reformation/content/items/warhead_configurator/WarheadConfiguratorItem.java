@@ -79,6 +79,7 @@ public class WarheadConfiguratorItem extends Item {
             cfg.putDouble("ManualX", warhead.manualTargetX);
             cfg.putDouble("ManualY", warhead.manualTargetY);
             cfg.putDouble("ManualZ", warhead.manualTargetZ);
+            cfg.putInt("GuidanceMode", warhead.guidanceMode);
             if (warhead.boundMonitorPos != null) {
                 cfg.putLong("BoundMonitor", warhead.boundMonitorPos.asLong());
             }
@@ -120,6 +121,7 @@ public class WarheadConfiguratorItem extends Item {
             warhead.manualTargetX = cfg.getDouble("ManualX");
             warhead.manualTargetY = cfg.getDouble("ManualY");
             warhead.manualTargetZ = cfg.getDouble("ManualZ");
+            if (cfg.contains("GuidanceMode")) warhead.guidanceMode = cfg.getInt("GuidanceMode");
             warhead.boundMonitorPos = cfg.contains("BoundMonitor")
                     ? BlockPos.of(cfg.getLong("BoundMonitor")) : null;
             warhead.unlockTarget();
