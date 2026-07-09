@@ -1,5 +1,6 @@
 package dev.simulated_team.aero_reformation.content.items.ethereal_key;
 
+import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorChunkLoader;
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.PhysicsAnchorBlock;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -92,12 +93,16 @@ public class EtherealKeyItem extends Item {
                         saveCustomTag(stack, customTag);
                         level.playSound(null, player.blockPosition(), SoundEvents.ENDER_EYE_DEATH, SoundSource.PLAYERS, 0.8f, 1.2f);
                         player.displayClientMessage(Component.translatable("item.aero_reformation.ethereal_key.show").withStyle(ChatFormatting.AQUA), true);
+                        // Restore force-load ticket when unhidden
+                        AnchorChunkLoader.onHideStateChanged(sl, subId, false);
                     } else {
                         HIDDEN_SUBLEVELS.add(subId);
                         customTag.putBoolean(TAG_HIDDEN, true);
                         saveCustomTag(stack, customTag);
                         level.playSound(null, player.blockPosition(), SoundEvents.ENDER_EYE_LAUNCH, SoundSource.PLAYERS, 0.8f, 0.8f);
                         player.displayClientMessage(Component.translatable("item.aero_reformation.ethereal_key.hide").withStyle(ChatFormatting.DARK_PURPLE), true);
+                        // Remove force-load ticket when hidden
+                        AnchorChunkLoader.onHideStateChanged(sl, subId, true);
                     }
                 }
             }

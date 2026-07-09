@@ -9,9 +9,11 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Unit;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,6 +21,81 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 
 public class AnchorChunkLoader {
+
+    // Sable >= 2.0.0 force-load ticket API (reflective access)
+    private static final boolean SABLE_HAS_FORCE_LOAD;
+    private static Method ADD_FORCE_LOAD_TICKET;
+    private static Method REMOVE_FORCE_LOAD_TICKET;
+    private static Object COMMAND_FORCED_TICKET;
+
+    static {
+        boolean has = false;
+        try {
+            Class<?> ticketTypeClass = Class.forName("dev.ryanhcode.sable.api.sublevel.ticket.SubLevelLoadingTicketType");
+            COMMAND_FORCED_TICKET = ticketTypeClass.getField("COMMAND_FORCED").get(null);
+
+            Class<?> containerClass = Class.forName("dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer");
+            Class<?> serverSubLevelClass = Class.forName("dev.ryanhcode.sable.sublevel.ServerSubLevel");
+            ADD_FORCE_LOAD_TICKET = containerClass.getMethod("addForceLoadTicket", serverSubLevelClass, ticketTypeClass, Object.class);
+            REMOVE_FORCE_LOAD_TICKET = containerClass.getMethod("removeForceLoadTicket", serverSubLevelClass, ticketTypeClass, Object.class);
+            has = true;
+        } catch (Exception ignored) {
+        }
+        SABLE_HAS_FORCE_LOAD = has;
+    }
+
+    private static void addForceLoadTicket(ServerLevel sl, SubLevel subLevel) {
+        if (!SABLE_HAS_FORCE_LOAD) return;
+        try {
+            var container = dev.ryanhcode.sable.api.sublevel.SubLevelContainer.getContainer(sl);
+            if (container != null && subLevel instanceof dev.ryanhcode.sable.sublevel.ServerSubLevel ssl) {
+                ADD_FORCE_LOAD_TICKET.invoke(container, ssl, COMMAND_FORCED_TICKET, Unit.INSTANCE);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private static void removeForceLoadTicket(ServerLevel sl, SubLevel subLevel) {
+        if (!SABLE_HAS_FORCE_LOAD) return;
+        try {
+            var container = dev.ryanhcode.sable.api.sublevel.SubLevelContainer.getContainer(sl);
+            if (container != null && subLevel instanceof dev.ryanhcode.sable.sublevel.ServerSubLevel ssl) {
+                REMOVE_FORCE_LOAD_TICKET.invoke(container, ssl, COMMAND_FORCED_TICKET, Unit.INSTANCE);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    /**
+     * Called by EtherealKeyItem when hide state changes. Syncs the Sable force-load ticket
+     * so hidden SubLevels aren't kept loaded by the new API.
+     */
+    public static void onHideStateChanged(ServerLevel sl, UUID subLevelId, boolean hidden) {
+        if (!SABLE_HAS_FORCE_LOAD) return;
+        var container = dev.ryanhcode.sable.api.sublevel.SubLevelContainer.getContainer(sl);
+        if (container == null) return;
+        for (var sub : container.getAllSubLevels()) {
+            if (sub.getUniqueId().equals(subLevelId)) {
+                if (hidden) {
+                    removeForceLoadTicket(sl, sub);
+                } else {
+                    addForceLoadTicket(sl, sub);
+                }
+                return;
+            }
+        }
+    }
+
+    /**
+     * Get all SubLevels connected by constraints (bearings etc.) to the given SubLevel.
+     * Always returns at least the SubLevel itself.
+     */
+    private static List<SubLevel> getConnectedChain(SubLevel subLevel) {
+        try {
+            var chain = dev.ryanhcode.sable.api.SubLevelHelper.getConnectedChain(subLevel);
+            if (chain != null && !chain.isEmpty()) return new ArrayList<>(chain);
+        } catch (Exception ignored) {}
+        return Collections.singletonList(subLevel);
+    }
+
     record AnchorData(SubLevel subLevel, AnchorMarkerEntity marker, ChunkPos lastTicketChunk, int ticketRadius) {}
     // Per-dimension anchor maps: dimension 闁?(BlockPos 闁?AnchorData)
     private static final Map<ResourceKey<Level>, Map<BlockPos, AnchorData>> ANCHORS = new HashMap<>();
@@ -113,6 +190,31 @@ public class AnchorChunkLoader {
         ANCHORED_SUBLEVELS.add(id);
         AUTO_PROTECTED.remove(id);
         AnchorSavedData.get(sl).add(id, pose.position().x(), pose.position().y(), pose.position().z(), null, savedRadius);
+
+        boolean isHidden = EtherealKeyItem.HIDDEN_SUBLEVELS.contains(id);
+
+        // Sable >= 2.0.0: add force-load ticket to keep SubLevel loaded (skip if hidden)
+        if (!isHidden) {
+            addForceLoadTicket(sl, subLevel);
+        }
+
+        // Also anchor all SubLevels connected by constraints (bearings, etc.)
+        for (var connected : getConnectedChain(subLevel)) {
+            UUID cid = connected.getUniqueId();
+            if (cid.equals(id)) continue; // already handled above
+            if (ANCHORED_SUBLEVELS.add(cid)) {
+                // Add PORTAL ticket for connected SubLevel's chunks
+                var cpose = connected.logicalPose();
+                ChunkPos cchunk = new ChunkPos((int)Math.floor(cpose.position().x() / 16),
+                        (int)Math.floor(cpose.position().z() / 16));
+                sl.getChunkSource().addRegionTicket(TicketType.PORTAL, cchunk, savedRadius + 1, pos);
+                if (!isHidden) {
+                    addForceLoadTicket(sl, connected);
+                }
+                AeroReformation.LOGGER.debug("[PhysicsAnchor] Anchored connected sub={} via anchor at {}", cid, pos);
+            }
+        }
+
         AeroReformation.LOGGER.debug("[PhysicsAnchor] Anchor added at world {},{} sub={} pos={}",
                 (int)pose.position().x(), (int)pose.position().z(), id, pos);
     }
@@ -136,6 +238,17 @@ public class AnchorChunkLoader {
             boolean sameSubHasOther = map.values().stream().anyMatch(
                     a -> a.subLevel != null && id != null && a.subLevel.getUniqueId().equals(id));
             if (!sameSubHasOther && id != null) {
+                // Determine which SubLevels in the connected chain still have anchors
+                Set<UUID> stillAnchored = new HashSet<>();
+                if (data.subLevel != null) {
+                    for (var connected : getConnectedChain(data.subLevel)) {
+                        UUID cid = connected.getUniqueId();
+                        if (map.values().stream().anyMatch(a -> a.subLevel != null && a.subLevel.getUniqueId().equals(cid))) {
+                            stillAnchored.add(cid);
+                        }
+                    }
+                }
+
                 // Sweep ALL marker entities for this SubLevel (not just data.marker)
                 for (var e : sl.getEntities().getAll()) {
                     if (e instanceof AnchorMarkerEntity m
@@ -144,12 +257,29 @@ public class AnchorChunkLoader {
                         m.forceDiscard();
                     }
                 }
+                // Sable >= 2.0.0: remove force-load ticket
+                if (data.subLevel != null) removeForceLoadTicket(sl, data.subLevel);
                 ANCHORED_SUBLEVELS.remove(id);
                 WARMUP.remove(id);
                 LAST_POS.remove(id);
                 RUNAWAY_STRIKE.remove(id);
                 EtherealKeyItem.HIDDEN_SUBLEVELS.remove(id);
                 AnchorSavedData.get(sl).remove(id);
+
+                // Also clean up connected SubLevels that have no remaining anchors
+                if (data.subLevel != null) {
+                    for (var connected : getConnectedChain(data.subLevel)) {
+                        UUID cid = connected.getUniqueId();
+                        if (cid.equals(id) || stillAnchored.contains(cid)) continue;
+                        if (ANCHORED_SUBLEVELS.remove(cid)) {
+                            removeForceLoadTicket(sl, connected);
+                            WARMUP.remove(cid);
+                            LAST_POS.remove(cid);
+                            RUNAWAY_STRIKE.remove(cid);
+                            AeroReformation.LOGGER.debug("[PhysicsAnchor] Cleaned connected sub={}", cid);
+                        }
+                    }
+                }
             } else if (data.marker != null) {
                 // SubLevel gone/unavailable but marker still exists — discard just this one
                 data.marker.forceDiscard();
@@ -392,6 +522,8 @@ public class AnchorChunkLoader {
                 if (data.lastTicketChunk != null)
                     serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
                             data.lastTicketChunk, data.ticketRadius + 1, entry.getKey());
+                // Sable >= 2.0.0: remove force-load ticket
+                removeForceLoadTicket(serverLevel, sl);
                 ANCHORED_SUBLEVELS.remove(sid);
                 WARMUP.remove(sid);
                 LAST_POS.remove(sid);
@@ -399,6 +531,22 @@ public class AnchorChunkLoader {
                 EtherealKeyItem.HIDDEN_SUBLEVELS.remove(sid);
                 AnchorSavedData.get(serverLevel).remove(sid);
                 it.remove();
+
+                // Also clean up any connected SubLevels that no longer have anchors
+                var container = dev.ryanhcode.sable.api.sublevel.SubLevelContainer.getContainer(serverLevel);
+                if (container != null) {
+                    for (var cs : container.getAllSubLevels()) {
+                        UUID csid = cs.getUniqueId();
+                        if (ANCHORED_SUBLEVELS.contains(csid) && !anchorsFor(serverLevel.dimension()).values().stream()
+                                .anyMatch(a -> a.subLevel != null && a.subLevel.getUniqueId().equals(csid))) {
+                            ANCHORED_SUBLEVELS.remove(csid);
+                            removeForceLoadTicket(serverLevel, cs);
+                            WARMUP.remove(csid);
+                            LAST_POS.remove(csid);
+                            RUNAWAY_STRIKE.remove(csid);
+                        }
+                    }
+                }
                 continue;
             }
 
@@ -534,25 +682,34 @@ public class AnchorChunkLoader {
     private static void destroySubLevelAnchors(ServerLevel serverLevel,
                                                 Map<BlockPos, AnchorData> dimMap,
                                                 UUID id, SubLevel sl) {
-        // Find and remove all anchors pointing to this SubLevel
-        var it = dimMap.entrySet().iterator();
-        while (it.hasNext()) {
-            var e = it.next();
-            if (e.getValue().subLevel != null && e.getValue().subLevel.getUniqueId().equals(id)) {
-                AnchorData ad = e.getValue();
-                if (ad.marker != null) ad.marker.forceDiscard();
-                if (ad.lastTicketChunk != null)
-                    serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                            ad.lastTicketChunk, ad.ticketRadius + 1, e.getKey());
-                it.remove();
-            }
+        // Collect all SubLevel IDs to destroy (this SubLevel + connected chain)
+        Set<UUID> toDestroy = new HashSet<>();
+        toDestroy.add(id);
+        for (var connected : getConnectedChain(sl)) {
+            toDestroy.add(connected.getUniqueId());
         }
-        ANCHORED_SUBLEVELS.remove(id);
-        LAST_POS.remove(id);
-        RUNAWAY_STRIKE.remove(id);
-        // Remove from warmup too
-        WARMUP.remove(id);
-        AnchorSavedData.get(serverLevel).remove(id);
+
+        for (UUID destroyId : toDestroy) {
+            // Find and remove all anchors pointing to this SubLevel
+            var it = dimMap.entrySet().iterator();
+            while (it.hasNext()) {
+                var e = it.next();
+                if (e.getValue().subLevel != null && e.getValue().subLevel.getUniqueId().equals(destroyId)) {
+                    AnchorData ad = e.getValue();
+                    if (ad.marker != null) ad.marker.forceDiscard();
+                    if (ad.lastTicketChunk != null)
+                        serverLevel.getChunkSource().removeRegionTicket(TicketType.PORTAL,
+                                ad.lastTicketChunk, ad.ticketRadius + 1, e.getKey());
+                    removeForceLoadTicket(serverLevel, ad.subLevel);
+                    it.remove();
+                }
+            }
+            ANCHORED_SUBLEVELS.remove(destroyId);
+            LAST_POS.remove(destroyId);
+            RUNAWAY_STRIKE.remove(destroyId);
+            WARMUP.remove(destroyId);
+            AnchorSavedData.get(serverLevel).remove(destroyId);
+        }
         syncToClients(serverLevel);
     }
 
