@@ -2,7 +2,6 @@ package dev.simulated_team.aero_reformation.particles;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import org.jetbrains.annotations.Nullable;
 
 public class RcsPlumeParticle extends TextureSheetParticle {

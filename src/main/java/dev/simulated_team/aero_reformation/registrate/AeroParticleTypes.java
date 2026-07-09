@@ -2,7 +2,6 @@ package dev.simulated_team.aero_reformation.registrate;
 
 import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.particles.RcsParticleType;
-import dev.simulated_team.aero_reformation.particles.RcsSmokeTransitionData;
 import dev.simulated_team.aero_reformation.particles.RcsSmokeTransitionType;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.Registries;

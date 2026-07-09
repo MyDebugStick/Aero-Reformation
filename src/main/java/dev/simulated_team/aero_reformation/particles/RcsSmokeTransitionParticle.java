@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 public class RcsSmokeTransitionParticle extends TextureSheetParticle {
 
     private static final int FADE_START = 30; // ticks before end to start fading
-    private static final int FRAMES = 22;
 
     private final SpriteSet sprites;
 

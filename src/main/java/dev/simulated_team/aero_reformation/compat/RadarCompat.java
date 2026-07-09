@@ -1,12 +1,9 @@
 package dev.simulated_team.aero_reformation.compat;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3d;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

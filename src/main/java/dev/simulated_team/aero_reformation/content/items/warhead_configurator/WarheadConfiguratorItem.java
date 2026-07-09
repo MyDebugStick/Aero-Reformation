@@ -14,8 +14,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 
 public class WarheadConfiguratorItem extends Item {

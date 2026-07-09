@@ -28,7 +28,7 @@ public class FunnelFilterMixin {
         if (!dev.simulated_team.aero_reformation.config.AeroReformationConfig.filterPatchEnabled) return;
         if (level.isClientSide || simulate) return;
         BlockState state = level.getBlockState(pos);
-        if (!(state.getBlock() instanceof AbstractFunnelBlock funnelBlock)) return;
+        if (!(state.getBlock() instanceof AbstractFunnelBlock)) return;
         Direction facing = AbstractFunnelBlock.getFunnelFacing(state);
         if (facing == null) return;
 

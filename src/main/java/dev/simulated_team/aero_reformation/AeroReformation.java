@@ -1,7 +1,6 @@
 package dev.simulated_team.aero_reformation;
 
 import com.mojang.logging.LogUtils;
-import dev.simulated_team.aero_reformation.compat.CopycatCompat;
 import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassRecipe;

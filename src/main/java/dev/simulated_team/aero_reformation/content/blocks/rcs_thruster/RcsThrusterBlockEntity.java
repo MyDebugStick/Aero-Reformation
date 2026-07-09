@@ -18,7 +18,6 @@ import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -82,10 +81,6 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     private double pitchIntegral = 0;
     private double pitchPrevError = 0;
 
-    // PID gains (tunable)
-    private static final double PID_KP = 0.8;
-    private static final double PID_KI = 0.02;
-    private static final double PID_KD = 0.15;
     private static final double PID_INTEGRAL_MAX = 2.0;
 
     // Accepted fuel fluid IDs

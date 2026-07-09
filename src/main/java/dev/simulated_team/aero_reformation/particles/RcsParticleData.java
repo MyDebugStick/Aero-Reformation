@@ -7,7 +7,6 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import org.joml.Vector3d;
 
 /**
  * Particle data carrying velocity direction, speed multiplier, and type.
