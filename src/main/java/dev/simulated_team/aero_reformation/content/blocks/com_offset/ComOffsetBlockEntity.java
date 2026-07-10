@@ -1,5 +1,6 @@
 package dev.simulated_team.aero_reformation.content.blocks.com_offset;
 
+import dev.simulated_team.aero_reformation.feature.com_controller.ComShiftHelper;
 import dev.simulated_team.aero_reformation.registrate.AeroBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -32,6 +33,7 @@ public class ComOffsetBlockEntity extends BlockEntity {
         setChanged();
         if (level != null && !level.isClientSide) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+            ComShiftHelper.invalidateAt(level, worldPosition);
         }
     }
 
