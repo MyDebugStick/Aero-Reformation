@@ -244,5 +244,34 @@
   "msg.aero_reformation.warhead_configurator.applied": "§aWarhead config applied!",
   "msg.aero_reformation.warhead_configurator.no_config": "§cNo config stored in this item",
 
-  "itemGroup.aero_reformation": "Aero Reformation"
+  "itemGroup.aero_reformation": "Aero Reformation",
+
+  "aero_reformation.ponder.redstone_spring_scene_1.header": "Redstone Spring",
+  "aero_reformation.ponder.redstone_spring_scene_1.text_1": "The Redstone Spring changes its rotation angle based on the received signal strength",
+  "aero_reformation.ponder.redstone_spring_scene_1.text_2": "Interact to adjust the max rotation angle; each step's angle scales accordingly",
+  "aero_reformation.ponder.redstone_spring_scene_1.text_3": "Setting the max angle to 360 degrees",
+  "aero_reformation.ponder.redstone_spring_s_5b57c.header": "Bidirectional Mode",
+  "aero_reformation.ponder.redstone_spring_s_5b57c.text_1": "Right-click with a Redstone Torch to toggle bidirectional mode",
+  "aero_reformation.ponder.redstone_spring_s_5b57c.text_2": "In bidirectional mode, the rotation direction depends on which face receives the signal",
+  "aero_reformation.ponder.redstone_spring_s_5b57c.text_3": "When multiple faces are powered, the spring centers itself",
+
+  "aero_reformation.ponder.directional_synchronizer_master_scene_1.header": "Redstone Mirror Mode",
+  "aero_reformation.ponder.directional_synchronizer_master_scene_1.text_1": "The Directional Synchronizer outputs a signal based on the orientation of master and slave blocks",
+  "aero_reformation.ponder.directional_synchronizer_master_scene_1.text_2": "Right-click the master block with a slave synchronizer to bind them",
+  "aero_reformation.ponder.directional_synchronizer_master_scene_1.text_3": "By default, the slave outputs a signal matching the light-blue face direction of the master",
+  "aero_reformation.ponder.directional_synchronizer_master_scene_1.text_4": "When on a Sable entity, the output changes as the physics body rotates",
+  "aero_reformation.ponder.directional_synchronizer_master_s_70422.header": "Default Mode",
+  "aero_reformation.ponder.directional_synchronizer_master_s_70422.text_1": "Right-click the master with a Redstone Torch to enter redstone mirror mode",
+  "aero_reformation.ponder.directional_synchronizer_master_s_70422.text_2": "The master synchronizes each face's redstone signal to the slave",
+  "aero_reformation.ponder.directional_synchronizer_master_s_70422.text_3": "When on a Sable entity, the output also changes with rotation",
+
+  "aero_reformation.ponder.directional_synchronizer_slave_scene_1.header": "Redstone Mirror Mode",
+  "aero_reformation.ponder.directional_synchronizer_slave_scene_1.text_1": "The Directional Synchronizer outputs a signal based on the orientation of master and slave blocks",
+  "aero_reformation.ponder.directional_synchronizer_slave_scene_1.text_2": "Right-click the master block with a slave synchronizer to bind them",
+  "aero_reformation.ponder.directional_synchronizer_slave_scene_1.text_3": "By default, the slave outputs a signal matching the light-blue face direction of the master",
+  "aero_reformation.ponder.directional_synchronizer_slave_scene_1.text_4": "When on a Sable entity, the output changes as the physics body rotates",
+  "aero_reformation.ponder.directional_synchronizer_slave_s_70422.header": "Default Mode",
+  "aero_reformation.ponder.directional_synchronizer_slave_s_70422.text_1": "Right-click the master with a Redstone Torch to enter redstone mirror mode",
+  "aero_reformation.ponder.directional_synchronizer_slave_s_70422.text_2": "The master synchronizes each face's redstone signal to the slave",
+  "aero_reformation.ponder.directional_synchronizer_slave_s_70422.text_3": "When on a Sable entity, the output also changes with rotation"
 }

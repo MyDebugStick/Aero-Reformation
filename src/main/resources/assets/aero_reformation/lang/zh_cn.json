@@ -248,5 +248,34 @@
   "msg.aero_reformation.warhead_configurator.applied": "§a弹头配置已应用！",
   "msg.aero_reformation.warhead_configurator.no_config": "§c该物品未存储任何配置",
 
-  "itemGroup.aero_reformation": "航空学：变革"
+  "itemGroup.aero_reformation": "航空学：变革",
+
+  "aero_reformation.ponder.redstone_spring_scene_1.header": "红石扭簧",
+  "aero_reformation.ponder.redstone_spring_scene_1.text_1": "红石扭簧会根据收到的信号大小改变旋转角度",
+  "aero_reformation.ponder.redstone_spring_scene_1.text_2": "通过交互，可以修改其最大旋转角度，每个档位的角度也会随其变化",
+  "aero_reformation.ponder.redstone_spring_scene_1.text_3": "如将最大角度设定为360度时",
+  "aero_reformation.ponder.redstone_spring_s_5b57c.header": "双向模式",
+  "aero_reformation.ponder.redstone_spring_s_5b57c.text_1": "用红石火把右击红石扭簧切换双向模式",
+  "aero_reformation.ponder.redstone_spring_s_5b57c.text_2": "双向模式下，红石扭簧的旋转方向随信号接收面变化",
+  "aero_reformation.ponder.redstone_spring_s_5b57c.text_3": "当多个面被充能时，扭簧会归中",
+
+  "aero_reformation.ponder.directional_synchronizer_master_scene_1.header": "红石镜像模式",
+  "aero_reformation.ponder.directional_synchronizer_master_scene_1.text_1": "方向同步器会根据子母方块的朝向输出信号",
+  "aero_reformation.ponder.directional_synchronizer_master_scene_1.text_2": "用子同步器右击母方块进行绑定",
+  "aero_reformation.ponder.directional_synchronizer_master_scene_1.text_3": "默认模式下子方块会输出母方块浅蓝色面对应方向的信号",
+  "aero_reformation.ponder.directional_synchronizer_master_scene_1.text_4": "在sable实体上时，输出也会随物理体的旋转变化",
+  "aero_reformation.ponder.directional_synchronizer_master_s_70422.header": "默认模式",
+  "aero_reformation.ponder.directional_synchronizer_master_s_70422.text_1": "用红石火把右击母方块进入红石镜像模式",
+  "aero_reformation.ponder.directional_synchronizer_master_s_70422.text_2": "母同步器会将每个面的红石信号同步给子同步器",
+  "aero_reformation.ponder.directional_synchronizer_master_s_70422.text_3": "在sable实体上时，输出也会随旋转变化",
+
+  "aero_reformation.ponder.directional_synchronizer_slave_scene_1.header": "红石镜像模式",
+  "aero_reformation.ponder.directional_synchronizer_slave_scene_1.text_1": "方向同步器会根据子母方块的朝向输出信号",
+  "aero_reformation.ponder.directional_synchronizer_slave_scene_1.text_2": "用子同步器右击母方块进行绑定",
+  "aero_reformation.ponder.directional_synchronizer_slave_scene_1.text_3": "默认模式下子方块会输出母方块浅蓝色面对应方向的信号",
+  "aero_reformation.ponder.directional_synchronizer_slave_scene_1.text_4": "在sable实体上时，输出也会随物理体的旋转变化",
+  "aero_reformation.ponder.directional_synchronizer_slave_s_70422.header": "默认模式",
+  "aero_reformation.ponder.directional_synchronizer_slave_s_70422.text_1": "用红石火把右击母方块进入红石镜像模式",
+  "aero_reformation.ponder.directional_synchronizer_slave_s_70422.text_2": "母同步器会将每个面的红石信号同步给子同步器",
+  "aero_reformation.ponder.directional_synchronizer_slave_s_70422.text_3": "在sable实体上时，输出也会随旋转变化"
 }

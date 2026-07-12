@@ -160,7 +160,7 @@ public class AeroReformation {
             AeroCBCBlocks.registerRenderers(e);
         });
 
-        // Set block render type for cutout transparency
+        // Set block render type for cutout transparency & register Ponder scenes
         @SuppressWarnings("deprecation")
         java.util.function.Consumer<net.neoforged.fml.event.lifecycle.FMLClientSetupEvent> cutoutListener = e -> {
             e.enqueueWork(() -> {
@@ -173,6 +173,10 @@ public class AeroReformation {
                 net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
                         AeroBlocks.FILTER_PATCH.get(),
                         net.minecraft.client.renderer.RenderType.cutout());
+
+                // Register Ponder scenes (client-side only)
+                net.createmod.ponder.foundation.PonderIndex.addPlugin(
+                    new dev.simulated_team.aero_reformation.ponder.AeroPonderPlugin());
             });
         };
         modEventBus.addListener(cutoutListener);
