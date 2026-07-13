@@ -51,3 +51,6 @@ config/
 .DS_Store
 Thumbs.db
 cbcat_extract/
+
+# Ponder generated files
+src/main/java/dev/simulated_team/aero_reformation/ponder/
