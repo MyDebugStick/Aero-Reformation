@@ -232,11 +232,18 @@ public class PowerBlock extends Block implements IBE<PowerBlockEntity> {
             seat.setBaseYaw(localYaw);
 
             double hOffset = level.getBlockEntity(pos) instanceof PowerBlockEntity be ? be.getSeatHeight() : 0.0;
-            seat.moveTo(pos.getX() + 0.5, pos.getY() + 11.0 / 16.0 + hOffset, pos.getZ() + 0.5, localYaw, 0);
+            double sx = pos.getX() + 0.5;
+            double sy = pos.getY() + 11.0 / 16.0 + hOffset;
+            double sz = pos.getZ() + 0.5;
+            seat.moveTo(sx, sy, sz, localYaw, 0);
             level.addFreshEntity(seat);
+            // Restore world position after Sable's kickEntity (Sable 2.0.3+)
+            seat.moveTo(sx, sy, sz, localYaw, 0);
             seat.attachToSubLevel(level, pos);
-            // Move player to riding position before mounting to avoid arm shake
-            player.moveTo(seat.getX(), seat.getY() + seat.getPassengersRidingOffset(), seat.getZ(), localYaw, 0);
+            // Re-restore world position after attachToSubLevel converts to local coords
+            seat.moveTo(sx, sy, sz, localYaw, 0);
+            // Move player to world position before mounting
+            player.moveTo(sx, sy + seat.getPassengersRidingOffset(), sz, localYaw, 0);
             player.startRiding(seat);
         }
         return ItemInteractionResult.SUCCESS;

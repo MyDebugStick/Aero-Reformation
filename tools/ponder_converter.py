@@ -62,27 +62,30 @@
        has no "face" property. Check set_block steps after conversion.
        转换后请检查 set_block 步骤的 blockProperties。
 
-    3. Text Display / 文本显示:
-       Ponder's .text(String) generates auto-incrementing lang keys internally:
-           <modid>.ponder.<scene_path>.text_1
-           <modid>.ponder.<scene_path>.text_2
+    3. Text Display & Lang Keys / 文本显示与语言键:
+       Ponder's .text(String) and .title(String, String) AUTO-GENERATE
+       lang keys internally. If no lang entry exists, the KEY PATH itself
+       is displayed (e.g. "aero_reformation.ponder.my_scene.text_1").
+
+       To fix this, add entries to your mod's lang files (en_us.json,
+       zh_cn.json, etc.) using the following key format:
+
+       For scene titles / 场景标题:
+           "<modid>.ponder.<scene_path>.header": "Title"
+           E.g.: "aero_reformation.ponder.sticky_piston.header": "Sticky Piston"
+
+       For text content / 文本内容 (auto-numbered):
+           "<modid>.ponder.<scene_path>.text_1": "First text"
+           "<modid>.ponder.<scene_path>.text_2": "Second text"
            ...
-       The string parameter is the FALLBACK text displayed when no lang entry exists.
-       For non-English text to work directly, you can pass the target text as-is
-       (Minecraft I18n fallback returns the text itself). For proper i18n, add
-       translations to your lang files:
-           "aero_reformation.ponder.my_scene.text_1": "Display text"
+
+       To find the exact scene_path, check the generated .java file:
+           scene.title("scene_path", "fallback_title");
        
-       Scene titles also generate lang keys:
-           "aero_reformation.ponder.<scene_path>.header": "Title"
-       
-       To find what keys are needed, check the generated .java file for
-       scene.title("scene_path", ...) and .text(...) calls.
-       
-       Ponder 的 .text(String) 会自动生成自增 lang key，参数是 fallback 文本。
-       建议在 en_us.json / zh_cn.json 中添加对应条目。
-       title 的 key 格式: <modid>.ponder.<scene_path>.header
-       text 的 key 格式: <modid>.ponder.<scene_path>.text_N
+       Ponder 的 .text() 和 .title() 会自动生成 lang key。
+       如果不添加 lang 条目，游戏会直接显示键名路径（如
+       "aero_reformation.ponder.sticky_piston.text_1"）。
+       请按上述格式在 en_us.json / zh_cn.json 中添加对应条目。
 
     4. KeyFrames / 关键帧:
        attachKeyFrame in the JSON is preserved as scene.addKeyframe() calls.
@@ -670,6 +673,15 @@ class StepConverter:
             else:
                 lines.append(f"{self.indent}    scene.world().setBlock({format_blockpos(pos1)}, state, {str(particles).lower()});")
         lines.append(f"{self.indent}}}")
+
+        # Handle NBT data on set_block (e.g. analog lever State)
+        nbt_str = step.get("nbt")
+        if nbt_str and pos1 and len(pos1) >= 3:
+            lines.append(f"{self.indent}scene.world().modifyBlockEntityNBT(util.select().position({format_blockpos(pos1)}), BlockEntity.class, nbt -> {{")
+            lines.append(f"{self.indent}    try {{")
+            lines.append(f"{self.indent}        nbt.merge(TagParser.parseTag({js_string(nbt_str)}));")
+            lines.append(f"{self.indent}    }} catch (Exception ignored) {{}}")
+            lines.append(f"{self.indent}}}, false);")
 
         if has_entrance:
             # Entrance animation: show as independent section with fly-in effect

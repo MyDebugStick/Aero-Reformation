@@ -80,10 +80,15 @@ public class PilotSeatBlock extends PowerBlock {
             seat.setBaseYaw(localYaw);
 
             double hOffset = level.getBlockEntity(pos) instanceof PowerBlockEntity be ? be.getSeatHeight() : 0.0;
-            seat.moveTo(pos.getX() + 0.5, pos.getY() + 7.0 / 16.0 + hOffset, pos.getZ() + 0.5, localYaw, 0);
+            double sx = pos.getX() + 0.5;
+            double sy = pos.getY() + 7.0 / 16.0 + hOffset;
+            double sz = pos.getZ() + 0.5;
+            seat.moveTo(sx, sy, sz, localYaw, 0);
             level.addFreshEntity(seat);
+            seat.moveTo(sx, sy, sz, localYaw, 0);
             seat.attachToSubLevel(level, pos);
-            player.moveTo(seat.getX(), seat.getY() + seat.getPassengersRidingOffset(), seat.getZ(), localYaw, 0);
+            seat.moveTo(sx, sy, sz, localYaw, 0);
+            player.moveTo(sx, sy + seat.getPassengersRidingOffset(), sz, localYaw, 0);
             player.startRiding(seat);
         }
         return ItemInteractionResult.SUCCESS;
