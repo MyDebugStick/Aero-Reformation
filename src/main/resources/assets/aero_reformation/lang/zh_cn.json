@@ -63,6 +63,7 @@
   "tooltip.aero_reformation.com_offset.line2": "不稳定！请不要在服务器里使用",
   "tooltip.aero_reformation.com_offset.line3": "使用前先备份存档和物理体以避免不必要的损失",
   "tooltip.aero_reformation.com_offset.line4": "会产生包括但不限于物理手杖交互错误的bug",
+  "tooltip.aero_reformation.com_offset.line5": "被破坏后会重置整个物理体以规避bug，也许可以用来解决某些玄学问题？",
   "gui.aero_reformation.com_config": "质心偏移设置",
   "screen.aero_reformation.gravity_crystal": "重力水晶设置",
   "aero_reformation.gravity_crystal.lift": "升力倍率: %s",

@@ -51,6 +51,7 @@
   "tooltip.aero_reformation.com_offset.line2": "UNSTABLE! Do NOT use on servers",
   "tooltip.aero_reformation.com_offset.line3": "Back up your world and physics body before use",
   "tooltip.aero_reformation.com_offset.line4": "May cause bugs including physics wand interaction errors",
+  "tooltip.aero_reformation.com_offset.line5": "Destroying it resets the entire physics body to avoid bugs - may fix some mystical issues?",
   "gui.aero_reformation.com_config": "COM Offset Config",
   "screen.aero_reformation.gravity_crystal": "Gravity Crystal Settings",
   "aero_reformation.gravity_crystal.lift": "Lift: %s",

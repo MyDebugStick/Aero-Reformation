@@ -30,5 +30,7 @@ public class ComOffsetBlockItem extends BlockItem {
                 .withStyle(ChatFormatting.YELLOW));
         tooltip.add(Component.translatable("tooltip.aero_reformation.com_offset.line4")
                 .withStyle(ChatFormatting.YELLOW));
+        tooltip.add(Component.translatable("tooltip.aero_reformation.com_offset.line5")
+                .withStyle(ChatFormatting.RED));
     }
 }

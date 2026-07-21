@@ -2,17 +2,20 @@ package dev.simulated_team.aero_reformation;
 
 import com.mojang.logging.LogUtils;
 import dev.simulated_team.aero_reformation.config.AeroReformationConfig;
+import dev.simulated_team.aero_reformation.content.blocks.com_offset.ComOffsetBlock;
+import dev.simulated_team.aero_reformation.content.blocks.power.PowerConfigPayload;
+import dev.simulated_team.aero_reformation.content.blocks.power.PowerKeyBindings;
+import dev.simulated_team.aero_reformation.content.blocks.power.SyncSignalPayload;
+import dev.simulated_team.aero_reformation.content.blocks.power.ToggleCameraLockPayload;
+import dev.simulated_team.aero_reformation.content.blocks.power.ToggleRedstonePayload;
+import dev.simulated_team.aero_reformation.content.blocks.power.ToggleRollLockPayload;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassNavigationTarget;
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassRecipe;
-import dev.simulated_team.aero_reformation.content.blocks.power.PowerConfigPayload;
-import dev.simulated_team.aero_reformation.content.blocks.power.ToggleCameraLockPayload;
-import dev.simulated_team.aero_reformation.content.blocks.power.ToggleRollLockPayload;
-import dev.simulated_team.aero_reformation.content.blocks.power.SyncSignalPayload;
-import dev.simulated_team.aero_reformation.content.blocks.power.PowerKeyBindings;
-import dev.simulated_team.aero_reformation.content.blocks.power.ToggleRedstonePayload;
+import dev.simulated_team.aero_reformation.feature.com_controller.ComShiftHelper;
 import dev.simulated_team.aero_reformation.network.EnderCompassSyncPacket;
 import dev.simulated_team.aero_reformation.network.GoggleBindPacket;
 import dev.simulated_team.aero_reformation.network.GoggleMonitorSyncPacket;
+import net.minecraft.server.level.ServerLevel;
 import dev.simulated_team.aero_reformation.network.LoadstoneSyncPacket;
 import dev.simulated_team.aero_reformation.network.SensorAgencyConfigPacket;
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorRenamePacket;
@@ -229,7 +232,21 @@ public class AeroReformation {
                     dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorChunkLoader.clearAll();
                 });
 
-        // Register /ref removebc command
+        // Track ComOffsetBlock placement/removal for COM shift cache
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.event.level.BlockEvent.EntityPlaceEvent e) -> {
+                    if (e.getLevel() instanceof ServerLevel sl
+                            && e.getPlacedBlock().getBlock() instanceof ComOffsetBlock) {
+                        ComShiftHelper.onBlockPlaced(sl, e.getPos());
+                    }
+                });
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
+                (net.neoforged.neoforge.event.level.BlockEvent.BreakEvent e) -> {
+                    if (e.getLevel() instanceof ServerLevel sl
+                            && e.getState().getBlock() instanceof ComOffsetBlock) {
+                        ComShiftHelper.onBlockBroken(sl, e.getPos());
+                    }
+                });
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(
                 (net.neoforged.neoforge.event.RegisterCommandsEvent e) -> {
                     dev.simulated_team.aero_reformation.command.RefCommands.register(e.getDispatcher());
