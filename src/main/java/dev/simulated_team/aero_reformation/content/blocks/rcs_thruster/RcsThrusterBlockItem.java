@@ -76,9 +76,10 @@ public class RcsThrusterBlockItem extends BlockItem {
         }
         BlockPos boundWarhead = stack.get(AeroDataComponents.BOUND_WARHEAD.get());
         if (boundWarhead != null) {
-            tooltip.add(Component.translatable("aero_reformation.rcs_thruster.bound_warhead_pos",
-                    boundWarhead.getX(), boundWarhead.getY(), boundWarhead.getZ())
+            tooltip.add(Component.translatable("aero_reformation.rcs_thruster.bound_warhead_pos")
                     .withStyle(net.minecraft.ChatFormatting.AQUA));
+            tooltip.add(Component.translatable("aero_reformation.rcs_thruster.bound_warhead_desc")
+                    .withStyle(net.minecraft.ChatFormatting.GRAY));
         }
     }
 

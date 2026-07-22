@@ -72,6 +72,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
 
     private BlockPos boundSyncPos = null;
     private BlockPos boundWarheadPos = null;
+    private BlockPos warheadOffset = null; // relative offset from this block to warhead (blueprint-safe)
     private boolean guidanceActive = false; // one-shot: true once PID starts
     public ScrollValueBehaviour thrustScroll;
 
@@ -132,6 +133,7 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
 
     public void setBoundWarhead(BlockPos pos) {
         this.boundWarheadPos = pos;
+        this.warheadOffset = pos.subtract(this.worldPosition);
         this.boundSyncPos = null; // cannot bind both
         this.setChanged();
     }
@@ -855,10 +857,10 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             tag.putInt("SyncY", boundSyncPos.getY());
             tag.putInt("SyncZ", boundSyncPos.getZ());
         }
-        if (boundWarheadPos != null) {
-            tag.putInt("WarheadX", boundWarheadPos.getX());
-            tag.putInt("WarheadY", boundWarheadPos.getY());
-            tag.putInt("WarheadZ", boundWarheadPos.getZ());
+        if (warheadOffset != null) {
+            tag.putInt("WOffX", warheadOffset.getX());
+            tag.putInt("WOffY", warheadOffset.getY());
+            tag.putInt("WOffZ", warheadOffset.getZ());
         }
         tag.putInt("AngledMode", angledMode);
         tag.putBoolean("CreativeMode", creativeMode);
@@ -880,10 +882,19 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         } else {
             boundSyncPos = null;
         }
-        if (tag.contains("WarheadX")) {
-            boundWarheadPos = new BlockPos(tag.getInt("WarheadX"), tag.getInt("WarheadY"), tag.getInt("WarheadZ"));
+        // Load relative offset and reconstruct absolute position (blueprint-safe)
+        if (tag.contains("WOffX")) {
+            warheadOffset = new BlockPos(tag.getInt("WOffX"), tag.getInt("WOffY"), tag.getInt("WOffZ"));
+            boundWarheadPos = this.worldPosition.offset(warheadOffset);
         } else {
-            boundWarheadPos = null;
+            // Legacy: try loading absolute coordinates
+            if (tag.contains("WarheadX")) {
+                boundWarheadPos = new BlockPos(tag.getInt("WarheadX"), tag.getInt("WarheadY"), tag.getInt("WarheadZ"));
+                warheadOffset = boundWarheadPos.subtract(this.worldPosition);
+            } else {
+                boundWarheadPos = null;
+                warheadOffset = null;
+            }
         }
         angledMode = tag.getInt("AngledMode");
         creativeMode = tag.getBoolean("CreativeMode");
