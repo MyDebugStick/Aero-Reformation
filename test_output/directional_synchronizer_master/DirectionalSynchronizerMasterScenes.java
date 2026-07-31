@@ -35,7 +35,7 @@ import java.util.Map;
  * 由 Ponderer 场景自动生成的 Ponder 故事板
  * 源场景: ponderer:directional_synchronizer_master
  * 源标题: 方向同步器
- * 生成时间: 2026-07-13 01:25:08
+ * 生成时间: 2026-07-22 19:08:30
  */
 public class DirectionalSynchronizerMasterScenes {
 
@@ -108,7 +108,7 @@ public class DirectionalSynchronizerMasterScenes {
         scene.idleSeconds(2);
 
 
-        scene.rotateCameraY(10.0f);
+        scene.addInstruction(new net.createmod.ponder.foundation.instruction.RotateSceneInstruction(-30.0f, 10.0f, true));
         scene.idle(20);
 
 
@@ -133,6 +133,11 @@ public class DirectionalSynchronizerMasterScenes {
             // Apply block properties with typed references / 应用方块属性
             scene.world().modifyBlock(util.grid().at(9, 1, 2), s -> s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.POWERED) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.POWERED, java.lang.Boolean.TRUE) : s, false);
         }
+        scene.world().modifyBlockEntityNBT(util.select().position(util.grid().at(9, 1, 2)), BlockEntity.class, nbt -> {
+            try {
+                nbt.merge(TagParser.parseTag("{BoundMaster:{X:-47,Y:65,Z:60},components:{\"aero_reformation:bound_master\":[I;-47,65,60]}}"));
+            } catch (Exception ignored) {}
+        }, false);
         // Entrance animation / 入场动画: 独立 section 从 down 方向飞入
         scene.world().showIndependentSection(util.select().position(util.grid().at(9, 1, 2)), Direction.DOWN);
 
@@ -323,6 +328,11 @@ public class DirectionalSynchronizerMasterScenes {
             scene.world().modifyBlock(util.grid().at(2, 1, 3), s -> s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.ATTACH_FACE) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.ATTACH_FACE, net.minecraft.world.level.block.state.properties.AttachFace.FLOOR) : s, false);
             scene.world().modifyBlock(util.grid().at(2, 1, 3), s -> s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, net.minecraft.core.Direction.NORTH) : s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING, net.minecraft.core.Direction.NORTH) : s, false);
         }
+        scene.world().modifyBlockEntityNBT(util.select().position(util.grid().at(2, 1, 3)), BlockEntity.class, nbt -> {
+            try {
+                nbt.merge(TagParser.parseTag("{State:1}"));
+            } catch (Exception ignored) {}
+        }, false);
 
 
         scene.world().modifyBlock(util.grid().at(9, 1, 3), s -> s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED, java.lang.Boolean.FALSE) : s, false);
@@ -346,6 +356,11 @@ public class DirectionalSynchronizerMasterScenes {
             scene.world().modifyBlock(util.grid().at(2, 1, 3), s -> s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.ATTACH_FACE) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.ATTACH_FACE, net.minecraft.world.level.block.state.properties.AttachFace.FLOOR) : s, false);
             scene.world().modifyBlock(util.grid().at(2, 1, 3), s -> s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, net.minecraft.core.Direction.NORTH) : s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING, net.minecraft.core.Direction.NORTH) : s, false);
         }
+        scene.world().modifyBlockEntityNBT(util.select().position(util.grid().at(2, 1, 3)), BlockEntity.class, nbt -> {
+            try {
+                nbt.merge(TagParser.parseTag("{State:2}"));
+            } catch (Exception ignored) {}
+        }, false);
 
 
         scene.world().modifyBlock(util.grid().at(9, 1, 3), s -> s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED, java.lang.Boolean.FALSE) : s, false);
@@ -369,6 +384,11 @@ public class DirectionalSynchronizerMasterScenes {
             scene.world().modifyBlock(util.grid().at(2, 1, 3), s -> s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.ATTACH_FACE) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.ATTACH_FACE, net.minecraft.world.level.block.state.properties.AttachFace.FLOOR) : s, false);
             scene.world().modifyBlock(util.grid().at(2, 1, 3), s -> s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, net.minecraft.core.Direction.NORTH) : s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.FACING, net.minecraft.core.Direction.NORTH) : s, false);
         }
+        scene.world().modifyBlockEntityNBT(util.select().position(util.grid().at(2, 1, 3)), BlockEntity.class, nbt -> {
+            try {
+                nbt.merge(TagParser.parseTag("{State:3}"));
+            } catch (Exception ignored) {}
+        }, false);
 
 
         scene.world().modifyBlock(util.grid().at(9, 1, 3), s -> s.hasProperty(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED) ? s.setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.WATERLOGGED, java.lang.Boolean.FALSE) : s, false);

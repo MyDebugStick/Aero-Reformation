@@ -548,12 +548,13 @@ class StepConverter:
         lines = []
         lines.append(self._emit_keyframe(step))
         deg = step.get("degrees", 0)
+        deg_x = step.get("degreesX", 0)
         duration = step.get("duration")
-        # Use standard rotateCameraY API for smooth animated relative rotation
-        lines.append(f"{self.indent}scene.rotateCameraY({deg}f);")
+        # Use RotateSceneInstruction for simultaneous pitch+yaw animated rotation
+        # (relative=true means add to current chase target, not absolute)
+        lines.append(f"{self.indent}scene.addInstruction(new net.createmod.ponder.foundation.instruction.RotateSceneInstruction({deg_x}f, {deg}f, true));")
         if duration:
             lines.append(f"{self.indent}scene.idle({duration});")
-        # degreesX is not directly mappable to Create Ponder API
         return "\n".join(lines)
 
     def _convert_show_controls(self, step: dict, scene_data: dict, seg_idx: int) -> str:
@@ -917,7 +918,6 @@ class StepConverter:
             lines.append(f"{self.indent}    entity.discard();")
         lines.append(f"{self.indent}}});")
         return "\n".join(lines)
-
 
 # ──────────────────────────────────────────────────────────
 #  Java 代码生成器

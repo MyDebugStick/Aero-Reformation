@@ -7,6 +7,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import com.mojang.serialization.Codec;
+import net.minecraft.network.codec.ByteBufCodecs;
+import java.util.List;
 
 import java.util.function.Supplier;
 
@@ -42,4 +45,5 @@ public class AeroDataComponents {
                             .persistent(BlockPos.CODEC)
                             .networkSynchronized(BlockPos.STREAM_CODEC)
                             .build());
+
 }

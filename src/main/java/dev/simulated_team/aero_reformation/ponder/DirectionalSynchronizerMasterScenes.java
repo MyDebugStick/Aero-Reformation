@@ -35,7 +35,7 @@ import java.util.Map;
  * 由 Ponderer 场景自动生成的 Ponder 故事板
  * 源场景: ponderer:directional_synchronizer_master
  * 源标题: 方向同步器
- * 生成时间: 2026-07-13 16:45:30
+ * 生成时间: 2026-07-22 19:08:30
  */
 public class DirectionalSynchronizerMasterScenes {
 
@@ -108,7 +108,7 @@ public class DirectionalSynchronizerMasterScenes {
         scene.idleSeconds(2);
 
 
-        scene.rotateCameraY(10.0f);
+        scene.addInstruction(new net.createmod.ponder.foundation.instruction.RotateSceneInstruction(-30.0f, 10.0f, true));
         scene.idle(20);
 
 

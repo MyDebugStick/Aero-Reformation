@@ -133,7 +133,6 @@
   "msg.aero_reformation.power.mode_camera_lock": "§bMode: Camera Lock",
   "msg.aero_reformation.power.mode_roll_lock": "§dMode: Roll Lock",
 
-  "key.category.aero_reformation.power": "Aero Reformation: Power",
   "key.aero_reformation.power.view_sync": "Switch Mode",
   "block.aero_reformation.rcs_thruster": "RCS Thruster",
   "block.aero_reformation.guidance_warhead": "Guidance Warhead",

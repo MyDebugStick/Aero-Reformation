@@ -6,7 +6,7 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import org.lwjgl.glfw.GLFW;
 
 public class PowerKeyBindings {
-    public static final String CATEGORY = "key.category.aero_reformation.power";
+    public static final String CATEGORY = "key.categories.aero_reformation";
 
     public static final KeyMapping VIEW_SYNC = new KeyMapping(
             "key.aero_reformation.power.view_sync",

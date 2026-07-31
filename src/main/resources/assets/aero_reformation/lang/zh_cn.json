@@ -144,7 +144,6 @@
   "msg.aero_reformation.power.mode_camera_lock": "§b模式：视角锁定",
   "msg.aero_reformation.power.mode_roll_lock": "§d模式：第三轴锁定",
 
-  "key.category.aero_reformation.power": "Aero Reformation: 视角辅助",
   "key.aero_reformation.power.view_sync": "切换模式",
   "aero_reformation.rcs_thruster.desc1": "使用汽油/乙醇作为燃料，或通过相邻能量源供电；使用创造烈焰蛋糕右击以无视燃料消耗",
   "aero_reformation.rcs_thruster.desc2": "绑定至母同步器以控制输出",
