@@ -38,6 +38,8 @@ libs/
 /dev/
 /top/
 /simulated_team/
+__pycache__/
+*.pyc
 defaultconfigs/
 crash-reports/
 ldlib2/
