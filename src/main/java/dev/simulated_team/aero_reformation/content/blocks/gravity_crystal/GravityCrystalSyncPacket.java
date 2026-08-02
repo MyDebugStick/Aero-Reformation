@@ -5,6 +5,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +36,7 @@ public record GravityCrystalSyncPacket(UUID subLevelId, float liftMul, float dra
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
 
+    @OnlyIn(Dist.CLIENT)
     public void handle(IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             GravityCrystalSettings s = GravityCrystalSettings.get(subLevelId);

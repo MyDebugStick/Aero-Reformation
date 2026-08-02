@@ -1,10 +1,13 @@
 package dev.simulated_team.aero_reformation.event;
 
 import dev.simulated_team.aero_reformation.content.items.ender_compass.EnderCompassData;
+import dev.simulated_team.aero_reformation.network.HudPresetSavePacket;
 import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -84,6 +87,14 @@ public class AeroTooltipHandler {
         if (id.equals(ResourceLocation.parse("aero_reformation:directional_synchronizer_slave"))) {
             event.getToolTip().add(AQUA_PREFIX.copy()
                     .append(Component.translatable("aero_reformation.tooltip.synchronizer_slave").withStyle(ChatFormatting.AQUA)));
+        }
+
+        // Helmets carrying a HUD preset marker (1-to-1 per-helmet presets)
+        if (stack.getItem() instanceof ArmorItem armor
+                && armor.getEquipmentSlot() == EquipmentSlot.HEAD
+                && HudPresetSavePacket.readPresetUuid(stack) != null) {
+            event.getToolTip().add(AQUA_PREFIX.copy()
+                    .append(Component.translatable("aero_reformation.tooltip.hud_preset").withStyle(ChatFormatting.AQUA)));
         }
 
         // Directional Synchronizer Master

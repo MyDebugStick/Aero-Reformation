@@ -9,10 +9,18 @@ import dev.simulated_team.aero_reformation.content.blocks.power.ToggleCameraLock
 import dev.simulated_team.aero_reformation.content.blocks.power.ToggleRollLockPayload;
 import dev.simulated_team.aero_reformation.content.blocks.power.SyncSignalPayload;
 import dev.simulated_team.aero_reformation.content.blocks.power.PowerKeyBindings;
+import dev.simulated_team.aero_reformation.content.hud.HudKeyBindings;
 import dev.simulated_team.aero_reformation.content.blocks.power.ToggleRedstonePayload;
 import dev.simulated_team.aero_reformation.network.EnderCompassSyncPacket;
 import dev.simulated_team.aero_reformation.network.GoggleBindPacket;
 import dev.simulated_team.aero_reformation.network.GoggleMonitorSyncPacket;
+import dev.simulated_team.aero_reformation.network.HudEntrySyncPacket;
+import dev.simulated_team.aero_reformation.network.HudNbtRequestPacket;
+import dev.simulated_team.aero_reformation.network.HudNbtResponsePacket;
+import dev.simulated_team.aero_reformation.network.HudNbtSyncPacket;
+import dev.simulated_team.aero_reformation.network.HudPresetLoadPacket;
+import dev.simulated_team.aero_reformation.network.HudPresetResponsePacket;
+import dev.simulated_team.aero_reformation.network.HudPresetSavePacket;
 import dev.simulated_team.aero_reformation.network.LoadstoneSyncPacket;
 import dev.simulated_team.aero_reformation.network.SensorAgencyConfigPacket;
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorRenamePacket;
@@ -35,6 +43,8 @@ import dev.simulated_team.aero_reformation.registrate.AeroDataComponents;
 import dev.simulated_team.simulated.index.SimRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -80,6 +90,7 @@ public class AeroReformation {
 
         // Key bindings
         modEventBus.addListener(PowerKeyBindings::register);
+        modEventBus.addListener(HudKeyBindings::register);
 
         // Register recipe serializer
         var recipeSerializers = DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
@@ -95,14 +106,31 @@ public class AeroReformation {
                     EnderCompassSyncPacket::handle);
             registrar.playToServer(GoggleBindPacket.TYPE, GoggleBindPacket.STREAM_CODEC,
                     GoggleBindPacket::handle);
+            registrar.playToServer(HudEntrySyncPacket.TYPE, HudEntrySyncPacket.STREAM_CODEC,
+                    HudEntrySyncPacket::handle);
+            registrar.playToServer(HudNbtRequestPacket.TYPE, HudNbtRequestPacket.STREAM_CODEC,
+                    HudNbtRequestPacket::handle);
+            registrar.playToServer(HudPresetSavePacket.TYPE, HudPresetSavePacket.STREAM_CODEC,
+                    HudPresetSavePacket::handle);
+            registrar.playToServer(HudPresetLoadPacket.TYPE, HudPresetLoadPacket.STREAM_CODEC,
+                    HudPresetLoadPacket::handle);
+            // Client-bound handlers are @OnlyIn(CLIENT); on a dedicated server the
+            // stripped methods must not be linked, so register a no-op handler there.
+            boolean isClient = FMLEnvironment.dist == Dist.CLIENT;
+            registrar.playToClient(HudPresetResponsePacket.TYPE, HudPresetResponsePacket.STREAM_CODEC,
+                    isClient ? HudPresetResponsePacket::handle : (p, c) -> { });
             registrar.playToServer(AnchorRenamePacket.TYPE, AnchorRenamePacket.STREAM_CODEC,
                     AnchorRenamePacket::handle);
             registrar.playToClient(AnchorMapSyncPacket.TYPE, AnchorMapSyncPacket.STREAM_CODEC,
-                    AnchorMapSyncPacket::handle);
+                    isClient ? AnchorMapSyncPacket::handle : (p, c) -> { });
             registrar.playToClient(GoggleMonitorSyncPacket.TYPE, GoggleMonitorSyncPacket.STREAM_CODEC,
-                    GoggleMonitorSyncPacket::handle);
+                    isClient ? GoggleMonitorSyncPacket::handle : (p, c) -> { });
+            registrar.playToClient(HudNbtSyncPacket.TYPE, HudNbtSyncPacket.STREAM_CODEC,
+                    isClient ? HudNbtSyncPacket::handle : (p, c) -> { });
+            registrar.playToClient(HudNbtResponsePacket.TYPE, HudNbtResponsePacket.STREAM_CODEC,
+                    isClient ? HudNbtResponsePacket::handle : (p, c) -> { });
             registrar.playToClient(LoadstoneSyncPacket.TYPE, LoadstoneSyncPacket.STREAM_CODEC,
-                    LoadstoneSyncPacket::handle);
+                    isClient ? LoadstoneSyncPacket::handle : (p, c) -> { });
             registrar.playToServer(ToggleRedstonePayload.TYPE, ToggleRedstonePayload.STREAM_CODEC,
                     ToggleRedstonePayload::handle);
             registrar.playToServer(ToggleCameraLockPayload.TYPE, ToggleCameraLockPayload.STREAM_CODEC,
@@ -114,11 +142,11 @@ public class AeroReformation {
             registrar.playToServer(GravityCrystalOpenPacket.TYPE, GravityCrystalOpenPacket.STREAM_CODEC,
                     GravityCrystalOpenPacket::handle);
             registrar.playToClient(GravityCrystalSyncPacket.TYPE, GravityCrystalSyncPacket.STREAM_CODEC,
-                    GravityCrystalSyncPacket::handle);
+                    isClient ? GravityCrystalSyncPacket::handle : (p, c) -> { });
             registrar.playToServer(ComConfigPayload.TYPE, ComConfigPayload.STREAM_CODEC,
                     ComConfigPayload::handle);
             registrar.playToClient(ComSyncPayload.TYPE, ComSyncPayload.STREAM_CODEC,
-                    ComSyncPayload::handle);
+                    isClient ? ComSyncPayload::handle : (p, c) -> { });
 
             registrar.playToServer(PowerConfigPayload.TYPE, PowerConfigPayload.STREAM_CODEC,
                     PowerConfigPayload::handle);
@@ -127,7 +155,7 @@ public class AeroReformation {
             registrar.playToServer(GuidanceWarheadSettingsPacket.TYPE, GuidanceWarheadSettingsPacket.STREAM_CODEC,
                     GuidanceWarheadSettingsPacket::handle);
             registrar.playToClient(GuidanceWarheadOpenPacket.TYPE, GuidanceWarheadOpenPacket.STREAM_CODEC,
-                    GuidanceWarheadOpenPacket::handle);
+                    isClient ? GuidanceWarheadOpenPacket::handle : (p, c) -> { });
 
         });
 

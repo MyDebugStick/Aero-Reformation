@@ -10,6 +10,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.*;
@@ -82,6 +84,7 @@ public record GoggleMonitorSyncPacket(Map<BlockPos, int[]> data) implements Cust
         return new GoggleMonitorSyncPacket(map);
     }
 
+    @OnlyIn(Dist.CLIENT)
     public static void handle(GoggleMonitorSyncPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             CLIENT_DATA.clear();

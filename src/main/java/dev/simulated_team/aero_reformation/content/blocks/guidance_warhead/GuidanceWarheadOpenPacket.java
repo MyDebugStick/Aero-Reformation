@@ -7,6 +7,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,6 +67,7 @@ public record GuidanceWarheadOpenPacket(BlockPos pos, float kp, float ki, float 
     @Override
     public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
 
+    @OnlyIn(Dist.CLIENT)
     public void handle(IPayloadContext ctx) {
         ctx.enqueueWork(() -> GuidanceWarheadScreenOpener.open(pos, kp, ki, kd, maxSpeed, sidePower, maxThrustPN,
                 brakeCoeff, proximityRange, cruiseAltitude, redstoneRange, altitudeOffset,

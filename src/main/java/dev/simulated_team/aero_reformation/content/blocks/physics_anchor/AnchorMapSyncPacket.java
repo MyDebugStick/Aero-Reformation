@@ -5,6 +5,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.*;
@@ -43,6 +45,7 @@ public record AnchorMapSyncPacket(List<MarkerEntry> markers) implements CustomPa
 
     @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
+    @OnlyIn(Dist.CLIENT)
     public static void handle(AnchorMapSyncPacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> AnchorMapClientData.update(packet.markers));
     }
