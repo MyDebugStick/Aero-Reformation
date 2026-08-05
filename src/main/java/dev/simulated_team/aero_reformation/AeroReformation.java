@@ -88,6 +88,9 @@ public class AeroReformation {
         // Register CBC projectile handler
         AeroCBCBlocks.registerHandlers(modEventBus);
 
+        // ComputerCraft peripheral integration (no-op when CC is absent)
+        dev.simulated_team.aero_reformation.compat.cc.ComputerCraftCompat.registerIfPresent(modEventBus);
+
         // Key bindings
         modEventBus.addListener(PowerKeyBindings::register);
         modEventBus.addListener(HudKeyBindings::register);

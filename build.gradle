@@ -146,6 +146,9 @@ dependencies {
     // Curios (optional, for goggle HUD support in curio slots)
     implementation files("${projectDir}/curios-neoforge-9.5.1+1.21.1.jar")
 
+    // ComputerCraft (compileOnly for peripheral API — runtime-safe via isolated compat classes)
+    compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/Mechanomania-航空学/mods/cc-tweaked-1.21.1-forge-1.118.0.jar")
+
     // AppleSkin (compileOnly for mixin target reference)
     compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[苹果皮] appleskin-neoforge-mc1.21-3.0.9.jar")
     // Xaero's WorldMap (compileOnly for map overlay mixin)
@@ -207,6 +210,8 @@ tasks.register('cleanDeploy', Delete) {
 tasks.register('deploy', Copy) {
     dependsOn build, cleanDeploy
     from "build/libs"
+    // Only the current mod_version jar. Stale jars left in build/libs from
+    // earlier builds must NOT be copied over, or the mods folder accumulates versions.
     include "aero_reformation-${mod_version}.jar"
     into modsDir
 }

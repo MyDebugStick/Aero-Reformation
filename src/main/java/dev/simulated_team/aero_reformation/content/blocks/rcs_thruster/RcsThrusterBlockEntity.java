@@ -151,6 +151,44 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         return THRUST_OPTIONS[thrustScroll.getValue()];
     }
 
+    /** Index into {@link #THRUST_OPTIONS} currently selected by the scroll value. */
+    public int getThrustIndex() {
+        if (thrustScroll == null) return DEFAULT_THRUST_IDX;
+        return Math.max(0, Math.min(thrustScroll.getValue(), THRUST_OPTIONS.length - 1));
+    }
+
+    /** Select a thrust option by index (clamped to the available options). */
+    public void setThrustIndex(int index) {
+        if (thrustScroll == null) return;
+        thrustScroll.setValue(Math.max(0, Math.min(index, THRUST_OPTIONS.length - 1)));
+        setChanged();
+    }
+
+    /** Immutable copy of the selectable thrust options (in pN). */
+    public static int[] getThrustOptions() {
+        return THRUST_OPTIONS.clone();
+    }
+
+    /** Bitmask of nozzles firing this physics tick (bit i = nozzle i). */
+    public int getActiveNozzleMask() {
+        return activeNozzleMask;
+    }
+
+    /** Total thrust currently being output (in pN, synced for HUD). */
+    public double getCurrentThrustPN() {
+        return currentThrustPN;
+    }
+
+    /** Whether fuel (or energy) was available on the last physics tick. */
+    public boolean isFuelAvailable() {
+        return fuelAvailable;
+    }
+
+    /** Whether the thruster is currently running on electricity instead of fluid fuel. */
+    public boolean isElectricMode() {
+        return electricMode;
+    }
+
     public void cycleAngledMode() {
         angledMode = (angledMode + 1) % ANGLED_REDUCTION.length;
         setChanged();
