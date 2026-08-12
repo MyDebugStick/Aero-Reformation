@@ -343,6 +343,39 @@ public class AnchorChunkLoader {
             AeroReformation.LOGGER.debug("[PhysicsAnchor] Discarded {} stale marker entities on start", count);
     }
 
+    /**
+     * Cleanup orphan marker entities: any AnchorMarkerEntity that is no longer
+     * directly referenced by an anchor entry (ANCHORS) or a warmup entry (WARMUP)
+     * is a stale leftover (e.g. from a lost map entry, dimension switch or a
+     * duplicate created on relog) and gets force-discarded immediately instead of
+     * lingering until the next server restart. Called periodically from tick().
+     *
+     * <p>Anchored markers keep a strict 1:1 relation with their anchor entry, so
+     * anything not referenced is safe to remove by default.
+     */
+    public static void cleanupOrphanMarkers(ServerLevel serverLevel) {
+        int removed = 0;
+        for (var e : serverLevel.getEntities().getAll()) {
+            if (!(e instanceof AnchorMarkerEntity m) || m.isRemoved()) continue;
+            if (isMarkerReferenced(serverLevel, m)) continue;
+            m.forceDiscard();
+            removed++;
+        }
+        if (removed > 0)
+            AeroReformation.LOGGER.debug("[PhysicsAnchor] Cleaned {} orphan marker(s)", removed);
+    }
+
+    /** True if the marker is directly referenced by an anchor or warmup entry. */
+    private static boolean isMarkerReferenced(ServerLevel serverLevel, AnchorMarkerEntity marker) {
+        for (var data : anchorsFor(serverLevel.dimension()).values()) {
+            if (data.marker == marker) return true;
+        }
+        for (var data : WARMUP.values()) {
+            if (data.marker == marker) return true;
+        }
+        return false;
+    }
+
     /** Discard all marker entities and clear all anchor data. Returns count. */
     public static int discardAllMarkers(ServerLevel serverLevel) {
         int count = 0;
@@ -607,8 +640,10 @@ public class AnchorChunkLoader {
         if (serverLevel.getServer().getTickCount() % 3 == 0) syncToClients(serverLevel);
 
         // === Self-check every 5 seconds ===
-        if (serverLevel.getServer().getTickCount() % 100 == 0)
+        if (serverLevel.getServer().getTickCount() % 100 == 0) {
             selfCheckAnchors(serverLevel);
+            cleanupOrphanMarkers(serverLevel);
+        }
 
         // === Runaway protection every tick ===
         checkRunaway(serverLevel);

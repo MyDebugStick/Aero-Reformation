@@ -1,5 +1,31 @@
 # Changelog / 更新日志
 
+## [1.3.3.2] - 2026-08-12
+
+### English
+
+**Aero Reformation 1.3.3.2 — Physics Anchor orphan-marker cleanup**
+
+- **Orphan marker cleanup** — `AnchorMarkerEntity` instances that are no longer referenced
+  by any anchor entry or warmup entry are now force-discarded automatically every 5 seconds,
+  instead of lingering until the next server restart. This prevents leftover marker entities
+  (e.g. from lost map entries, dimension switches, or duplicates created on relog) from
+  accumulating, keeping the marker↔anchor relation strictly 1:1.
+- **Performance** — the cleanup is a low-frequency (5s) scan of entities vs. referenced
+  markers; overhead is negligible during normal play.
+
+### 中文
+
+**Aero Reformation 1.3.3.2 — 物理锚点孤儿标记清理**
+
+- **孤儿标记清理** — 不再被任何锚点条目或恢复（warmup）条目引用的 `AnchorMarkerEntity`
+  现在每 5 秒自动强制删除，而不是一直保留到下一次服务器重启。这防止了残留标记实体
+  （如地图条目丢失、维度切换、重进存档产生的重复实体）不断累积，让标记与锚点保持
+  严格一一对应。
+- **性能** — 清理为低频（5 秒一次）扫描，正常游玩开销可忽略。
+
+---
+
 ## [1.3.3.1] - 2026-08-05
 
 ### English
