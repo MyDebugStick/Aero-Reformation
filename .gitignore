@@ -56,3 +56,14 @@ cbcat_extract/
 
 # ColorfulCraft standalone mod
 ../ColorfulCraft/
+
+# Local AI-assistant context for DeepSeek Harness (not source)
+.dsh/
+
+# dsh-snapshot is a plain Node package that happens to live in this tree. The
+# Java-oriented rules above (`lib/`, `libs/`, `*.toml`) would otherwise hide its
+# source from git — `lib/index.js` is the entire engine, so losing it to an
+# ignore rule would be silent and total. Re-include the package wholesale; the
+# later rules win over the earlier ones.
+!dsh-snapshot/
+!dsh-snapshot/**
