@@ -41,6 +41,9 @@ import java.util.List;
 
 public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEntitySubLevelActor, IHaveGoggleInformation {
 
+    /** Number of nozzles on the block. Index order matches {@link #NOZZLE_LOCAL}. */
+    public static final int NOZZLE_COUNT = 5;
+
     // 5 nozzle exhaust positions in RCS block-local space (scaled 0-16)
     private static final Vector3d[] NOZZLE_POS = {
             new Vector3d(8, 8, 2),      // 0: FORWARD
@@ -107,6 +110,96 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
     private int activeNozzleMask = 0; // cached for client VFX
     private double currentThrustPN = 0; // synced for goggle HUD
     private boolean syncWasValid = false; // tracks if sync block existed on last tick
+
+    // ─────────────────────── per-nozzle thrust override ───────────────────────
+    // The redstone path can only express 0..15 per synchronizer face, one face
+    // per nozzle, so a computer cannot dial individual nozzles. When raw mode is
+    // engaged the per-nozzle fractions below drive the nozzles directly and the
+    // redstone reading is skipped entirely, giving an API caller full authority
+    // (and float precision) over each of the five nozzles.
+    private boolean rawNozzleMode = false;
+    private final double[] rawNozzle = new double[NOZZLE_COUNT];
+
+    /** Whether the per-nozzle override is driving the nozzles instead of redstone. */
+    public boolean isRawNozzleMode() {
+        return rawNozzleMode;
+    }
+
+    /**
+     * Enable or disable per-nozzle override.
+     *
+     * <p>Engaging it clears every nozzle fraction, so the block starts silent and
+     * only fires once a caller sets a value — that avoids a mode switch reusing a
+     * stale commanded thrust. Disengaging returns control to the redstone path.
+     */
+    public void setRawNozzleMode(boolean enabled) {
+        this.rawNozzleMode = enabled;
+        if (enabled) {
+            java.util.Arrays.fill(rawNozzle, 0.0);
+        }
+        setChanged();
+        if (level != null && !level.isClientSide) sendData();
+    }
+
+    /** Fraction currently commanded for one nozzle, or 0 when out of range. */
+    public double getRawNozzle(int nozzleIdx) {
+        if (nozzleIdx < 0 || nozzleIdx >= NOZZLE_COUNT) return 0.0;
+        return rawNozzle[nozzleIdx];
+    }
+
+    /**
+     * Command one nozzle directly.
+     *
+     * @param nozzleIdx 0..4, matching {@link #NOZZLE_LOCAL}
+     * @param fraction  0.0..1.0 of the configured thrust; clamped, and
+     *                  {@code NaN} is treated as 0
+     * @return true when the index was valid and the value was stored
+     */
+    public boolean setRawNozzle(int nozzleIdx, double fraction) {
+        if (nozzleIdx < 0 || nozzleIdx >= NOZZLE_COUNT) return false;
+        double v = Double.isNaN(fraction) ? 0.0 : Math.max(0.0, Math.min(1.0, fraction));
+        rawNozzle[nozzleIdx] = v;
+        setChanged();
+        if (level != null && !level.isClientSide) sendData();
+        return true;
+    }
+
+    /** Command every nozzle at once; {@code fractions} may be shorter than 5. */
+    public void setAllRawNozzles(double[] fractions) {
+        for (int i = 0; i < NOZZLE_COUNT; i++) {
+            double v = i < fractions.length ? fractions[i] : 0.0;
+            rawNozzle[i] = Double.isNaN(v) ? 0.0 : Math.max(0.0, Math.min(1.0, v));
+        }
+        setChanged();
+        if (level != null && !level.isClientSide) sendData();
+    }
+
+    /** Snapshot of the per-nozzle command (copy). */
+    public double[] getRawNozzles() {
+        return rawNozzle.clone();
+    }
+
+    // Human-readable nozzle names, indexed like NOZZLE_LOCAL. Used by getNozzleInfo.
+    private static final String[] NOZZLE_NAMES = {
+            "forward", "right", "left", "up", "down"
+    };
+
+    /** Name of a nozzle index, or "unknown" when out of range. */
+    public static String getNozzleName(int nozzleIdx) {
+        if (nozzleIdx < 0 || nozzleIdx >= NOZZLE_COUNT) return "unknown";
+        return NOZZLE_NAMES[nozzleIdx];
+    }
+
+    /**
+     * Thrust direction of one nozzle in the block's own frame (model faces north).
+     *
+     * @return a fresh {x, y, z} vector, or {0,0,0} for an invalid index
+     */
+    public static double[] getNozzleLocalDirection(int nozzleIdx) {
+        if (nozzleIdx < 0 || nozzleIdx >= NOZZLE_COUNT) return new double[] { 0, 0, 0 };
+        Vector3d dir = NOZZLE_LOCAL[nozzleIdx];
+        return new double[] { dir.x, dir.y, dir.z };
+    }
 
     // Fuel: configurable via AeroReformationConfig, default 5000pN/mB/tick
     private final Vector3d thrustWorld = new Vector3d();
@@ -390,6 +483,11 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                     throttle = Math.max(0.1f, signal / 15.0f);
                 }
             }
+            // Per-nozzle override drives the VFX too, so the plume matches the
+            // commanded thrust instead of whatever the redstone happens to read.
+            if (rawNozzleMode) {
+                throttle = (float) Math.max(0.1, rawNozzle[nozzleIdx]);
+            }
             // In guidance mode, throttle is determined server-side; use full for VFX
             float t = 0.5f + throttle * 0.5f;
 
@@ -491,23 +589,41 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         int physMask = 0;
         QueuedForceGroup liftGroup = subLevel.getOrCreateQueuedForceGroup(ForceGroups.LIFT.get());
 
-        for (Direction inputFace : Direction.values()) {
-            if (inputFace == syncFacing) continue;
+        // Per-nozzle override: the five nozzles are driven straight from the
+        // commanded fractions. Commands that resolve to zero skip the nozzle
+        // entirely, so no force and no fuel are spent on it.
+        if (rawNozzleMode) {
+            for (int nozzleIdx = 0; nozzleIdx < NOZZLE_COUNT; nozzleIdx++) {
+                double mult = (nozzleIdx == 0) ? 1.0 : ANGLED_REDUCTION[angledMode];
+                double thrustPN = maxThrust * rawNozzle[nozzleIdx] * mult;
+                if (thrustPN <= 0) continue;
 
-            int signal = level.getSignal(boundSyncPos.relative(inputFace), inputFace.getOpposite());
-            if (signal == 0) continue;
+                physMask |= (1 << nozzleIdx);
+                Vector3d localDir = NOZZLE_LOCAL[nozzleIdx];
+                transformByFacing(localDir, rcsFacing, thrustWorld);
 
-            int nozzleIdx = getNozzleForSyncFace(syncFacing, inputFace);
-            physMask |= (1 << nozzleIdx);
-            Vector3d localDir = NOZZLE_LOCAL[nozzleIdx];
+                totalThrustPN += thrustPN;
+                totalForce.add(thrustWorld.mul(thrustPN / 40.0, force));
+            }
+        } else if (boundSyncPos != null) {
+            for (Direction inputFace : Direction.values()) {
+                if (inputFace == syncFacing) continue;
 
-            transformByFacing(localDir, rcsFacing, thrustWorld);
+                int signal = level.getSignal(boundSyncPos.relative(inputFace), inputFace.getOpposite());
+                if (signal == 0) continue;
 
-            double scale = signal / 15.0;
-            double mult = (nozzleIdx == 0) ? 1.0 : ANGLED_REDUCTION[angledMode];
-            double thrustPN = maxThrust * scale * mult;
-            totalThrustPN += thrustPN;
-            totalForce.add(thrustWorld.mul(thrustPN / 40.0, force));
+                int nozzleIdx = getNozzleForSyncFace(syncFacing, inputFace);
+                physMask |= (1 << nozzleIdx);
+                Vector3d localDir = NOZZLE_LOCAL[nozzleIdx];
+
+                transformByFacing(localDir, rcsFacing, thrustWorld);
+
+                double scale = signal / 15.0;
+                double mult = (nozzleIdx == 0) ? 1.0 : ANGLED_REDUCTION[angledMode];
+                double thrustPN = maxThrust * scale * mult;
+                totalThrustPN += thrustPN;
+                totalForce.add(thrustWorld.mul(thrustPN / 40.0, force));
+            }
         }
 
         // Fuel / Energy consumption (electricity first, then fluid fuel)
@@ -902,6 +1018,14 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         }
         tag.putInt("AngledMode", angledMode);
         tag.putBoolean("CreativeMode", creativeMode);
+        // Per-nozzle override must survive a reload, otherwise a vehicle would
+        // silently fall back to (absent) redstone control the moment it unloads.
+        // CompoundTag has no double-array accessor in 1.21, so the fractions ride
+        // as raw double bits in a long array — exact, and one tag.
+        tag.putBoolean("RawNozzleMode", rawNozzleMode);
+        long[] packed = new long[NOZZLE_COUNT];
+        for (int i = 0; i < NOZZLE_COUNT; i++) packed[i] = Double.doubleToRawLongBits(rawNozzle[i]);
+        tag.putLongArray("RawNozzle", packed);
         tag.putBoolean("FuelAvailable", fuelAvailable);
         tag.putBoolean("ElectricMode", electricMode);
         tag.putInt("SyncFacing", syncFacingCache.get3DDataValue());
@@ -936,6 +1060,14 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
         }
         angledMode = tag.getInt("AngledMode");
         creativeMode = tag.getBoolean("CreativeMode");
+        rawNozzleMode = tag.getBoolean("RawNozzleMode");
+        if (tag.contains("RawNozzle")) {
+            long[] packed = tag.getLongArray("RawNozzle");
+            for (int i = 0; i < NOZZLE_COUNT; i++) {
+                double v = i < packed.length ? Double.longBitsToDouble(packed[i]) : 0.0;
+                rawNozzle[i] = Double.isNaN(v) ? 0.0 : Math.max(0.0, Math.min(1.0, v));
+            }
+        }
         fuelAvailable = tag.getBoolean("FuelAvailable");
         electricMode = tag.getBoolean("ElectricMode");
         syncFacingCache = Direction.from3DDataValue(tag.getInt("SyncFacing"));

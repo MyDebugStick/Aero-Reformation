@@ -16,6 +16,7 @@ out/
 run/
 logs/
 *.log
+.eclipse/
 .idea/
 *.iws
 *.iml
@@ -60,10 +61,16 @@ cbcat_extract/
 # Local AI-assistant context for DeepSeek Harness (not source)
 .dsh/
 
-# dsh-snapshot is a plain Node package that happens to live in this tree. The
-# Java-oriented rules above (`lib/`, `libs/`, `*.toml`) would otherwise hide its
-# source from git — `lib/index.js` is the entire engine, so losing it to an
-# ignore rule would be silent and total. Re-include the package wholesale; the
-# later rules win over the earlier ones.
-!dsh-snapshot/
-!dsh-snapshot/**
+# DeepSeek Harness tooling. These are plain Node packages that happened to live
+# in this tree; they are not part of the mod and must not ship with it. They now
+# live under the harness folder, and these rules keep any stray copy out of the
+# repository.
+#
+# Historical note: an earlier revision did the OPPOSITE — it re-included
+# dsh-snapshot wholesale (`!dsh-snapshot/**`) to rescue lib/index.js from the
+# `lib/` rule above. That committed the assistant's plugin source into the mod's
+# history, which is why the ignore rules are explicit here now.
+dsh-snapshot/
+dsh-balance-guard/
+dsh-*/
+.shione-memory.md

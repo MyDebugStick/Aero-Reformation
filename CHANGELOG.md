@@ -1,5 +1,56 @@
 # Changelog / 更新日志
 
+## [1.3.3.3] - 2026-09-20
+
+### English
+
+**Aero Reformation 1.3.3.3 — RCS per-nozzle thrust control**
+
+- **Per-nozzle thrust override (CC + API)** — the RCS thruster previously offered
+  only one thrust setting for the whole block: the five nozzles were driven by
+  redstone alone, one synchronizer face each, and the signal path can only express
+  the integers 0–15. A computer therefore had no way to command a single nozzle.
+  A new override mode hands each of the five nozzles its own float fraction
+  (0.0–1.0) of the configured thrust, independent of redstone.
+- **New `aero_rcs` Lua functions** — `setNozzleOverride`, `isNozzleOverride`,
+  `getNozzleCount`, `setNozzleThrust`, `getNozzleThrust`, `setNozzleThrusts`,
+  `getNozzleThrusts`, `getNozzleInfo`.
+- **Geometry exposed for force allocation** — `getNozzleInfo` reports each
+  nozzle's name, commanded fraction, active state, resulting thrust in pN, and its
+  block-local thrust direction, so a flight controller can compute torque instead
+  of discovering nozzle↔face mappings by trial and error.
+- **New `RcsThrusterApi` entry points** — `isNozzleOverrideEnabled`,
+  `setNozzleOverrideEnabled`, `getNozzleThrust`, `setNozzleThrust`,
+  `setAllNozzleThrust`, `getAllNozzleThrust`, `getNozzleCount`, `getNozzleName`,
+  `getNozzleLocalDirection`.
+- **Behaviour** — engaging the override clears all five nozzles, so the block stays
+  silent until a command arrives and never reuses a stale thrust. Disengaging
+  restores the original redstone behaviour exactly. Nozzle fractions persist in
+  block NBT. Indices are 1–5 in Lua (1 = forward, 2 = right, 3 = left, 4 = up,
+  5 = down).
+
+### 中文
+
+**Aero Reformation 1.3.3.3 — RCS 逐喷嘴推力控制**
+
+- **逐喷嘴推力覆写（CC + API）** — 此前 RCS 推进器对整个方块只有一个推力设置：
+  五个喷嘴完全靠红石驱动，每个面管一个，而红石信号只能表达 0–15 的整数。
+  电脑因此**无法单独控制任何一个喷嘴**。新增的覆写模式让五个喷嘴各自接收
+  一个 0.0–1.0 的浮点比例（相对于当前配置推力的百分比），与红石无关。
+- **新增 `aero_rcs` Lua 函数** — `setNozzleOverride` / `isNozzleOverride` /
+  `getNozzleCount` / `setNozzleThrust` / `getNozzleThrust` / `setNozzleThrusts` /
+  `getNozzleThrusts` / `getNozzleInfo`。
+- **暴露几何信息，便于力矩分配** — `getNozzleInfo` 会报告每个喷嘴的名称、
+  当前指令比例、是否点火、折算出的实际推力（pN），以及它在方块局部坐标系中的
+  推力方向 —— 飞控可以**据此直接算力矩**，不必再靠逐个面试红石来反推映射。
+- **新增 `RcsThrusterApi` 接口** — `isNozzleOverrideEnabled` /
+  `setNozzleOverrideEnabled` / `getNozzleThrust` / `setNozzleThrust` /
+  `setAllNozzleThrust` / `getAllNozzleThrust` / `getNozzleCount` /
+  `getNozzleName` / `getNozzleLocalDirection`。
+- **行为约定** — 开启覆写时会清空全部五个喷嘴，方块保持静默直到收到指令，
+  绝不会沿用上一次的残留推力；关闭覆写则完全恢复原有红石行为。喷嘴比例会写入
+  方块 NBT 持久保存。Lua 侧索引为 1–5（1=前、2=右、3=左、4=上、5=下）。
+
 ## [1.3.3.2] - 2026-08-12
 
 ### English

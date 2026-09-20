@@ -158,4 +158,112 @@ public final class RcsThrusterApi {
         RcsThrusterBlockEntity be = AeroApiUtils.getRcsThruster(level, pos);
         return be != null ? be.getFuelAmount() : 0;
     }
+
+    // ──────────────────────── Per-nozzle thrust override ────────────────────────
+    //
+    // The redstone path exposes 0..15 per synchronizer face, one nozzle per face,
+    // which a computer cannot use to dial individual nozzles. These accessors give
+    // a caller direct, float-precision authority over each of the five nozzles.
+    //
+    // Nozzle indices: 0 = forward, 1 = right, 2 = left, 3 = up, 4 = down.
+
+    /**
+     * Whether the per-nozzle override currently drives the nozzles.
+     *
+     * <p>While enabled, redstone is ignored entirely. While disabled the block
+     * behaves exactly as before.
+     */
+    public static boolean isNozzleOverrideEnabled(Level level, BlockPos pos) {
+        RcsThrusterBlockEntity be = AeroApiUtils.getRcsThruster(level, pos);
+        return be != null && be.isRawNozzleMode();
+    }
+
+    /**
+     * Engages or releases the per-nozzle override.
+     *
+     * <p>Engaging clears every nozzle, so the block stays silent until a caller
+     * commands one — a mode switch never reuses a stale commanded thrust.
+     *
+     * @return true if a thruster was found and updated
+     */
+    public static boolean setNozzleOverrideEnabled(Level level, BlockPos pos, boolean enabled) {
+        RcsThrusterBlockEntity be = AeroApiUtils.getRcsThruster(level, pos);
+        if (be == null) return false;
+        be.setRawNozzleMode(enabled);
+        AeroApiUtils.syncBlockEntity(be);
+        return true;
+    }
+
+    /**
+     * Thrust fraction currently commanded for one nozzle.
+     *
+     * @return 0.0..1.0, or -1 when there is no thruster at {@code pos}
+     */
+    public static double getNozzleThrust(Level level, BlockPos pos, int nozzleIdx) {
+        RcsThrusterBlockEntity be = AeroApiUtils.getRcsThruster(level, pos);
+        if (be == null) return -1.0;
+        return be.getRawNozzle(nozzleIdx);
+    }
+
+    /**
+     * Command one nozzle directly.
+     *
+     * @param nozzleIdx 0..4 (forward/right/left/up/down)
+     * @param fraction  0.0..1.0 of the configured thrust; clamped
+     * @return true if a thruster was found and the index was valid
+     */
+    public static boolean setNozzleThrust(Level level, BlockPos pos, int nozzleIdx, double fraction) {
+        RcsThrusterBlockEntity be = AeroApiUtils.getRcsThruster(level, pos);
+        if (be == null) return false;
+        boolean ok = be.setRawNozzle(nozzleIdx, fraction);
+        if (ok) AeroApiUtils.syncBlockEntity(be);
+        return ok;
+    }
+
+    /**
+     * Command all five nozzles in one call.
+     *
+     * @param fractions index 0..4 as above; shorter arrays leave the rest at 0
+     * @return true if a thruster was found and updated
+     */
+    public static boolean setAllNozzleThrust(Level level, BlockPos pos, double[] fractions) {
+        RcsThrusterBlockEntity be = AeroApiUtils.getRcsThruster(level, pos);
+        if (be == null) return false;
+        be.setAllRawNozzles(fractions);
+        AeroApiUtils.syncBlockEntity(be);
+        return true;
+    }
+
+    /** Snapshot of all five nozzle commands; all zeros when no thruster is present. */
+    public static double[] getAllNozzleThrust(Level level, BlockPos pos) {
+        RcsThrusterBlockEntity be = AeroApiUtils.getRcsThruster(level, pos);
+        return be != null ? be.getRawNozzles() : new double[RcsThrusterBlockEntity.NOZZLE_COUNT];
+    }
+
+    /** Number of nozzles on a thruster block. */
+    public static int getNozzleCount() {
+        return RcsThrusterBlockEntity.NOZZLE_COUNT;
+    }
+
+    /**
+     * Human-readable name of a nozzle index.
+     *
+     * @return "forward" / "right" / "left" / "up" / "down", or "unknown"
+     */
+    public static String getNozzleName(int nozzleIdx) {
+        return RcsThrusterBlockEntity.getNozzleName(nozzleIdx);
+    }
+
+    /**
+     * Thrust direction of one nozzle in the block's own frame (model faces north).
+     *
+     * <p>A caller combining this with the sub-level pose can work out the world
+     * direction of each nozzle and therefore the torque it produces — the piece
+     * that makes real force allocation possible instead of guessing.
+     *
+     * @return a fresh {x, y, z} unit vector, or {0,0,0} for an invalid index
+     */
+    public static double[] getNozzleLocalDirection(int nozzleIdx) {
+        return RcsThrusterBlockEntity.getNozzleLocalDirection(nozzleIdx);
+    }
 }

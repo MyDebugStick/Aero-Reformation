@@ -191,6 +191,128 @@ public class RcsPeripheral implements IPeripheral {
         return RcsThrusterApi.isGuidanceMode(level(), pos());
     }
 
+    // ─────────────────────── per-nozzle thrust override ───────────────────────
+    //
+    // What this unlocks: the redstone path can only express 0..15 per
+    // synchronizer face, one nozzle per face, so a program could never dial a
+    // single nozzle. With the override engaged each of the five nozzles takes a
+    // float fraction (0.0..1.0) of the configured thrust, directly from Lua.
+    //
+    // While the override is on, redstone is ignored completely. Turning it off
+    // restores the original redstone behaviour exactly.
+
+    /**
+     * Enable or disable per-nozzle control.
+     *
+     * <p>Enabling clears all five nozzles, so the thruster stays silent until the
+     * program commands one — a mode switch never reuses a stale thrust.
+     *
+     * <pre>{@code
+     * local rcs = peripheral.find("aero_rcs")
+     * rcs.setNozzleOverride(true)
+     * rcs.setNozzleThrust(3, 0.6)   -- up nozzle at 60% of the configured thrust
+     * }</pre>
+     */
+    @LuaFunction(value = "setNozzleOverride", mainThread = true)
+    public final boolean setNozzleOverride(boolean enabled) {
+        return RcsThrusterApi.setNozzleOverrideEnabled(level(), pos(), enabled);
+    }
+
+    /** Whether per-nozzle control is currently engaged. */
+    @LuaFunction(value = "isNozzleOverride", mainThread = true)
+    public final boolean isNozzleOverride() {
+        return RcsThrusterApi.isNozzleOverrideEnabled(level(), pos());
+    }
+
+    /** Number of nozzles on this thruster (always 5). */
+    @LuaFunction(value = "getNozzleCount", mainThread = true)
+    public final int getNozzleCount() {
+        return RcsThrusterApi.getNozzleCount();
+    }
+
+    /**
+     * Thrust fraction commanded for one nozzle (0.0..1.0).
+     * @param nozzle 1-based index: 1=forward 2=right 3=left 4=up 5=down
+     */
+    @LuaFunction(value = "getNozzleThrust", mainThread = true)
+    public final double getNozzleThrust(int nozzle) {
+        return RcsThrusterApi.getNozzleThrust(level(), pos(), nozzle - 1);
+    }
+
+    /**
+     * Command one nozzle directly.
+     *
+     * @param nozzle   1-based index: 1=forward 2=right 3=left 4=up 5=down
+     * @param fraction 0.0..1.0 of the configured thrust (clamped)
+     * @return true when the nozzle index was valid
+     */
+    @LuaFunction(mainThread = true)
+    public final boolean setNozzleThrust(int nozzle, double fraction) {
+        return RcsThrusterApi.setNozzleThrust(level(), pos(), nozzle - 1, fraction);
+    }
+
+    /**
+     * Command several nozzles in one call.
+     *
+     * <pre>{@code
+     * -- 1-based table; omitted entries become 0
+     * rcs.setNozzleThrusts({ [4] = 1.0, [1] = 0.25 })
+     * }</pre>
+     */
+    @LuaFunction(mainThread = true)
+    public final boolean setNozzleThrusts(Map<Integer, Double> fractions) {
+        double[] values = new double[RcsThrusterApi.getNozzleCount()];
+        if (fractions != null) {
+            for (Map.Entry<Integer, Double> e : fractions.entrySet()) {
+                int idx = e.getKey() - 1;
+                if (idx < 0 || idx >= values.length) continue;
+                Double v = e.getValue();
+                values[idx] = v == null ? 0.0 : v;
+            }
+        }
+        return RcsThrusterApi.setAllNozzleThrust(level(), pos(), values);
+    }
+
+    /** All five nozzle commands as a 1-based table (1=forward … 5=down). */
+    @LuaFunction(value = "getNozzleThrusts", mainThread = true)
+    public final Map<Integer, Double> getNozzleThrusts() {
+        double[] values = RcsThrusterApi.getAllNozzleThrust(level(), pos());
+        Map<Integer, Double> map = new LinkedHashMap<>();
+        for (int i = 0; i < values.length; i++) map.put(i + 1, values[i]);
+        return map;
+    }
+
+    /**
+     * What every nozzle is doing right now, including whether it fires.
+     *
+     * <p>Merges the static geometry (block-local thrust direction and nozzle
+     * name) with the live command and the active mask, so a program can compute
+     * force allocation without having to pulse redstone faces to discover which
+     * nozzle a face drives.
+     */
+    @LuaFunction(value = "getNozzleInfo", mainThread = true)
+    public final Map<Integer, Map<String, Object>> getNozzleInfo() {
+        double[] commanded = RcsThrusterApi.getAllNozzleThrust(level(), pos());
+        int mask = RcsThrusterApi.getActiveNozzleMask(level(), pos());
+        double configured = RcsThrusterApi.getThrust(level(), pos());
+        Map<Integer, Map<String, Object>> out = new LinkedHashMap<>();
+        for (int i = 0; i < commanded.length; i++) {
+            Map<String, Object> entry = new LinkedHashMap<>();
+            double[] dir = RcsThrusterApi.getNozzleLocalDirection(i);
+            entry.put("name", RcsThrusterApi.getNozzleName(i));
+            entry.put("thrust", commanded[i]);
+            entry.put("active", (mask & (1 << i)) != 0);
+            entry.put("thrustPN", configured * commanded[i]);
+            // Block-local thrust direction (model faces north); pair it with the
+            // sub-level pose to get the world direction and the torque.
+            entry.put("dirX", dir[0]);
+            entry.put("dirY", dir[1]);
+            entry.put("dirZ", dir[2]);
+            out.put(i + 1, entry);
+        }
+        return out;
+    }
+
     @Override
     public void attach(@NotNull IComputerAccess computer) {
         // no per-computer state needed
