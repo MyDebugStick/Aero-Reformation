@@ -426,7 +426,7 @@ public class AnchorChunkLoader {
             addForceLoadTicket(sl, subLevel);
             applySavedNameToBody(sl, id, subLevel);
             AeroReformation.LOGGER.info("[PhysicsAnchor] Upgraded warmup anchor sub={} at {}", id, pos);
-            anchorConnectedChain(sl, subLevel, id, pos, r);
+            markConnectedChain(id, subLevel);
             return;
         }
 
@@ -461,24 +461,30 @@ public class AnchorChunkLoader {
         AeroReformation.LOGGER.info("[PhysicsAnchor] Anchor added at world {},{} sub={} pos={}",
                 (int) pose.position().x(), (int) pose.position().z(), id, pos);
 
-        anchorConnectedChain(sl, subLevel, id, pos, savedRadius);
+        markConnectedChain(id, subLevel);
     }
 
-    /** Anchor every constraint-connected SubLevel that is not anchored yet. */
-    private static void anchorConnectedChain(ServerLevel sl, SubLevel subLevel, UUID id,
-                                             BlockPos pos, int radius) {
-        final boolean hidden = EtherealKeyItem.HIDDEN_SUBLEVELS.contains(id);
+    /**
+     * Record every SubLevel in the anchor's connection chain as anchored.
+     *
+     * <p><b>Arms no tickets at all.</b> Neither kind is needed per member:
+     * <ul>
+     *   <li><i>force-load</i> — sable expands a single ticket into the whole loading-dependency
+     *       chain itself. {@code ServerSubLevelContainer.collectForceLoadedSubLevels()} runs
+     *       {@code SubLevelHelper.getLoadingDependencyChain()} over every ticketed sub-level, and
+     *       that chain covers both AABB overlap and connection dependencies (the latter because
+     *       {@code BlockEntitySubLevelActor.sable$getLoadingDependencies()} delegates to
+     *       {@code sable$getConnectionDependencies()}). {@code PhysicsChunkTicketManager} then
+     *       inhabits each chunk at ENTITY_TICKING level.</li>
+     *   <li><i>chunk loading</i> — stays centred on the anchor's own body. One anchor therefore
+     *       costs one region of PORTAL tickets, not one per chain member.</li>
+     * </ul>
+     * So for a body assembled from a hundred parts this goes from a hundred tickets to one.
+     */
+    private static void markConnectedChain(UUID id, SubLevel subLevel) {
         for (var connected : getConnectedChain(subLevel)) {
             final UUID cid = connected.getUniqueId();
-            if (cid.equals(id)) continue;
-            if (!ANCHORED_SUBLEVELS.add(cid)) continue;
-
-            final var cpose = connected.logicalPose();
-            final ChunkPos cchunk = new ChunkPos(
-                    Mth.floor(cpose.position().x() / 16.0), Mth.floor(cpose.position().z() / 16.0));
-            sl.getChunkSource().addRegionTicket(TicketType.PORTAL, cchunk, radius + 1, pos);
-            if (!hidden) addForceLoadTicket(sl, connected);
-            AeroReformation.LOGGER.debug("[PhysicsAnchor] Anchored connected sub={} via anchor at {}", cid, pos);
+            if (!cid.equals(id)) ANCHORED_SUBLEVELS.add(cid);
         }
     }
 
