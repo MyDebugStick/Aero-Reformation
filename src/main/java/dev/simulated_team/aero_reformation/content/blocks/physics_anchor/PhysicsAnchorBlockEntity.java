@@ -30,9 +30,14 @@ public class PhysicsAnchorBlockEntity extends BlockEntity implements IHaveGoggle
         if (level == null) return false;
         String indent = "\u00A0\u00A0\u00A0";
 
-        AnchorMarkerEntity marker = AnchorChunkLoader.getMarker(level, worldPosition);
-        if (marker != null && !marker.isRemoved()) {
-            Component name = marker.hasCustomName() ? marker.getCustomName() : Component.translatable("aero_reformation.physics_anchor.goggle.unnamed");
+        // Resolved per side. The binding tables are server state, so on a dedicated server
+        // the client reads the synced mirror instead of an empty map; previously this always
+        // reported "no marker" in multiplayer even on a healthy anchor.
+        AnchorChunkLoader.AnchorDisplay display = AnchorChunkLoader.describeAnchor(level, worldPosition);
+        if (display != null) {
+            Component name = display.markerName() != null
+                    ? Component.literal(display.markerName())
+                    : Component.translatable("aero_reformation.physics_anchor.goggle.unnamed");
             tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.physics_anchor.goggle.name", name))
                     .withStyle(ChatFormatting.AQUA));
         } else {
@@ -42,7 +47,7 @@ public class PhysicsAnchorBlockEntity extends BlockEntity implements IHaveGoggle
                     .withStyle(ChatFormatting.GRAY));
         }
 
-        int radius = AnchorChunkLoader.getRadius(level, worldPosition);
+        int radius = display != null ? display.radius() : 2;
         int side = 2 * radius + 1;
         tooltip.add(Component.literal(indent).append(Component.translatable("aero_reformation.physics_anchor.goggle.radius", radius, side, side))
                 .withStyle(ChatFormatting.GREEN));

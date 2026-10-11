@@ -4,6 +4,7 @@ import dev.ryanhcode.sable.SableConfig;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import dev.ryanhcode.sable.sublevel.system.SubLevelTrackingSystem;
+import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorChunkLoader;
 import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -55,7 +56,11 @@ public abstract class SubLevelTrackingSystemMixin {
                     break;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Throwable t) {
+            // Never silent: a throw here degrades this sub-level to the default tracking
+            // range, which looks exactly like "the anchor stopped following".
+            AeroReformation.LOGGER.error("[PhysicsAnchor] isInAnchoredChain failed for sub={}", subId, t);
+        }
         return false;
     }
 
@@ -77,7 +82,9 @@ public abstract class SubLevelTrackingSystemMixin {
                     break;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Throwable t) {
+            AeroReformation.LOGGER.error("[PhysicsAnchor] isInHiddenChain failed for sub={}", subId, t);
+        }
         return false;
     }
 

@@ -1,5 +1,6 @@
 package dev.simulated_team.aero_reformation.content.blocks.physics_anchor;
 
+import dev.simulated_team.aero_reformation.AeroReformation;
 import dev.simulated_team.aero_reformation.content.items.ethereal_key.EtherealKeyItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -33,11 +34,25 @@ public class AnchorMarkerEntity extends Entity {
         this.noCulling = true;
     }
 
-    public void forceDiscard() {
+    /**
+     * Remove this marker, recording why.
+     *
+     * <p>The physics anchor is only a block; the mechanism itself lives on this entity. So
+     * "why did this entity disappear" is the single most useful thing this class can report,
+     * and every caller is required to say. Pass a short reason, not a sentence.
+     */
+    public void forceDiscard(String reason) {
         this.forceRemoval = true;
+        AeroReformation.LOGGER.info("[PhysicsAnchor] Marker removed: sub={} at {} — {}",
+                subLevelUUID, blockPosition(), reason);
         // Clear hidden state when marker is discarded
         EtherealKeyItem.HIDDEN_SUBLEVELS.remove(subLevelUUID);
         discard();
+    }
+
+    /** Fallback for callers with no specific reason to report. */
+    public void forceDiscard() {
+        forceDiscard("unspecified");
     }
 
     public void setHidden(boolean hidden) {

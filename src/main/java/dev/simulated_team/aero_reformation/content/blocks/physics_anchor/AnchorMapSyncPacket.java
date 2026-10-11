@@ -1,6 +1,7 @@
 package dev.simulated_team.aero_reformation.content.blocks.physics_anchor;
 
 import dev.simulated_team.aero_reformation.AeroReformation;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -13,7 +14,20 @@ import java.util.*;
 
 public record AnchorMapSyncPacket(List<MarkerEntry> markers) implements CustomPacketPayload {
 
-    public record MarkerEntry(UUID subLevelId, double x, double y, double z, String name, int radius) {}
+    /**
+     * @param subLevelId the protected sub-level
+     * @param anchorPos  the anchor <b>block</b> position that owns this binding. The marker's
+     *                   world position is on a completely different axis system (plot space vs
+     *                   world space, tens of millions of blocks apart), so anything holding a
+     *                   block position — the goggle tooltip in particular — needs this.
+     * @param x          marker world X
+     * @param y          marker world Y
+     * @param z          marker world Z
+     * @param name       custom marker name, or null
+     * @param radius     configured chunk ticket radius
+     */
+    public record MarkerEntry(UUID subLevelId, BlockPos anchorPos, double x, double y, double z,
+                              String name, int radius) {}
 
     public static final Type<AnchorMapSyncPacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(AeroReformation.MODID, "anchor_map_sync"));
@@ -24,6 +38,7 @@ public record AnchorMapSyncPacket(List<MarkerEntry> markers) implements CustomPa
                         buf.writeVarInt(p.markers.size());
                         for (var m : p.markers) {
                             buf.writeUUID(m.subLevelId);
+                            buf.writeBlockPos(m.anchorPos);
                             buf.writeDouble(m.x); buf.writeDouble(m.y); buf.writeDouble(m.z);
                             buf.writeBoolean(m.name != null);
                             if (m.name != null) buf.writeUtf(m.name);
@@ -35,10 +50,11 @@ public record AnchorMapSyncPacket(List<MarkerEntry> markers) implements CustomPa
                         List<MarkerEntry> list = new ArrayList<>();
                         for (int i = 0; i < count; i++) {
                             UUID id = buf.readUUID();
+                            BlockPos anchorPos = buf.readBlockPos();
                             double x = buf.readDouble(), y = buf.readDouble(), z = buf.readDouble();
                             String name = buf.readBoolean() ? buf.readUtf() : null;
                             int radius = buf.readVarInt();
-                            list.add(new MarkerEntry(id, x, y, z, name, radius));
+                            list.add(new MarkerEntry(id, anchorPos, x, y, z, name, radius));
                         }
                         return new AnchorMapSyncPacket(list);
                     });

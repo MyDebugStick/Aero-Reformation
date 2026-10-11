@@ -6,43 +6,56 @@ import dev.ryanhcode.sable.sublevel.SubLevel;
 import dev.ryanhcode.sable.sublevel.storage.SubLevelRemovalReason;
 import dev.simulated_team.aero_reformation.AeroReformation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.TicketType;
 
 import java.util.UUID;
 
 /**
- * Cleans up anchor data when a SubLevel is removed externally (e.g. via commands).
+ * Bridges Sable's SubLevel lifecycle callbacks into {@link AnchorChunkLoader}.
+ *
+ * <p>This is the piece that makes anchor bindings survive a sub-level going away and coming
+ * back. Sable distinguishes two very different events and we must too:
+ *
+ * <ul>
+ *   <li>{@link SubLevelRemovalReason#UNLOADED} — the sub-level left memory but still exists.
+ *       The binding is <b>parked</b>: the marker entity stays in the world at its last known
+ *       position, and a persistent force-load ticket is filed against the UUID so Sable
+ *       brings it back. Binding is restored on {@code onSubLevelAdded}.</li>
+ *   <li>{@link SubLevelRemovalReason#REMOVED} — the sub-level is gone for good. Everything
+ *       is torn down.</li>
+ * </ul>
  */
 public class SubLevelAutoAnchorObserver implements SubLevelObserver {
 
     @Override
-    public void onSubLevelAdded(SubLevel subLevel) {}
+    public void onSubLevelAdded(SubLevel subLevel) {
+        if (!(subLevel.getLevel() instanceof ServerLevel sl)) return;
+        try {
+            AnchorChunkLoader.onSubLevelLoaded(sl, subLevel);
+        } catch (Throwable t) {
+            AeroReformation.LOGGER.error("[PhysicsAnchor] onSubLevelAdded hook failed for sub={}",
+                    subLevel.getUniqueId(), t);
+        }
+    }
 
     @Override
     public void onSubLevelRemoved(SubLevel subLevel, SubLevelRemovalReason reason) {
-        UUID id = subLevel.getUniqueId();
+        if (!(subLevel.getLevel() instanceof ServerLevel sl)) return;
+
+        final UUID id = subLevel.getUniqueId();
         if (!AnchorChunkLoader.hasAnchor(id)) return;
 
-        AeroReformation.LOGGER.debug("[PhysicsAnchor] SubLevel removed externally sub={} reason={}, cleaning up", id, reason);
-
-        // Clean up marker and tickets for all anchors in this dimension
-        if (subLevel.getLevel() instanceof ServerLevel sl) {
-            var dimMap = AnchorChunkLoader.anchorsFor(sl.dimension());
-            if (dimMap != null) {
-                var it = dimMap.entrySet().iterator();
-                while (it.hasNext()) {
-                    var e = it.next();
-                    var d = e.getValue();
-                    if (d == null || d.subLevel() == null || !d.subLevel().getUniqueId().equals(id)) continue;
-                    if (d.marker() != null) d.marker().forceDiscard();
-                    if (d.lastTicketChunk() != null)
-                        sl.getChunkSource().removeRegionTicket(TicketType.PORTAL,
-                                d.lastTicketChunk(), d.ticketRadius(), e.getKey());
-                    it.remove();
-                }
+        try {
+            if (reason == SubLevelRemovalReason.UNLOADED) {
+                AeroReformation.LOGGER.debug(
+                        "[PhysicsAnchor] SubLevel {} unloaded — parking anchor binding", id);
+                AnchorChunkLoader.onSubLevelUnloaded(sl, subLevel);
+            } else {
+                AeroReformation.LOGGER.debug(
+                        "[PhysicsAnchor] SubLevel {} removed ({}) — tearing down binding", id, reason);
+                AnchorChunkLoader.onSubLevelRemoved(sl, subLevel);
             }
-            AnchorChunkLoader.removeAnchoredSubLevel(id);
-            AnchorSavedData.get(sl).remove(id);
+        } catch (Throwable t) {
+            AeroReformation.LOGGER.error("[PhysicsAnchor] onSubLevelRemoved hook failed for sub={}", id, t);
         }
     }
 

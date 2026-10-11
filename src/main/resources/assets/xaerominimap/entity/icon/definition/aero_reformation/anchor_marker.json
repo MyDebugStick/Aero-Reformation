@@ -1,19 +1,8 @@
 {
+    "_comment": "Anchor markers are invisible in-world; Xaero shows them as a coloured dot.",
+    "_comment2": "Valid icon forms are: model, model:<index>, dot, normal_sprite:<file>, outlined_sprite:<file>, item, item:<id>.",
     "variants": {
-        "aero_reformation:textures/entity/anchor_marker.png": "simple:0",
-        "default": "simple:0"
+        "default": "dot"
     },
-    "modelConfigs": [
-        {
-            "baseScale": 2.0,
-            "rotationY": 0,
-            "rotationX": 0,
-            "rotationZ": 0,
-            "offsetX": 0,
-            "offsetY": 0,
-            "renderingFullModel": false,
-            "modelPartsRotationReset": true,
-            "layersAllowed": true
-        }
-    ]
+    "modelConfigs": []
 }

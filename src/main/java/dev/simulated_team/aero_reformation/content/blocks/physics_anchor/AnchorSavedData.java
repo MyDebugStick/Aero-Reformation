@@ -1,22 +1,32 @@
 package dev.simulated_team.aero_reformation.content.blocks.physics_anchor;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
- * Persists anchor data across world reloads: SubLevel UUID + last known world position.
- * On far-distance rejoin, the FakePlayer is spawned at the saved position
- * WITHOUT force-loading the BE's chunk (avoids deadlock with Sable).
+ * Persists anchor data across world reloads.
+ *
+ * <p>Holds, per anchored SubLevel: the SubLevel UUID, the last known world position of
+ * the marker, and — critically — the <b>anchor block position</b> that owns the binding.
+ *
+ * <p>The block position is what makes re-attachment possible: the in-memory {@code ANCHORS}
+ * map is keyed by anchor block position, while everything Sable persists is keyed by
+ * SubLevel UUID. Without the position recorded here, a marker rebuilt from this file
+ * (the WARMUP state) can never be promoted back onto a live anchor, because nothing
+ * remembers where that anchor was.
  */
 public class AnchorSavedData extends SavedData {
     private static final String ID = "aero_reformation_anchors";
 
-    public record StoredEntry(UUID subLevelId, double worldX, double worldY, double worldZ, String markerName, int radius) {}
+    public record StoredEntry(UUID subLevelId, double worldX, double worldY, double worldZ,
+                              @Nullable String markerName, int radius, @Nullable BlockPos anchorPos) {}
 
     private final Map<UUID, StoredEntry> entries = new LinkedHashMap<>();
 
@@ -31,14 +41,25 @@ public class AnchorSavedData extends SavedData {
     );
 
     public void add(UUID subLevelId, double wx, double wy, double wz) {
-        add(subLevelId, wx, wy, wz, null, 2);
+        add(subLevelId, wx, wy, wz, null, 2, null);
     }
 
-    public void add(UUID subLevelId, double wx, double wy, double wz, @org.jetbrains.annotations.Nullable String markerName, int radius) {
+    public void add(UUID subLevelId, double wx, double wy, double wz,
+                    @Nullable String markerName, int radius) {
+        add(subLevelId, wx, wy, wz, markerName, radius, null);
+    }
+
+    /**
+     * Full update. {@code anchorPos} is only overwritten when a non-null value is supplied,
+     * so the periodic position-only refresh from {@code tick()} cannot wipe it.
+     */
+    public void add(UUID subLevelId, double wx, double wy, double wz,
+                    @Nullable String markerName, int radius, @Nullable BlockPos anchorPos) {
         StoredEntry old = entries.get(subLevelId);
-        String name = markerName != null ? markerName : (old != null ? old.markerName : null);
-        int r = old != null ? old.radius : radius;
-        entries.put(subLevelId, new StoredEntry(subLevelId, wx, wy, wz, name, r));
+        String name = markerName != null ? markerName : (old != null ? old.markerName() : null);
+        int r = old != null ? old.radius() : radius;
+        BlockPos pos = anchorPos != null ? anchorPos : (old != null ? old.anchorPos() : null);
+        entries.put(subLevelId, new StoredEntry(subLevelId, wx, wy, wz, name, r, pos));
         setDirty();
     }
 
@@ -46,7 +67,8 @@ public class AnchorSavedData extends SavedData {
     public void setMarkerName(UUID subLevelId, String name) {
         StoredEntry e = entries.get(subLevelId);
         if (e != null) {
-            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX, e.worldY, e.worldZ, name, e.radius));
+            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX(), e.worldY(), e.worldZ(),
+                    name, e.radius(), e.anchorPos()));
             setDirty();
         }
     }
@@ -55,7 +77,18 @@ public class AnchorSavedData extends SavedData {
     public void setRadius(UUID subLevelId, int radius) {
         StoredEntry e = entries.get(subLevelId);
         if (e != null) {
-            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX, e.worldY, e.worldZ, e.markerName, radius));
+            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX(), e.worldY(), e.worldZ(),
+                    e.markerName(), radius, e.anchorPos()));
+            setDirty();
+        }
+    }
+
+    /** Remember which anchor block owns this SubLevel binding. */
+    public void setAnchorPos(UUID subLevelId, BlockPos anchorPos) {
+        StoredEntry e = entries.get(subLevelId);
+        if (e != null) {
+            entries.put(subLevelId, new StoredEntry(subLevelId, e.worldX(), e.worldY(), e.worldZ(),
+                    e.markerName(), e.radius(), anchorPos));
             setDirty();
         }
     }
@@ -74,7 +107,7 @@ public class AnchorSavedData extends SavedData {
         return Collections.unmodifiableCollection(entries.values());
     }
 
-    @org.jetbrains.annotations.Nullable
+    @Nullable
     public StoredEntry getEntry(UUID subLevelId) {
         return entries.get(subLevelId);
     }
@@ -86,12 +119,17 @@ public class AnchorSavedData extends SavedData {
         ListTag list = new ListTag();
         for (StoredEntry e : entries.values()) {
             CompoundTag t = new CompoundTag();
-            t.putUUID("uuid", e.subLevelId);
-            t.putDouble("x", e.worldX);
-            t.putDouble("y", e.worldY);
-            t.putDouble("z", e.worldZ);
-            if (e.markerName != null) t.putString("name", e.markerName);
-            t.putInt("radius", e.radius);
+            t.putUUID("uuid", e.subLevelId());
+            t.putDouble("x", e.worldX());
+            t.putDouble("y", e.worldY());
+            t.putDouble("z", e.worldZ());
+            if (e.markerName() != null) t.putString("name", e.markerName());
+            t.putInt("radius", e.radius());
+            if (e.anchorPos() != null) {
+                t.putInt("ax", e.anchorPos().getX());
+                t.putInt("ay", e.anchorPos().getY());
+                t.putInt("az", e.anchorPos().getZ());
+            }
             list.add(t);
         }
         tag.put("anchors", list);
@@ -106,8 +144,14 @@ public class AnchorSavedData extends SavedData {
             UUID id = t.getUUID("uuid");
             String name = t.contains("name") ? t.getString("name") : null;
             int radius = t.contains("radius") ? t.getInt("radius") : 2;
+            // Older saves have no anchor position; a null here simply means the entry
+            // cannot be auto-promoted and must wait for its block entity to load.
+            BlockPos anchorPos = t.contains("ax")
+                    ? new BlockPos(t.getInt("ax"), t.getInt("ay"), t.getInt("az"))
+                    : null;
             data.entries.put(id, new StoredEntry(id,
-                    t.getDouble("x"), t.getDouble("y"), t.getDouble("z"), name, radius));
+                    t.getDouble("x"), t.getDouble("y"), t.getDouble("z"),
+                    name, radius, anchorPos));
         }
         return data;
     }

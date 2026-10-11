@@ -246,12 +246,21 @@ public class AeroReformation {
                             dev.simulated_team.aero_reformation.content.blocks.physics_anchor.AnchorChunkLoader.discardStaleEntities(sl);
                     }
                     var observer = new dev.simulated_team.aero_reformation.content.blocks.physics_anchor.SubLevelAutoAnchorObserver();
+                    int observerLevels = 0;
                     for (var level : e.getServer().getAllLevels()) {
-                        if (level instanceof dev.ryanhcode.sable.mixinterface.plot.SubLevelContainerHolder holder) {
-                            holder.sable$getPlotContainer().addObserver(observer);
+                        if (!(level instanceof dev.ryanhcode.sable.mixinterface.plot.SubLevelContainerHolder holder)) {
+                            continue;
                         }
+                        // Sable returns null here for wrapped levels, so this must be guarded:
+                        // an NPE inside ServerStartingEvent would silently kill the rest of
+                        // the startup wiring.
+                        var container = holder.sable$getPlotContainer();
+                        if (container == null) continue;
+                        container.addObserver(observer);
+                        observerLevels++;
                     }
-                    LOGGER.info("[PhysicsAnchor] Registered SubLevel observer for auto-anchoring");
+                    LOGGER.info("[PhysicsAnchor] Registered SubLevel observer on {} level(s) for auto-anchoring",
+                            observerLevels);
                 });
 
         // Clear anchors when server stops (prevents stale data across world reloads)

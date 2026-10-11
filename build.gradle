@@ -126,12 +126,14 @@ dependencies {
         "${projectDir}/extracted/ponder-neoforge-1.0.82+mc1.21.1.jar",
         // Flywheel (extracted from create jarjar)
         "${projectDir}/extracted/flywheel-neoforge-1.21.1-1.0.6.jar",
-        // Sable
-        "${projectDir}/sable-neoforge-1.21.1-1.2.2.jar",
+        // Sable — keep this in lockstep with the version actually shipped to clients.
+        // Compiling against an older sable than the runtime one silently bakes stale
+        // method signatures into direct (non-reflective) call sites.
+        "${projectDir}/sable-neoforge-1.21.1-2.0.6.jar",
         // Sable Companion (extracted from sable jarjar)
         "${projectDir}/extracted/sable-companion-common-1.21.1-1.6.0.jar",
         // Veil (extracted from sable jarjar)
-        "${projectDir}/extracted/veil-neoforge-1.21.1-4.0.0.jar",
+        "${projectDir}/extracted/veil-neoforge-1.21.1-4.3.2.jar",
         // Create
         "${projectDir}/create-1.21.1-6.0.10.jar",
         // Create Big Cannons
@@ -146,21 +148,24 @@ dependencies {
     // Curios (optional, for goggle HUD support in curio slots)
     implementation files("${projectDir}/curios-neoforge-9.5.1+1.21.1.jar")
 
-    // ComputerCraft (compileOnly for peripheral API — runtime-safe via isolated compat classes)
-    compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/Mechanomania-航空学/mods/cc-tweaked-1.21.1-forge-1.118.0.jar")
-
-    // AppleSkin (compileOnly for mixin target reference)
-    compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[苹果皮] appleskin-neoforge-mc1.21-3.0.9.jar")
-    // Xaero's WorldMap (compileOnly for map overlay mixin)
-    compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[Xaero的世界地图] xaeroworldmap-neoforge-1.21.1-1.40.11.jar")
-    compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/[Xaero的小地图] xaerominimap-neoforge-1.21.1-25.3.10.jar")
-    compileOnly files("C:/Users/21656/AppData/Local/Temp/xaerolib.jar")
-
-    // Architectury (compileOnly for FTB Ultimine API events)
-    compileOnly files("D:/Users/21656/Desktop/pcl2/.minecraft/versions/夯空学/mods/architectury-13.0.8-neoforge.jar")
-
-    // Mod Update Checker (compileOnly for auto-update API)
-    compileOnly files("D:/Users/21656/Desktop/idea/hotfix/build/libs/modupdatechecker-1.0.0.jar")
+    // ---------------------------------------------------------------------
+    //  compileOnly sources of truth.
+    //  These MUST live inside the repo. Pointing at another launcher instance's
+    //  mods folder (or worse, %TEMP%) means the build silently breaks the moment
+    //  that instance is renamed, updated or cleaned.
+    // ---------------------------------------------------------------------
+    // ComputerCraft (peripheral API — runtime-safe via isolated compat classes)
+    compileOnly files("${projectDir}/libs/cc-tweaked.jar")
+    // AppleSkin (mixin target reference)
+    compileOnly files("${projectDir}/libs/appleskin.jar")
+    // Xaero's WorldMap / Minimap (map overlay mixin) + its bundled xaerolib
+    compileOnly files("${projectDir}/libs/xaeroworldmap.jar")
+    compileOnly files("${projectDir}/libs/xaerominimap.jar")
+    compileOnly files("${projectDir}/libs/xaerolib.jar")
+    // Architectury (FTB Ultimine API events)
+    compileOnly files("${projectDir}/libs/architectury.jar")
+    // Mod Update Checker (auto-update API)
+    compileOnly files("${projectDir}/libs/modupdatechecker.jar")
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
@@ -175,6 +180,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             mod_version            : mod_version,
             simulated_version      : simulated_version,
             sable_version          : sable_version,
+            sable_version_range    : sable_version_range,
     ]
     inputs.properties replaceProperties
     expand replaceProperties

@@ -40,6 +40,9 @@ public class RefCommands {
                 .then(Commands.literal("recoverallsublevel")
                         .executes(RefCommands::recoverAllSubLevels)
                 )
+                .then(Commands.literal("cleantickets")
+                        .executes(RefCommands::cleanTickets)
+                )
         );
     }
 
@@ -84,6 +87,24 @@ public class RefCommands {
         }
         int finalCount = count;
         source.sendSuccess(() -> Component.literal("Removed " + finalCount + " marker entity(s). Re-place anchors to restore."), true);
+        return 1;
+    }
+
+    /**
+     * Release every vanilla chunk ticket this mod armed, without touching the Sable force-load
+     * ticket that keeps each physics body loaded. Anchors stay functional: the next tick re-arms
+     * their neighbourhood tickets.
+     */
+    private static int cleanTickets(CommandContext<CommandSourceStack> ctx) {
+        var source = ctx.getSource();
+        int total = 0;
+        for (var level : source.getServer().getAllLevels()) {
+            total += AnchorChunkLoader.cleanTickets(level);
+        }
+        final int finalTotal = total;
+        source.sendSuccess(() -> Component.literal(
+                "Released " + finalTotal + " chunk loading ticket(s). "
+                        + "Physics body (force-load) tickets were left untouched."), true);
         return 1;
     }
 

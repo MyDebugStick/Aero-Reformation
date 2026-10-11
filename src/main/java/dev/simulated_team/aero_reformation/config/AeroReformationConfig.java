@@ -14,6 +14,10 @@ public class AeroReformationConfig {
     public static final ModConfigSpec.IntValue MAX_ANCHOR_RADIUS;
     public static final ModConfigSpec.BooleanValue FILTER_PATCH_ENABLED;
     public static final ModConfigSpec.DoubleValue ANCHOR_TRACKING_RANGE;
+    public static final ModConfigSpec.BooleanValue RUNAWAY_PROTECTION_ENABLED;
+    public static final ModConfigSpec.DoubleValue RUNAWAY_MAX_SPEED;
+    public static final ModConfigSpec.IntValue RUNAWAY_STRIKES_TO_KILL;
+    public static final ModConfigSpec.IntValue RUNAWAY_STRIKE_WINDOW_TICKS;
     public static final ModConfigSpec.BooleanValue RADAR_ENABLED;
     public static final ModConfigSpec.IntValue RADAR_SCAN_SPLIT_SIZE;
     public static final ModConfigSpec.IntValue RADAR_SYNC_INTERVAL;
@@ -59,6 +63,22 @@ public class AeroReformationConfig {
         ANCHOR_TRACKING_RANGE = BUILDER
                 .comment("Tracking range in blocks for anchored SubLevels. Higher values prevent SubLevels from being removed by Sable when far away. Default 1024.")
                 .defineInRange("anchorTrackingRange", 1024.0, 64.0, Double.MAX_VALUE);
+        RUNAWAY_PROTECTION_ENABLED = BUILDER
+                .comment("Master switch for the runaway self-destruct guard on anchored SubLevels.",
+                        "When a craft starts moving absurd distances per tick the guard tears its anchors down",
+                        "to stop it from stalling the server. Default true.")
+                .define("runawayProtectionEnabled", true);
+        RUNAWAY_MAX_SPEED = BUILDER
+                .comment("Blocks per tick above which a move counts as one runaway strike. Default 500.",
+                        "A single strike is never fatal — the guard requires several inside a short window,",
+                        "so an ordinary teleport will not destroy a healthy craft.")
+                .defineInRange("runawayMaxSpeed", 500.0, 16.0, Double.MAX_VALUE);
+        RUNAWAY_STRIKES_TO_KILL = BUILDER
+                .comment("Strikes needed inside the window before the craft self-destructs. Default 3.")
+                .defineInRange("runawayStrikesToKill", 3, 2, 100);
+        RUNAWAY_STRIKE_WINDOW_TICKS = BUILDER
+                .comment("Length in ticks of the rolling window that strikes are counted over. Default 20.")
+                .defineInRange("runawayStrikeWindowTicks", 20, 2, 200);
         BUILDER.pop();
 
         BUILDER.push("Create Radar Fix");
@@ -99,6 +119,10 @@ public class AeroReformationConfig {
     public static boolean filterPatchEnabled = true;
     public static int maxAnchorRadius = 5;
     public static double anchorTrackingRange = 1024.0;
+    public static boolean runawayProtectionEnabled = true;
+    public static double runawayMaxSpeed = 500.0;
+    public static int runawayStrikesToKill = 3;
+    public static int runawayStrikeWindowTicks = 20;
     public static boolean radarEnabled = false;
     public static int radarScanSplitSize = 512;
     public static int radarSyncInterval = 10;
@@ -114,6 +138,10 @@ public class AeroReformationConfig {
         filterPatchEnabled = FILTER_PATCH_ENABLED.get();
         maxAnchorRadius = MAX_ANCHOR_RADIUS.get();
         anchorTrackingRange = ANCHOR_TRACKING_RANGE.get();
+        runawayProtectionEnabled = RUNAWAY_PROTECTION_ENABLED.get();
+        runawayMaxSpeed = RUNAWAY_MAX_SPEED.get();
+        runawayStrikesToKill = RUNAWAY_STRIKES_TO_KILL.get();
+        runawayStrikeWindowTicks = RUNAWAY_STRIKE_WINDOW_TICKS.get();
         radarEnabled = RADAR_ENABLED.get();
         radarScanSplitSize = RADAR_SCAN_SPLIT_SIZE.get();
         radarSyncInterval = RADAR_SYNC_INTERVAL.get();
