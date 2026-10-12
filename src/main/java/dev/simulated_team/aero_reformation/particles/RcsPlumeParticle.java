@@ -21,7 +21,11 @@ public class RcsPlumeParticle extends TextureSheetParticle {
         this.lifetime = 15 + random.nextInt(6);
         this.gravity = 0.0f;
         this.hasPhysics = false;
-        this.friction = 0.94f;
+        // Almost no drag. A plume particle is spawned carrying the craft's own velocity, so any
+        // friction here eats that inherited velocity while the craft keeps going — the particle
+        // falls behind and the trail smears out backwards at speed. At 0.94 a 20-tick particle
+        // lost 71% of its speed. Exhaust in vacuum does not decelerate, so it should not.
+        this.friction = 0.995f;
 
         this.xd = vx;
         this.yd = vy;

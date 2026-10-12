@@ -491,14 +491,27 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
             // In guidance mode, throttle is determined server-side; use full for VFX
             float t = 0.5f + throttle * 0.5f;
 
-            // Spacing-based particle count: more particles at higher speed for consistent visual density
-            double targetSpacing = 0.3;
+            // Body velocity in blocks per tick, taken straight from sable's pose pair. The plume
+            // used to be spawned with the exhaust velocity alone, so at speed the craft simply
+            // outran its own particles and the trail broke into disconnected beads — that is the
+            // gap visible on fast craft. Inheriting the body velocity keeps the particles with the
+            // craft. A null (unresolved) sub-level degrades to v = 0, which reproduces the old
+            // behaviour exactly.
+            double vx = 0.0, vy = 0.0, vz = 0.0;
+            if (subLevel != null) {
+                final var nowPos = subLevel.logicalPose().position();
+                final var prevPos = subLevel.lastPose().position();
+                vx = nowPos.x() - prevPos.x();
+                vy = nowPos.y() - prevPos.y();
+                vz = nowPos.z() - prevPos.z();
+            }
+            final double bodySpeed = Math.sqrt(vx * vx + vy * vy + vz * vz);
 
             if (hasElectric) {
                 // Electric: plasma beam
                 float spd = (nozzleIdx == 0 ? 0.15f : 0.10f) * t;
                 float spr = (nozzleIdx == 0 ? 0.04f : 0.03f) * t;
-                int count = Math.max(1, Math.min(12, (int)Math.ceil(Math.abs(spd) / targetSpacing)));
+                int count = plumeParticleCount(bodySpeed, spd);
                 for (int i = 0; i < count; i++) {
                     double frac = count <= 1 ? 0.0 : (double) i / count;
                     double ox = (rand.nextDouble() - 0.5) * spr * 0.5;
@@ -506,18 +519,18 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                     double oz = (rand.nextDouble() - 0.5) * spr * 0.5;
                     level.addParticle(new RcsParticleData(true,
                                     worldDir.x, worldDir.y, worldDir.z, spd, spr),
-                            particleWorld.x + worldDir.x * spd * frac + ox,
-                            particleWorld.y + worldDir.y * spd * frac + oy,
-                            particleWorld.z + worldDir.z * spd * frac + oz,
-                            worldDir.x * spd,
-                            worldDir.y * spd,
-                            worldDir.z * spd);
+                            particleWorld.x - vx * frac + worldDir.x * spd * frac + ox,
+                            particleWorld.y - vy * frac + worldDir.y * spd * frac + oy,
+                            particleWorld.z - vz * frac + worldDir.z * spd * frac + oz,
+                            vx + worldDir.x * spd,
+                            vy + worldDir.y * spd,
+                            vz + worldDir.z * spd);
                 }
             } else {
                 // Fuel: plume
                 float spd = (nozzleIdx == 0 ? 0.18f : 0.12f) * t;
                 float spr = (nozzleIdx == 0 ? 0.03f : 0.02f) * t;
-                int count = Math.max(1, Math.min(12, (int)Math.ceil(Math.abs(spd) / targetSpacing)));
+                int count = plumeParticleCount(bodySpeed, spd);
                 for (int i = 0; i < count; i++) {
                     double frac = count <= 1 ? 0.0 : (double) i / count;
                     double ox = (rand.nextDouble() - 0.5) * spr * 0.5;
@@ -525,12 +538,12 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                     double oz = (rand.nextDouble() - 0.5) * spr * 0.5;
                     level.addParticle(new RcsParticleData(false,
                                     worldDir.x, worldDir.y, worldDir.z, spd, spr),
-                            particleWorld.x + worldDir.x * spd * frac + ox,
-                            particleWorld.y + worldDir.y * spd * frac + oy,
-                            particleWorld.z + worldDir.z * spd * frac + oz,
-                            worldDir.x * spd,
-                            worldDir.y * spd,
-                            worldDir.z * spd);
+                            particleWorld.x - vx * frac + worldDir.x * spd * frac + ox,
+                            particleWorld.y - vy * frac + worldDir.y * spd * frac + oy,
+                            particleWorld.z - vz * frac + worldDir.z * spd * frac + oz,
+                            vx + worldDir.x * spd,
+                            vy + worldDir.y * spd,
+                            vz + worldDir.z * spd);
                 }
             }
         }
@@ -542,6 +555,45 @@ public class RcsThrusterBlockEntity extends SmartBlockEntity implements BlockEnt
                     0.6f, hasElectric ? 1.5f : 0.8f + rand.nextFloat() * 0.4f, false);
         }
         prevActiveMask = activeNozzleMask;
+    }
+
+    /**
+     * Distance between consecutive plume particles, in blocks.
+     *
+     * <p>Raised to 0.9: the density compensation is wanted, but at a third of the originally
+     * planned particle output.
+     */
+    private static final double PLUME_PARTICLE_SPACING = 0.9;
+    /** Hard cap per nozzle per tick, so a very fast craft cannot flood the particle engine. */
+    private static final int MAX_PLUME_PARTICLES = 12;
+
+    /**
+     * Master switch for the spacing-based particle count.
+     *
+     * <p><b>Off.</b> When enabled, the count rises with craft speed and the extra particles are
+     * laid back along the trajectory to fill the gaps. That reads well at moderate speed, but at
+     * high speed it stutters: particles are emitted in tick-sized clumps (20/s) while rendering
+     * runs per frame (60+), so each clump appears as a discrete step instead of a continuous
+     * stream. Kept as a switch rather than deleted — the idea is sound, it just needs per-frame
+     * emission to be smooth.
+     */
+    private static final boolean PLUME_DENSITY_COMPENSATION = false;
+
+    /**
+     * How many particles a nozzle should emit this tick.
+     *
+     * <p>When {@link #PLUME_DENSITY_COMPENSATION} is on, the count follows the distance the craft
+     * actually covers per tick, so the trail stays continuous as speed rises. The old code
+     * divided the <em>exhaust</em> speed here — a constant around 0.18 — which made the result a
+     * constant 1 and left the "more particles at higher speed" comment describing behaviour that
+     * never happened. The exhaust speed is kept as a floor so a stationary craft still shows a
+     * plume.
+     */
+    private static int plumeParticleCount(final double bodySpeed, final double exhaustSpeed) {
+        if (!PLUME_DENSITY_COMPENSATION) return 1;
+        final double stride = Math.max(bodySpeed, Math.abs(exhaustSpeed));
+        return Math.max(1, Math.min(MAX_PLUME_PARTICLES,
+                (int) Math.ceil(stride / PLUME_PARTICLE_SPACING)));
     }
 
     @Override

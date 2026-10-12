@@ -23,7 +23,9 @@ public class RcsPlasmaParticle extends TextureSheetParticle {
         this.quadSize = 0.12f + random.nextFloat() * 0.01f;
         this.lifetime = 15 + random.nextInt(6);
         this.gravity = 0.0f;
-        this.friction = 0.97f;
+        // Almost no drag — see RcsPlumeParticle. The particle inherits the craft's velocity, so
+        // friction here bleeds off the inherited part and leaves the trail dragging behind.
+        this.friction = 0.995f;
         this.hasPhysics = false;
 
         this.xd = vx;
